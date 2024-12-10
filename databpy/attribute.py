@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Type
+from typing import Type, Union
 import bpy
 import numpy as np
+from numpy import typing as npt
 
 from pathlib import Path
 
@@ -107,7 +108,7 @@ class AttributeTypes(Enum):
     )
 
 
-def guess_atype_from_array(array: np.ndarray) -> AttributeType:
+def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
     if not isinstance(array, np.ndarray):
         raise ValueError(f"`array` must be a numpy array, not {type(array)=}")
 
@@ -170,21 +171,6 @@ class Attribute:
     def n_values(self) -> int:
         return np.prod(self.shape, dtype=int)
 
-    @classmethod
-    def from_object(
-        cls,
-        obj: bpy.types.Object,
-        name: str,
-        atype: AttributeType,
-        domain: DomainType,
-    ):
-        att = obj.data.get(name)
-        if att is None:
-            att = obj.data.attributes.new(
-                name=name, type=atype.value.type_name, domain=domain.value.name
-            )
-        return Attribute(att)
-
     def from_array(self, array: np.ndarray) -> None:
         """
         Set the attribute data from a numpy array
@@ -196,7 +182,7 @@ class Attribute:
 
         self.attribute.data.foreach_set(self.value_name, array.reshape(-1))
 
-    def as_array(self) -> np.ndarray:
+    def as_array(self) -> Union[npt.ArrayLike, bool, int, float]:
         """
         Returns the attribute data as a numpy array
         """
@@ -221,7 +207,7 @@ def store_named_attribute(
     obj: bpy.types.Object,
     data: np.ndarray,
     name: str,
-    atype: str | AttributeType | None = None,
+    atype: str | AttributeTypes | None = None,
     domain: str | DomainType = Domains.POINT,
     overwrite: bool = True,
 ) -> bpy.types.Attribute:
@@ -251,6 +237,23 @@ def store_named_attribute(
     -------
     bpy.types.Attribute
         The added attribute.
+
+    Examples
+    --------
+    ```{python}
+    import bpy
+    import numpy as np
+    from databpy import store_named_attribute, named_attribute
+
+    obj = bpy.data.objects['Cube']
+    data = np.random.rand(len(obj.data.vertices), 3)
+
+    print(named_attribute(obj, 'position')) # get the vertex positions as as numpy array
+
+    store_named_attribute(obj, data, 'position') # set the vertex positions with random data
+
+    named_attribute(obj, 'position') # get the updated vertex positions
+    ```
     """
 
     if isinstance(atype, str):
@@ -294,25 +297,45 @@ def store_named_attribute(
     return attribute
 
 
-def evaluate_object(obj: bpy.types.Object):
+def evaluate_object(obj: bpy.types.Object) -> bpy.types.Object:
     "Return an object which has the modifiers evaluated."
     obj.update_tag()
-    return obj.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    eval_obj: bpy.types.Object = obj.evaluated_get(  # type: ignore
+        bpy.context.evaluated_depsgraph_get()  # type: ignore
+    )
+    return eval_obj
 
 
 def named_attribute(
     obj: bpy.types.Object, name="position", evaluate=False
-) -> np.ndarray:
+) -> npt.ArrayLike:
     """
     Get the named attribute data from the object, optionally evaluating modifiers first.
 
-    Parameters:
-        object (bpy.types.Object): The Blender object.
-        name (str, optional): The name of the attribute. Defaults to 'position'.
+    Parameters
+    ----------
+    obj : bpy.types.Object
+        The Blender object.
+    name : str, optional
+        The name of the attribute. Defaults to 'position'.
+    evaluate : bool, optional
+        Whether to evaluate the object's modifiers before getting the attribute. Defaults to False.
 
-    Returns:
-        np.ndarray: The attribute data as a numpy array.
+    Returns
+    -------
+    np.ndarray or bool or int or float
+        The attribute data as a numpy array, or a single value if the attribute is 1D.
+
+    Examples
+    --------
+    ```{python}
+    import bpy
+    from databpy import named_attribute
+    obj = bpy.data.objects['Cube']
+    named_attribute(obj, 'position') # get the vertex positions as as numpy array
+    ```
     """
+
     if evaluate:
         obj = evaluate_object(obj)
     verbose = False

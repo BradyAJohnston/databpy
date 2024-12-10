@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "databpy"
+version = "0.0.1"
+description = "A data-oriented wrapper library for the Blender Python API"
+authors = ["Brady Johnston <brady.johnston@me.com>"]
+license = "GPL-3.0"
+readme = "README.md"
+homepage = "https://bradyajohnston.github.io/databpy"
+repository = "https://github.com/bradyajohnston/databpy"
+documentation = "https://bradyajohnston.github.io/databpy"
+
+
+[tool.poetry.dependencies]
+python = "~=3.11.0"
+bpy = "~=4.2"
+numpy = ">=1.26.0,<2.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+pytest-cov = "*"
+syrupy = "*"
+quartodoc = "*"
+tomlkit = "*"
+
+
+[build-system]
+requires = ["poetry-core>=1.1.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.setuptools_scm]

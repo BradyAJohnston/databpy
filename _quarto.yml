@@ -1,0 +1,45 @@
+project:
+  type: website
+  output-dir: _build
+
+filters: 
+  - interlinks
+
+interlinks:
+  sources:
+    numpy:
+      url: https://numpy.org/doc/stable/
+
+website:
+  title: "databpy"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: api/index.qmd
+        text: API
+# tell quarto to read the generated sidebar
+metadata-files:
+  - api/_sidebar.yml
+
+# tell quarto to read the generated styles
+# format:
+#   css:
+#     - api/_styles-quartodoc.css
+
+quartodoc:
+  # the name used to import the package you want to create reference docs for
+  package: databpy
+  dir: api
+
+  # write sidebar and style data
+  # sidebar: api/_sidebar.yml
+  # css: api/_styles-quartodoc.css
+
+  sections:
+    - title: Attribute
+      desc: For interacting with attributes on meshes
+      contents: 
+        - attribute.named_attribute
+        - attribute.store_named_attribute
+        - BlenderObject

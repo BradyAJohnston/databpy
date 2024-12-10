@@ -1,2 +1,8 @@
 
 *.pyc
+
+/.quarto/
+/_build
+/reference
+/dist
+/api

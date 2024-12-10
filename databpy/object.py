@@ -1,6 +1,8 @@
 import bpy
 from bpy.types import Object
 import numpy as np
+from typing import Union
+from numpy import typing as npt
 from .attribute import (
     AttributeTypes,
     AttributeType,
@@ -82,9 +84,20 @@ class ObjectTracker:
 class BlenderObject:
     """
     A convenience class for working with Blender objects
+
+    Examples
+    --------
+    ```{python}
+    import bpy
+    import numpy as np
+    from databpy import BlenderObject
+    obj = BlenderObject(bpy.data.objects['Cube'])
+    print(obj.name)
+    print(obj.object)
+    ```
     """
 
-    def __init__(self, obj: Object | None):
+    def __init__(self, obj: Object):
         """
         Initialize the BlenderObject.
 
@@ -95,7 +108,10 @@ class BlenderObject:
         """
         if not isinstance(obj, Object):
             raise ValueError(f"{obj} must be a Blender object of type Object")
-        self._object = obj
+        self._object_name = obj.name
+        self.uuid = None
+        if hasattr(obj, "mn"):
+            self.uuid = obj.mn.uuid
 
     @property
     def object(self) -> Object | None:
@@ -107,30 +123,17 @@ class BlenderObject:
         Object | None
             The Blender object, or None if not found.
         """
-        # If we don't have connection to an object, attempt to re-stablish to a new
-        # object in the scene with the same UUID. This helps if duplicating / deleting
-        # objects in the scene, but sometimes Blender just loses reference to the object
-        # we are working with because we are manually setting the data on the mesh,
-        # which can wreak havoc on the object database. To protect against this,
-        # if we have a broken link we just attempt to find a new suitable object for it
         try:
-            # if the connection is broken then trying to the name will raise a connection
-            # error. If we are loading from a saved session then the object_ref will be
-            # None and get an AttributeError
-            self._object.name
-            return self._object
-        except (ReferenceError, AttributeError):
-            for obj in bpy.data.objects:
-                if obj.mn.uuid == self.uuid:
-                    print(
-                        Warning(
-                            f"Lost connection to object: {self._object}, now connected to {obj}"
-                        )
-                    )
-                    self._object = obj
-                    return obj
+            return bpy.data.objects[self._object_name]  # type: ignore
+        except KeyError:
+            if self.uuid:
+                for potential_obj in bpy.data.objects:  # type: ignore
+                    if potential_obj.mn.uuid == self.uuid:
+                        return potential_obj
 
-            return None
+            raise ObjectMissingError(
+                f"Object {self._object_name} not found in bpy.data.objects"
+            )
 
     @object.setter
     def object(self, value: Object) -> None:
@@ -142,13 +145,15 @@ class BlenderObject:
         value : Object
             The Blender object to set.
         """
-        self._object = value
+        if not isinstance(value, Object):
+            raise ValueError(f"{value} must be a Blender object of type Object")
+        self._object_name = value.name
 
     def store_named_attribute(
         self,
         data: np.ndarray,
         name: str,
-        atype: str | AttributeType | None = None,
+        atype: str | AttributeTypes | None = None,
         domain: str | DomainType = Domains.POINT,
     ) -> None:
         """
@@ -174,7 +179,6 @@ class BlenderObject:
         attr.store_named_attribute(
             self.object, data=data, name=name, atype=atype, domain=domain
         )
-        return self
 
     def remove_named_attribute(self, name: str) -> None:
         """
@@ -187,7 +191,9 @@ class BlenderObject:
         """
         attr.remove_named_attribute(self.object, name=name)
 
-    def named_attribute(self, name: str, evaluate: bool = False) -> np.ndarray:
+    def named_attribute(
+        self, name: str, evaluate: bool = False
+    ) -> Union[npt.ArrayLike, bool, int, float]:
         """
         Retrieve a named attribute from the object.
 
@@ -199,10 +205,16 @@ class BlenderObject:
             Name of the attribute to get.
         evaluate : bool, optional
             Whether to evaluate the object before reading the attribute (default is False).
-        Returns
-        -------
-        np.ndarray
-            The attribute read from the mesh as a numpy array.
+
+        Examples
+        --------
+        ```{python}
+        import bpy
+        from databpy import BlenderObject
+
+        bob = BlenderObject(bpy.data.objects['Cube'])
+        bob.named_attribute('position')
+        ```
         """
         return attr.named_attribute(self.object, name=name, evaluate=evaluate)
 
