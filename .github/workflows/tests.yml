@@ -38,7 +38,7 @@ jobs:
             - name: Run tests
               run: |
                 source .venv/bin/activate
-                pytest -vv --cov=databpy 
+                pytest -vv --cov=databpy --cov-report=xml
     
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v5
