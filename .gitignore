@@ -1,0 +1,9 @@
+
+*.pyc
+
+/.quarto/
+/_build
+/reference
+/dist
+/api
+/databpy.egg-info

@@ -1,0 +1,22 @@
+[project]
+name = "databpy"
+version = "0.0.1"
+description = "A data-oriented wrapper library for the Blender Python API"
+readme = "README.md"
+dependencies = ["bpy~=4.2", "numpy>=1.26.0,<2.0"]
+requires-python = "~=3.11.0"
+keywords = ["blender", "python", "numpy"]
+maintainers = [
+    {name="Brady Johnston", email="brady.johnston@me.com"},
+    ]
+
+[project.urls]
+Homepage = "https://bradyajohnston.github.io/databpy"
+Repository = "https://github.com/bradyajohnston/databpy"
+Dcumentation = "https://bradyajohnston.github.io/databpy"
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov", "syrupy"]
+docs = ["quartodoc", "jupyter"]
+
+
