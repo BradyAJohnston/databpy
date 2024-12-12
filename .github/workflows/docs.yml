@@ -31,7 +31,6 @@ jobs:
             cd docs
             quartodoc build
             quarto render
-            cd ..
 
 
       - name: Publish to GitHub Pages (and render)
