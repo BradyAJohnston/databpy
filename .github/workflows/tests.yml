@@ -38,14 +38,14 @@ jobs:
             - name: Run tests
               run: |
                 source .venv/bin/activate
-                pytest -vv --cov=databpy --cov-report=xml:coverage.xml
+                pytest -vv --cov=databpy 
     
-            - name: Expose coverage as a CI download 
-              uses: actions/upload-artifact@v4
+            - name: Upload coverage reports to Codecov
+              uses: codecov/codecov-action@v5
               if: matrix.os == 'macos-14' && matrix.version == '4.2'
               with:
+                token: ${{ secrets.CODECOV_TOKEN }}
                 name: coverage.xml
-                path: coverage.xml
 
             - name: Upload coverage reports to Codecov
               if: matrix.os == 'maxos-14' && matrix.version == '4.2'
