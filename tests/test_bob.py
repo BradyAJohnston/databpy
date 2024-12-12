@@ -3,6 +3,8 @@ import bpy
 import numpy as np
 import pytest
 
+np.random.seed(11)
+
 
 def test_get_position(snapshot):
     bpy.ops.wm.read_factory_settings()
