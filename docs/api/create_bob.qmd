@@ -1,0 +1,13 @@
+# create_bob { #databpy.create_bob }
+
+```python
+create_bob(
+    vertices=None,
+    edges=None,
+    faces=None,
+    name='NewObject',
+    collection=None,
+)
+```
+
+Create an object but return it wrapped as a BlenderObject

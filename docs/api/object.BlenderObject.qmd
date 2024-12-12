@@ -1,0 +1,236 @@
+# object.BlenderObject { #databpy.object.BlenderObject }
+
+```python
+object.BlenderObject(self, obj)
+```
+
+A convenience class for working with Blender objects
+
+## Examples {.doc-section .doc-section-examples}
+
+```{python}
+import bpy
+import numpy as np
+from databpy import BlenderObject
+obj = BlenderObject(bpy.data.objects['Cube'])
+print(obj.name)
+print(obj.object)
+```
+
+## Attributes
+
+| Name | Description |
+| --- | --- |
+| [attributes](#databpy.object.BlenderObject.attributes) | Get the attributes of the Blender object. |
+| [edges](#databpy.object.BlenderObject.edges) | Get the edges of the Blender object. |
+| [name](#databpy.object.BlenderObject.name) | Get the name of the Blender object. |
+| [object](#databpy.object.BlenderObject.object) | Get the Blender object. |
+| [position](#databpy.object.BlenderObject.position) | Get the position of the vertices of the Blender object. |
+| [selected](#databpy.object.BlenderObject.selected) | Get the selected vertices of the Blender object. |
+| [vertices](#databpy.object.BlenderObject.vertices) | Get the vertices of the Blender object. |
+
+## Methods
+
+| Name | Description |
+| --- | --- |
+| [centroid](#databpy.object.BlenderObject.centroid) | Return the centroid, potentially weighted by an attribute. |
+| [evaluate](#databpy.object.BlenderObject.evaluate) | Evaluate the object and return a new BlenderObject with the evaluated object. |
+| [list_attributes](#databpy.object.BlenderObject.list_attributes) | Returns a list of attribute names for the object. |
+| [named_attribute](#databpy.object.BlenderObject.named_attribute) | Retrieve a named attribute from the object. |
+| [remove_named_attribute](#databpy.object.BlenderObject.remove_named_attribute) | Remove a named attribute from the object. |
+| [selected_positions](#databpy.object.BlenderObject.selected_positions) | Get the positions of the selected vertices, optionally filtered by a mask. |
+| [set_boolean](#databpy.object.BlenderObject.set_boolean) | Store a boolean attribute on the Blender object. |
+| [store_named_attribute](#databpy.object.BlenderObject.store_named_attribute) | Store a named attribute on the Blender object. |
+| [transform_origin](#databpy.object.BlenderObject.transform_origin) | Transform the origin of the Blender object. |
+| [transform_points](#databpy.object.BlenderObject.transform_points) | Transform the points of the Blender object. |
+
+### centroid { #databpy.object.BlenderObject.centroid }
+
+```python
+object.BlenderObject.centroid(weight=None)
+```
+
+Return the centroid, potentially weighted by an attribute.
+
+If the weight is a string, an attribute of that name is attempted to be accessed
+on the mesh. If an array is given that array is used as weights. A value of None
+returns just the centroid calculation.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                      | Description                                                                            | Default   |
+|--------|---------------------------|----------------------------------------------------------------------------------------|-----------|
+| weight | str \| np.ndarray \| None | The weights to apply to the positions when calculating the centroid. Defaults to None. | `None`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                                        |
+|--------|------------|----------------------------------------------------|
+|        | np.ndarray | A 3-component vector with the calculated centroid. |
+
+### evaluate { #databpy.object.BlenderObject.evaluate }
+
+```python
+object.BlenderObject.evaluate()
+```
+
+Evaluate the object and return a new BlenderObject with the evaluated object.
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type          | Description                                    |
+|--------|---------------|------------------------------------------------|
+|        | BlenderObject | A new BlenderObject with the evaluated object. |
+
+### list_attributes { #databpy.object.BlenderObject.list_attributes }
+
+```python
+object.BlenderObject.list_attributes(evaluate=False, drop_hidden=False)
+```
+
+Returns a list of attribute names for the object.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type   | Description                                                                                    | Default   |
+|-------------|--------|------------------------------------------------------------------------------------------------|-----------|
+| evaluate    | bool   | Whether to first evaluate the modifiers on the object before listing the available attributes. | `False`   |
+| drop_hidden | bool   | Whether to drop hidden attributes (those starting with a dot). Defaults to False.              | `False`   |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                | Description                                                              |
+|--------|---------------------|--------------------------------------------------------------------------|
+|        | list\[str\] \| None | A list of attribute names if the molecule object exists, None otherwise. |
+
+### named_attribute { #databpy.object.BlenderObject.named_attribute }
+
+```python
+object.BlenderObject.named_attribute(name, evaluate=False)
+```
+
+Retrieve a named attribute from the object.
+
+Optionally, evaluate the object before reading the named attribute
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type   | Description                                                                     | Default    |
+|----------|--------|---------------------------------------------------------------------------------|------------|
+| name     | str    | Name of the attribute to get.                                                   | _required_ |
+| evaluate | bool   | Whether to evaluate the object before reading the attribute (default is False). | `False`    |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```{python}
+import bpy
+from databpy import BlenderObject
+
+bob = BlenderObject(bpy.data.objects['Cube'])
+bob.named_attribute('position')
+```
+
+### remove_named_attribute { #databpy.object.BlenderObject.remove_named_attribute }
+
+```python
+object.BlenderObject.remove_named_attribute(name)
+```
+
+Remove a named attribute from the object.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type   | Description                          | Default    |
+|--------|--------|--------------------------------------|------------|
+| name   | str    | The name of the attribute to remove. | _required_ |
+
+### selected_positions { #databpy.object.BlenderObject.selected_positions }
+
+```python
+object.BlenderObject.selected_positions(mask=None)
+```
+
+Get the positions of the selected vertices, optionally filtered by a mask.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type               | Description                                                 | Default   |
+|--------|--------------------|-------------------------------------------------------------|-----------|
+| mask   | np.ndarray \| None | The mask to filter the selected vertices. Defaults to None. | `None`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type       | Description                             |
+|--------|------------|-----------------------------------------|
+|        | np.ndarray | The positions of the selected vertices. |
+
+### set_boolean { #databpy.object.BlenderObject.set_boolean }
+
+```python
+object.BlenderObject.set_boolean(array, name)
+```
+
+Store a boolean attribute on the Blender object.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type       | Description                                    | Default    |
+|--------|------------|------------------------------------------------|------------|
+| array  | np.ndarray | The boolean data to be stored as an attribute. | _required_ |
+| name   | str        | The name for the attribute.                    | _required_ |
+
+### store_named_attribute { #databpy.object.BlenderObject.store_named_attribute }
+
+```python
+object.BlenderObject.store_named_attribute(
+    data,
+    name,
+    atype=None,
+    domain=Domains.POINT,
+)
+```
+
+Store a named attribute on the Blender object.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type                         | Description                                                                                                                                                           | Default         |
+|--------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
+| data   | np.ndarray                   | The data to be stored as an attribute.                                                                                                                                | _required_      |
+| name   | str                          | The name for the attribute. Will overwrite an already existing attribute.                                                                                             | _required_      |
+| atype  | str or AttributeType or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array. | `None`          |
+| domain | str or DomainType            | The domain to store the attribute on. Defaults to Domains.POINT.                                                                                                      | `Domains.POINT` |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description   |
+|--------|--------|---------------|
+|        | self   |               |
+
+### transform_origin { #databpy.object.BlenderObject.transform_origin }
+
+```python
+object.BlenderObject.transform_origin(matrix)
+```
+
+Transform the origin of the Blender object.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type   | Description                                       | Default    |
+|--------|--------|---------------------------------------------------|------------|
+| matrix | Matrix | The transformation matrix to apply to the origin. | _required_ |
+
+### transform_points { #databpy.object.BlenderObject.transform_points }
+
+```python
+object.BlenderObject.transform_points(matrix)
+```
+
+Transform the points of the Blender object.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name   | Type   | Description                                       | Default    |
+|--------|--------|---------------------------------------------------|------------|
+| matrix | Matrix | The transformation matrix to apply to the points. | _required_ |

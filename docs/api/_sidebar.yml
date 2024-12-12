@@ -1,0 +1,18 @@
+website:
+  sidebar:
+  - contents:
+    - api/index.qmd
+    - contents:
+      - api/named_attribute.qmd
+      - api/store_named_attribute.qmd
+      section: Attribute
+    - contents:
+      - api/create_collection.qmd
+      section: Collections
+    - contents:
+      - api/BlenderObject.qmd
+      - api/create_object.qmd
+      - api/create_bob.qmd
+      section: Objects
+    id: api
+  - id: dummy-sidebar

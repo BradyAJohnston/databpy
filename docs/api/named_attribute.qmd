@@ -1,0 +1,33 @@
+# named_attribute { #databpy.named_attribute }
+
+```python
+named_attribute(obj, name='position', evaluate=False)
+```
+
+Get the named attribute data from the object, optionally evaluating modifiers first.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type             | Description                                                                                 | Default      |
+|----------|------------------|---------------------------------------------------------------------------------------------|--------------|
+| obj      | bpy.types.Object | The Blender object.                                                                         | _required_   |
+| name     | str              | The name of the attribute. Defaults to 'position'.                                          | `'position'` |
+| evaluate | bool             | Whether to evaluate the object's modifiers before getting the attribute. Defaults to False. | `False`      |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                               | Description                                                                    |
+|--------|------------------------------------|--------------------------------------------------------------------------------|
+|        | np.ndarray or bool or int or float | The attribute data as a numpy array, or a single value if the attribute is 1D. |
+
+## Examples {.doc-section .doc-section-examples}
+
+All data inside of Blender is stored as arbitrary attributes on a mesh, on a certain domain.
+We will mostly only interact with the 'POINT' domain, which is the vertices of the mesh.
+
+```{python}
+import bpy
+from databpy import named_attribute
+obj = bpy.data.objects['Cube']
+named_attribute(obj, 'position') # get the vertex positions as as numpy array
+```

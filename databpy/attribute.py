@@ -357,6 +357,23 @@ def named_attribute(
 def remove_named_attribute(
     obj: bpy.types.Object, name: str, domain: str | DomainType = Domains.POINT
 ):
+    """
+    Remove a named attribute from a Blender object.
+
+    Parameters
+    ----------
+    obj : bpy.types.Object
+        The Blender object from which the attribute will be removed.
+    name : str
+        The name of the attribute to remove.
+    domain : str or DomainType, optional
+        The domain of the attribute, by default Domains.POINT.
+
+    Raises
+    ------
+    AttributeError
+        If the attribute with the specified name does not exist on the mesh.
+    """
     try:
         attr = obj.data.attributes[name]
         obj.data.attributes.remove(attr)

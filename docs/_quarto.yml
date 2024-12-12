@@ -25,13 +25,22 @@ quartodoc:
   dir: api
 
   # write sidebar and style data
-  # sidebar: api/_sidebar.yml
+  sidebar: api/_sidebar.yml
   # css: api/_styles-quartodoc.css
 
   sections:
     - title: Attribute
       desc: For interacting with attributes on meshes
-      contents: 
-        - attribute.named_attribute
-        - attribute.store_named_attribute
+      contents:
+        - named_attribute
+        - store_named_attribute
+    - title: Collections
+      desc: Working with collections in Blender
+      contents:
+        - create_collection
+    - title: Objects
+      contents:
+        # - object.ObjectTracker
         - BlenderObject
+        - create_object
+        - create_bob

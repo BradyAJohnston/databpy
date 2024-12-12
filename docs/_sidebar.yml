@@ -1,0 +1,14 @@
+website:
+  sidebar:
+  - contents:
+    - api/index.qmd
+    - contents:
+      - api/attribute.named_attribute.qmd
+      - api/attribute.store_named_attribute.qmd
+      section: Attribute
+    - contents:
+      - api/collection.qmd
+      - api/BlenderObject.qmd
+      section: Objects
+    id: api
+  - id: dummy-sidebar

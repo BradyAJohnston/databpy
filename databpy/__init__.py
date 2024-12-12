@@ -1,4 +1,5 @@
 from .object import ObjectTracker, BlenderObject, create_object, create_bob
+from .collection import create_collection
 from .vdb import import_vdb
 from .utils import centre, lerp
 from .attribute import (
