@@ -7,3 +7,4 @@
 /dist
 /api
 /databpy.egg-info
+/docs/_build

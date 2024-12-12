@@ -1,0 +1,48 @@
+# attribute.store_named_attribute { #databpy.attribute.store_named_attribute }
+
+```python
+attribute.store_named_attribute(
+    obj,
+    data,
+    name,
+    atype=None,
+    domain=Domains.POINT,
+    overwrite=True,
+)
+```
+
+Adds and sets the values of an attribute on the object.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name      | Type                 | Description                                                                                                                                                                              | Default         |
+|-----------|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
+| obj       | bpy.types.Object     | The Blender object.                                                                                                                                                                      | _required_      |
+| name      | str                  | The name of the attribute.                                                                                                                                                               | _required_      |
+| data      | np.ndarray           | The attribute data as a numpy array.                                                                                                                                                     | _required_      |
+| atype     | (str, AttributeType) | The attribute type to store the data as. One of the AttributeType enums or a string of the same name. 'FLOAT_VECTOR', 'FLOAT_COLOR', 'FLOAT4X4', 'QUATERNION', 'FLOAT', 'INT', 'BOOLEAN' | `None`          |
+| domain    | str                  | The domain of the attribute. Defaults to 'POINT'. Currently, only 'POINT', 'EDGE', and 'FACE' have been tested.                                                                          | `Domains.POINT` |
+| overwrite | bool                 | Setting to false will create a new attribute if the given name is already an attribute on the mesh.                                                                                      | `True`          |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                | Description          |
+|--------|---------------------|----------------------|
+|        | bpy.types.Attribute | The added attribute. |
+
+## Examples {.doc-section .doc-section-examples}
+
+```{python}
+import bpy
+import numpy as np
+from databpy import store_named_attribute, named_attribute
+
+obj = bpy.data.objects['Cube']
+data = np.random.rand(len(obj.data.vertices), 3)
+
+print(named_attribute(obj, 'position')) # get the vertex positions as as numpy array
+
+store_named_attribute(obj, data, 'position') # set the vertex positions with random data
+
+named_attribute(obj, 'position') # get the updated vertex positions
+```

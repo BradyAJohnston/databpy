@@ -1,0 +1,11 @@
+# Function reference {.doc .doc-index}
+
+## Attribute
+
+For interacting with attributes on meshes
+
+| | |
+| --- | --- |
+| [attribute.named_attribute](attribute.named_attribute.qmd#databpy.attribute.named_attribute) | Get the named attribute data from the object, optionally evaluating modifiers first. |
+| [attribute.store_named_attribute](attribute.store_named_attribute.qmd#databpy.attribute.store_named_attribute) | Adds and sets the values of an attribute on the object. |
+| [BlenderObject](BlenderObject.qmd#databpy.BlenderObject) | A convenience class for working with Blender objects |

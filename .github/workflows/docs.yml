@@ -1,0 +1,41 @@
+name: docs-build-deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    env:
+      BLENDER_VERSION: blender-4.2.0-linux-x64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: quarto-dev/quarto-actions/setup@v2
+      - uses: actions/setup-python@v5
+        with:
+            python-version: "3.11.7"
+            cache: pip
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v4
+        with:
+            version: "latest"
+      - name: Build Docs
+        run: |
+            uv venv --python=3.11
+            source .venv/bin/activate
+            uv pip install -r pyproject.toml --all-extras
+            cd docs
+            quartodoc build
+            quarto render
+            cd ..
+
+
+      - name: Publish to GitHub Pages (and render)
+        uses: quarto-dev/quarto-actions/publish@v2
+        with:
+            target: gh-pages
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
