@@ -1,30 +1,24 @@
-[tool.poetry]
+[project]
 name = "databpy"
 version = "0.0.1"
 description = "A data-oriented wrapper library for the Blender Python API"
-authors = ["Brady Johnston <brady.johnston@me.com>"]
-license = "GPL-3.0"
 readme = "README.md"
-homepage = "https://bradyajohnston.github.io/databpy"
-repository = "https://github.com/bradyajohnston/databpy"
-documentation = "https://bradyajohnston.github.io/databpy"
+dependencies = ["bpy~=4.2", "numpy>=1.26.0,<2.0"]
+requires-python = "~=3.11.0"
+keywords = ["blender", "python", "numpy"]
+maintainers = [
+    {name="Brady Johnston", email="brady.johnston@me.com"},
+    ]
+
+[project.urls]
+Homepage = "https://bradyajohnston.github.io/databpy"
+Repository = "https://github.com/bradyajohnston/databpy"
+Dcumentation = "https://bradyajohnston.github.io/databpy"
 
 
-[tool.poetry.dependencies]
-python = "~=3.11.0"
-bpy = "~=4.2"
-numpy = ">=1.26.0,<2.0"
 
-[tool.poetry.dev-dependencies]
-pytest = "*"
-pytest-cov = "*"
-syrupy = "*"
-quartodoc = "*"
-tomlkit = "*"
+# [project.optional-dependencies]
+# test = ["pytest", "pytest-cov", "syrupy"]
+# docs = ["quartodoc", "jupyter"]
 
 
-[build-system]
-requires = ["poetry-core>=1.1.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.setuptools_scm]

@@ -328,6 +328,9 @@ def named_attribute(
 
     Examples
     --------
+    All data inside of Blender is stored as arbitrary attributes on a mesh, on a certain domain.
+    We will mostly only interact with the 'POINT' domain, which is the vertices of the mesh.
+
     ```{python}
     import bpy
     from databpy import named_attribute
