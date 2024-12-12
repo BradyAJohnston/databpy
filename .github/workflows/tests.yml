@@ -34,16 +34,19 @@ jobs:
                 uv pip install -r pyproject.toml --all-extras
                 uv pip install -e .
                 uv pip install bpy==${{ matrix.version }}
+            
+            - name: Run tests
+              run: |
                 pytest -vv --cov=databpy --cov-report=xml:coverage.xml
     
             - name: Expose coverage as a CI download 
               uses: actions/upload-artifact@v4
-              if: matrix.os == 'ubuntu-latest' && matrix.version == '4.2'
+              if: matrix.os == 'macos-14' && matrix.version == '4.2'
               with:
                 name: coverage.xml
                 path: coverage.xml
 
             - name: Upload coverage reports to Codecov
-              if: matrix.os == 'ubuntu-latest'
+              if: matrix.os == 'maxos-14' && matrix.version == '4.2'
               uses: codecov/codecov-action@v3
     
