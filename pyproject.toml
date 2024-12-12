@@ -15,10 +15,8 @@ Homepage = "https://bradyajohnston.github.io/databpy"
 Repository = "https://github.com/bradyajohnston/databpy"
 Dcumentation = "https://bradyajohnston.github.io/databpy"
 
-
-
-# [project.optional-dependencies]
-# test = ["pytest", "pytest-cov", "syrupy"]
-# docs = ["quartodoc", "jupyter"]
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov", "syrupy"]
+docs = ["quartodoc", "jupyter"]
 
 
