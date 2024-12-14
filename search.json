@@ -149,7 +149,7 @@
     "href": "api/attribute.store_named_attribute.html#examples",
     "title": "attribute.store_named_attribute",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import store_named_attribute, named_attribute\n\nobj = bpy.data.objects['Cube']\ndata = np.random.rand(len(obj.data.vertices), 3)\n\nprint(named_attribute(obj, 'position')) # get the vertex positions as as numpy array\n\nstore_named_attribute(obj, data, 'position') # set the vertex positions with random data\n\nnamed_attribute(obj, 'position') # get the updated vertex positions\n\n[[ 1.  1.  1.]\n [ 1.  1. -1.]\n [ 1. -1.  1.]\n [ 1. -1. -1.]\n [-1.  1.  1.]\n [-1.  1. -1.]\n [-1. -1.  1.]\n [-1. -1. -1.]]\n\n\narray([[0.5843339 , 0.66806138, 0.37134442],\n       [0.15453927, 0.14356418, 0.59826249],\n       [0.25705028, 0.38081178, 0.26875147],\n       [0.48580879, 0.57857931, 0.85161662],\n       [0.52780169, 0.2240884 , 0.00811762],\n       [0.90020144, 0.98128617, 0.12404501],\n       [0.16758014, 0.32224795, 0.46468222],\n       [0.87716419, 0.56150055, 0.32914272]])"
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import store_named_attribute, named_attribute\n\nobj = bpy.data.objects['Cube']\ndata = np.random.rand(len(obj.data.vertices), 3)\n\nprint(named_attribute(obj, 'position')) # get the vertex positions as as numpy array\n\nstore_named_attribute(obj, data, 'position') # set the vertex positions with random data\n\nnamed_attribute(obj, 'position') # get the updated vertex positions\n\n[[ 1.  1.  1.]\n [ 1.  1. -1.]\n [ 1. -1.  1.]\n [ 1. -1. -1.]\n [-1.  1.  1.]\n [-1.  1. -1.]\n [-1. -1.  1.]\n [-1. -1. -1.]]\n\n\narray([[0.40775493, 0.96163142, 0.46404469],\n       [0.94436693, 0.54678321, 0.80744159],\n       [0.40693852, 0.39897665, 0.19616522],\n       [0.48468342, 0.76790541, 0.71006984],\n       [0.80860543, 0.09970663, 0.18105352],\n       [0.17402536, 0.93742841, 0.1109889 ],\n       [0.94071251, 0.57646549, 0.68101925],\n       [0.00893111, 0.13728036, 0.56823367]])"
   },
   {
     "objectID": "api/collection.create_collection.html",
@@ -170,7 +170,7 @@
     "href": "api/object.BlenderObject.html#examples",
     "title": "object.BlenderObject",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import BlenderObject\nobj = BlenderObject(bpy.data.objects['Cube'])\nprint(obj.name)\nprint(obj.object)\n\nCube\n&lt;bpy_struct, Object(\"Cube\") at 0x55a7cc436a10&gt;"
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import BlenderObject\nobj = BlenderObject(bpy.data.objects['Cube'])\nprint(obj.name)\nprint(obj.object)\n\nCube\n&lt;bpy_struct, Object(\"Cube\") at 0x561ba0663410&gt;"
   },
   {
     "objectID": "api/object.BlenderObject.html#attributes",
@@ -246,7 +246,7 @@
     "href": "api/BlenderObject.html#examples",
     "title": "BlenderObject",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import BlenderObject\nobj = BlenderObject(bpy.data.objects['Cube'])\nprint(obj.name)\nprint(obj.object)\n\nCube\n&lt;bpy_struct, Object(\"Cube\") at 0x564f6a4b88f0&gt;",
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import BlenderObject\nobj = BlenderObject(bpy.data.objects['Cube'])\nprint(obj.name)\nprint(obj.object)\n\nCube\n&lt;bpy_struct, Object(\"Cube\") at 0x55993b262380&gt;",
     "crumbs": [
       "API",
       "Objects",
@@ -402,7 +402,7 @@
     "href": "api/store_named_attribute.html#examples",
     "title": "store_named_attribute",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import store_named_attribute, named_attribute\n\nobj = bpy.data.objects['Cube']\ndata = np.random.rand(len(obj.data.vertices), 3)\n\nprint(named_attribute(obj, 'position')) # get the vertex positions as as numpy array\n\nstore_named_attribute(obj, data, 'position') # set the vertex positions with random data\n\nnamed_attribute(obj, 'position') # get the updated vertex positions\n\n[[ 1.  1.  1.]\n [ 1.  1. -1.]\n [ 1. -1.  1.]\n [ 1. -1. -1.]\n [-1.  1.  1.]\n [-1.  1. -1.]\n [-1. -1.  1.]\n [-1. -1. -1.]]\n\n\narray([[0.27588668, 0.73885882, 0.44842914],\n       [0.06332904, 0.1786371 , 0.95936692],\n       [0.30847654, 0.46398622, 0.51442915],\n       [0.57803249, 0.64818805, 0.34882483],\n       [0.1355722 , 0.15934765, 0.48797965],\n       [0.20510282, 0.11019971, 0.80226457],\n       [0.00744665, 0.52548766, 0.13683255],\n       [0.60013562, 0.42008945, 0.39746144]])",
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import store_named_attribute, named_attribute\n\nobj = bpy.data.objects['Cube']\ndata = np.random.rand(len(obj.data.vertices), 3)\n\nprint(named_attribute(obj, 'position')) # get the vertex positions as as numpy array\n\nstore_named_attribute(obj, data, 'position') # set the vertex positions with random data\n\nnamed_attribute(obj, 'position') # get the updated vertex positions\n\n[[ 1.  1.  1.]\n [ 1.  1. -1.]\n [ 1. -1.  1.]\n [ 1. -1. -1.]\n [-1.  1.  1.]\n [-1.  1. -1.]\n [-1. -1.  1.]\n [-1. -1. -1.]]\n\n\narray([[0.38107061, 0.01303021, 0.27890354],\n       [0.12451492, 0.78275687, 0.40259659],\n       [0.17837293, 0.34535819, 0.300675  ],\n       [0.75672352, 0.03790022, 0.06538777],\n       [0.48386639, 0.68494654, 0.31185886],\n       [0.79360902, 0.56090236, 0.43866754],\n       [0.79714948, 0.07344536, 0.69401979],\n       [0.22976893, 0.17772701, 0.78052849]])",
     "crumbs": [
       "API",
       "Attribute",
