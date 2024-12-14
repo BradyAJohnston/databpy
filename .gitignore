@@ -8,3 +8,5 @@
 /api
 /databpy.egg-info
 /docs/_build
+*.ipynb
+*.quarto_ipynb
