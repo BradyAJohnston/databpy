@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Type, Union
+from typing import Type
 import bpy
 import numpy as np
-from numpy import typing as npt
 
 from pathlib import Path
 
@@ -171,6 +170,21 @@ class Attribute:
     def n_values(self) -> int:
         return np.prod(self.shape, dtype=int)
 
+    @classmethod
+    def from_object(
+        cls,
+        obj: bpy.types.Object,
+        name: str,
+        atype: AttributeType,
+        domain: DomainType,
+    ):
+        att = obj.data.get(name)
+        if att is None:
+            att = obj.data.attributes.new(
+                name=name, type=atype.value.type_name, domain=domain.value.name
+            )
+        return Attribute(att)
+
     def from_array(self, array: np.ndarray) -> None:
         """
         Set the attribute data from a numpy array
@@ -182,7 +196,7 @@ class Attribute:
 
         self.attribute.data.foreach_set(self.value_name, array.reshape(-1))
 
-    def as_array(self) -> Union[npt.ArrayLike, bool, int, float]:
+    def as_array(self) -> np.ndarray:
         """
         Returns the attribute data as a numpy array
         """
@@ -237,23 +251,6 @@ def store_named_attribute(
     -------
     bpy.types.Attribute
         The added attribute.
-
-    Examples
-    --------
-    ```{python}
-    import bpy
-    import numpy as np
-    from databpy import store_named_attribute, named_attribute
-
-    obj = bpy.data.objects['Cube']
-    data = np.random.rand(len(obj.data.vertices), 3)
-
-    print(named_attribute(obj, 'position')) # get the vertex positions as as numpy array
-
-    store_named_attribute(obj, data, 'position') # set the vertex positions with random data
-
-    named_attribute(obj, 'position') # get the updated vertex positions
-    ```
     """
 
     if isinstance(atype, str):
@@ -297,48 +294,25 @@ def store_named_attribute(
     return attribute
 
 
-def evaluate_object(obj: bpy.types.Object) -> bpy.types.Object:
+def evaluate_object(obj: bpy.types.Object):
     "Return an object which has the modifiers evaluated."
     obj.update_tag()
-    eval_obj: bpy.types.Object = obj.evaluated_get(  # type: ignore
-        bpy.context.evaluated_depsgraph_get()  # type: ignore
-    )
-    return eval_obj
+    return obj.evaluated_get(bpy.context.evaluated_depsgraph_get())
 
 
 def named_attribute(
     obj: bpy.types.Object, name="position", evaluate=False
-) -> npt.ArrayLike:
+) -> np.ndarray:
     """
     Get the named attribute data from the object, optionally evaluating modifiers first.
 
-    Parameters
-    ----------
-    obj : bpy.types.Object
-        The Blender object.
-    name : str, optional
-        The name of the attribute. Defaults to 'position'.
-    evaluate : bool, optional
-        Whether to evaluate the object's modifiers before getting the attribute. Defaults to False.
+    Parameters:
+        object (bpy.types.Object): The Blender object.
+        name (str, optional): The name of the attribute. Defaults to 'position'.
 
-    Returns
-    -------
-    np.ndarray or bool or int or float
-        The attribute data as a numpy array, or a single value if the attribute is 1D.
-
-    Examples
-    --------
-    All data inside of Blender is stored as arbitrary attributes on a mesh, on a certain domain.
-    We will mostly only interact with the 'POINT' domain, which is the vertices of the mesh.
-
-    ```{python}
-    import bpy
-    from databpy import named_attribute
-    obj = bpy.data.objects['Cube']
-    named_attribute(obj, 'position') # get the vertex positions as as numpy array
-    ```
+    Returns:
+        np.ndarray: The attribute data as a numpy array.
     """
-
     if evaluate:
         obj = evaluate_object(obj)
     verbose = False
@@ -357,23 +331,6 @@ def named_attribute(
 def remove_named_attribute(
     obj: bpy.types.Object, name: str, domain: str | DomainType = Domains.POINT
 ):
-    """
-    Remove a named attribute from a Blender object.
-
-    Parameters
-    ----------
-    obj : bpy.types.Object
-        The Blender object from which the attribute will be removed.
-    name : str
-        The name of the attribute to remove.
-    domain : str or DomainType, optional
-        The domain of the attribute, by default Domains.POINT.
-
-    Raises
-    ------
-    AttributeError
-        If the attribute with the specified name does not exist on the mesh.
-    """
     try:
         attr = obj.data.attributes[name]
         obj.data.attributes.remove(attr)

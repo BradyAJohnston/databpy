@@ -3,7 +3,7 @@ name = "databpy"
 version = "0.0.1"
 description = "A data-oriented wrapper library for the Blender Python API"
 readme = "README.md"
-dependencies = ["bpy>=4.2", "numpy>=1.26.0,<2.0"]
+dependencies = ["numpy>=1.26.0,<2.0"]
 requires-python = "~=3.11.0"
 keywords = ["blender", "python", "numpy"]
 maintainers = [
@@ -16,7 +16,9 @@ Repository = "https://github.com/bradyajohnston/databpy"
 Dcumentation = "https://bradyajohnston.github.io/databpy"
 
 [project.optional-dependencies]
+bpy = ["bpy>=4.2"]
 test = ["pytest", "pytest-cov", "syrupy"]
+dev = ["fake-bpy-module"]
 docs = ["quartodoc", "jupyter"]
 
 

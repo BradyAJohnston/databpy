@@ -1,7 +1,6 @@
 import bpy
 from bpy.types import Object
 import numpy as np
-from typing import Union
 from numpy import typing as npt
 from .attribute import (
     AttributeTypes,
@@ -9,15 +8,40 @@ from .attribute import (
     Domains,
     DomainType,
 )
+
+from uuid import uuid1
 from . import attribute as attr
 from .utils import centre
 from mathutils import Matrix
 
 
-class ObjectMissingError(Exception):
+class LinkedObjectError(Exception):
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
+
+
+class ObjectDatabase:
+    def __getitem__(self, key: str) -> Object:
+        """
+        Get an object from the database using its name.
+
+        A helper for typing in development
+
+        Parameters
+        ----------
+        key : str
+            The name of the object to get.
+
+        Returns
+        -------
+        Object
+            The object from the bpy.data.objects database
+        """
+        return bpy.data.objects[key]
+
+
+bdo = ObjectDatabase()
 
 
 class ObjectTracker:
@@ -81,23 +105,35 @@ class ObjectTracker:
         return self.new_objects()[-1]
 
 
+def get_from_uuid(uuid: str) -> Object:
+    """
+    Get an object from the bpy.data.objects collection using a UUID.
+
+    Parameters
+    ----------
+    uuid : str
+        The UUID of the object to get.
+
+    Returns
+    -------
+    Object
+        The object from the bpy.data.objects collection.
+    """
+    for obj in bpy.data.objects:
+        if obj.uuid == uuid:
+            return obj
+
+    raise LinkedObjectError(
+        "Failed to find an object in the database with given uuid: " + uuid
+    )
+
+
 class BlenderObject:
     """
     A convenience class for working with Blender objects
-
-    Examples
-    --------
-    ```{python}
-    import bpy
-    import numpy as np
-    from databpy import BlenderObject
-    obj = BlenderObject(bpy.data.objects['Cube'])
-    print(obj.name)
-    print(obj.object)
-    ```
     """
 
-    def __init__(self, obj: Object):
+    def __init__(self, obj: Object | str | None = None):
         """
         Initialize the BlenderObject.
 
@@ -106,15 +142,18 @@ class BlenderObject:
         obj : Object | None
             The Blender object to wrap.
         """
-        if not isinstance(obj, Object):
-            raise ValueError(f"{obj} must be a Blender object of type Object")
-        self._object_name = obj.name
-        self.uuid = None
-        if hasattr(obj, "mn"):
-            self.uuid = obj.mn.uuid
+        self._uuid: str = str(uuid1())
+        self._object_name: str = ""
+
+        if isinstance(obj, Object):
+            self.object = obj
+        elif isinstance(obj, str):
+            self.object = bpy.data.objects[obj]
+        elif obj is None:
+            self._object_name = ""
 
     @property
-    def object(self) -> Object | None:
+    def object(self) -> Object:
         """
         Get the Blender object.
 
@@ -123,17 +162,20 @@ class BlenderObject:
         Object | None
             The Blender object, or None if not found.
         """
-        try:
-            return bpy.data.objects[self._object_name]  # type: ignore
-        except KeyError:
-            if self.uuid:
-                for potential_obj in bpy.data.objects:  # type: ignore
-                    if potential_obj.mn.uuid == self.uuid:
-                        return potential_obj
 
-            raise ObjectMissingError(
-                f"Object {self._object_name} not found in bpy.data.objects"
-            )
+        # if we can't match a an object by name in the database, we instead try to match
+        # by the uuid. If we match by name and the uuid doesn't match, we try to find
+        # another object instead with the same uuid
+
+        try:
+            obj = bpy.data.objects[self._object_name]
+            if obj.uuid != self.uuid:
+                obj = get_from_uuid(self.uuid)
+        except KeyError:
+            obj = get_from_uuid(self.uuid)
+            self._object_name = obj.name
+
+        return obj
 
     @object.setter
     def object(self, value: Object) -> None:
@@ -145,9 +187,42 @@ class BlenderObject:
         value : Object
             The Blender object to set.
         """
+
         if not isinstance(value, Object):
-            raise ValueError(f"{value} must be a Blender object of type Object")
+            raise ValueError(f"{value} must be a bpy.types.Object")
+
+        value.uuid = self.uuid
         self._object_name = value.name
+
+    @property
+    def uuid(self) -> str:
+        return self._uuid
+
+    @property
+    def name(self) -> str:
+        """
+        Get the name of the Blender object.
+
+        Returns
+        -------
+        str
+            The name of the Blender object.
+        """
+        return self.object.name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        """
+        Set the name of the Blender object.
+
+        Parameters
+        ----------
+        value : str
+            The name to set for the Blender object.
+        """
+        obj = self.object
+        obj.name = value
+        self._object_name = obj.name
 
     def store_named_attribute(
         self,
@@ -179,6 +254,7 @@ class BlenderObject:
         attr.store_named_attribute(
             self.object, data=data, name=name, atype=atype, domain=domain
         )
+        return self
 
     def remove_named_attribute(self, name: str) -> None:
         """
@@ -191,9 +267,7 @@ class BlenderObject:
         """
         attr.remove_named_attribute(self.object, name=name)
 
-    def named_attribute(
-        self, name: str, evaluate: bool = False
-    ) -> Union[npt.ArrayLike, bool, int, float]:
+    def named_attribute(self, name: str, evaluate: bool = False) -> np.ndarray:
         """
         Retrieve a named attribute from the object.
 
@@ -205,16 +279,10 @@ class BlenderObject:
             Name of the attribute to get.
         evaluate : bool, optional
             Whether to evaluate the object before reading the attribute (default is False).
-
-        Examples
-        --------
-        ```{python}
-        import bpy
-        from databpy import BlenderObject
-
-        bob = BlenderObject(bpy.data.objects['Cube'])
-        bob.named_attribute('position')
-        ```
+        Returns
+        -------
+        np.ndarray
+            The attribute read from the mesh as a numpy array.
         """
         return attr.named_attribute(self.object, name=name, evaluate=evaluate)
 
@@ -231,19 +299,18 @@ class BlenderObject:
         """
         self.store_named_attribute(array, name=name, atype=AttributeTypes.BOOLEAN)
 
-    def evaluate(self):
+    def evaluate(self) -> Object:
         """
-        Evaluate the object and return a new BlenderObject with the evaluated object.
+        Return a version of the object with all modifiers applied.
 
         Returns
         -------
-        BlenderObject
-            A new BlenderObject with the evaluated object.
+        Object
+            A new Object that isn't yet registered with the database
         """
         obj = self.object
         obj.update_tag()
-        evluated_obj = obj.evaluated_get(bpy.context.evaluated_depsgraph_get())
-        return BlenderObject(evluated_obj)
+        return obj.evaluated_get(bpy.context.evaluated_depsgraph_get())
 
     def centroid(self, weight: str | np.ndarray | None = None) -> np.ndarray:
         """
@@ -342,37 +409,6 @@ class BlenderObject:
         return self.named_attribute(".select_vert")
 
     @property
-    def name(self) -> str:
-        """
-        Get the name of the Blender object.
-
-        Returns
-        -------
-        str
-            The name of the Blender object.
-        """
-        obj = self.object
-        if obj is None:
-            return None
-
-        return obj.name
-
-    @name.setter
-    def name(self, value: str) -> None:
-        """
-        Set the name of the Blender object.
-
-        Parameters
-        ----------
-        value : str
-            The name to set for the Blender object.
-        """
-        obj = self.object
-        if obj is None:
-            raise ObjectMissingError
-        obj.name = value
-
-    @property
     def position(self) -> np.ndarray:
         """
         Get the position of the vertices of the Blender object.
@@ -440,7 +476,7 @@ class BlenderObject:
             A list of attribute names if the molecule object exists, None otherwise.
         """
         if evaluate:
-            strings = list(self.evaluate().object.data.attributes.keys())
+            strings = list(self.evaluate().data.attributes.keys())
         else:
             strings = list(self.object.data.attributes.keys())
 
@@ -462,8 +498,8 @@ class BlenderObject:
 
 
 def create_object(
-    vertices: np.ndarray | None = None,
-    edges: np.ndarray | None = None,
+    vertices: npt.ArrayLike | None = None,
+    edges: npt.ArrayLike | None = None,
     faces: np.ndarray | None = None,
     name: str = "NewObject",
     collection: bpy.types.Collection | None = None,
@@ -476,21 +512,21 @@ def create_object(
 
     Parameters
     ----------
-    vertices : np.ndarray, optional
-        The vertices of the vertices as a numpy array. Defaults to None.
-    edges : np.ndarray, optional
-        The edges of the object as a numpy array. Defaults to None.
-    faces : np.ndarray, optional
-        The faces of the object as a numpy array. Defaults to None.
-    name : str, optional
-        The name of the object. Defaults to 'NewObject'.
-    collection : bpy.types.Collection, optional
-        The collection to link the object to. Defaults to None.
+        vertices : np.ndarray, optional
+            The vertices of the vertices as a numpy array. Defaults to None.
+        edges : np.ndarray, optional
+            The edges of the object as a numpy array. Defaults to None.
+        faces : np.ndarray, optional
+            The faces of the object as a numpy array. Defaults to None.
+        name : str, optional
+            The name of the object. Defaults to 'NewObject'.
+        collection : bpy.types.Collection, optional
+            The collection to link the object to. Defaults to None.
 
     Returns
     -------
-    Object
-        The created object.
+        Object
+            The created object.
     """
     if vertices is None:
         vertices = []
@@ -513,9 +549,10 @@ def create_bob(
     faces: np.ndarray | None = None,
     name: str = "NewObject",
     collection: bpy.types.Collection | None = None,
+    uuid: str | None = None,
 ) -> BlenderObject:
     "Create an object but return it wrapped as a BlenderObject"
-    return BlenderObject(
+    bob = BlenderObject(
         create_object(
             vertices=vertices,
             edges=edges,
@@ -524,3 +561,8 @@ def create_bob(
             collection=collection,
         )
     )
+    if uuid:
+        bob._uuid = uuid
+        bob.object.uuid = uuid
+
+    return bob
