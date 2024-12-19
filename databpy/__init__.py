@@ -8,6 +8,7 @@ from .object import (
 )
 from .vdb import import_vdb
 import bpy
+from .addon import register, unregister
 from .utils import centre, lerp
 from .attribute import (
     named_attribute,
@@ -19,16 +20,3 @@ from .attribute import (
     Domains,
     DomainType,
 )
-
-
-def register():
-    bpy.types.Object.uuid = bpy.props.StringProperty(
-        name="UUID",
-        description="Unique identifier for the object",
-        default="",
-        options={"HIDDEN"},
-    )
-
-
-def unregister():
-    del bpy.types.Object.uuid

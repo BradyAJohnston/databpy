@@ -8,6 +8,7 @@ from .attribute import (
     Domains,
     DomainType,
 )
+from .addon import register
 
 from uuid import uuid1
 from . import attribute as attr
@@ -39,6 +40,11 @@ class ObjectDatabase:
             The object from the bpy.data.objects database
         """
         return bpy.data.objects[key]
+
+
+def _check_obj_is_mesh(obj: Object) -> None:
+    if not isinstance(obj.data, bpy.types.Mesh):
+        raise ValueError("Object must be a mesh")
 
 
 bdo = ObjectDatabase()
@@ -191,7 +197,13 @@ class BlenderObject:
         if not isinstance(value, Object):
             raise ValueError(f"{value} must be a bpy.types.Object")
 
-        value.uuid = self.uuid
+        _check_obj_is_mesh(value)
+
+        try:
+            value.uuid = self.uuid
+        except AttributeError:
+            register()
+            value.uuid = self.uuid
         self._object_name = value.name
 
     @property
@@ -223,6 +235,36 @@ class BlenderObject:
         obj = self.object
         obj.name = value
         self._object_name = obj.name
+
+    def new_from_pydata(
+        self,
+        vertices: npt.ArrayLike | None = None,
+        edges: npt.ArrayLike | None = None,
+        faces: npt.ArrayLike | None = None,
+    ) -> Object:
+        """
+        Create a new Blender object from vertex, edge and face data.
+
+        Parameters
+        ----------
+        vertices : np.ndarray
+            The vertices of the object.
+        edges : np.ndarray
+            The edges of the object.
+        faces : np.ndarray
+            The faces of the object.
+
+        Returns
+        -------
+        Object
+            The new Blender object.
+        """
+        vertices, edges, faces = [
+            [] if x is None else x for x in (vertices, edges, faces)
+        ]
+        self.object.data.clear_geometry()
+        self.object.data.from_pydata(vertices, edges, faces)
+        return self.object
 
     def store_named_attribute(
         self,

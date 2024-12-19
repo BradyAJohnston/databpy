@@ -1,0 +1,72 @@
+---
+format: gfm
+jupyter: python3
+---
+
+# databpy
+[![codecov](https://codecov.io/gh/BradyAJohnston/databpy/graph/badge.svg?token=KFuu67hzAz)](https://codecov.io/gh/BradyAJohnston/databpy)
+![PyPI - Version](https://img.shields.io/pypi/v/databpy)
+![example workflow](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
+![example workflow](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
+
+A set of data-oriented wrappers around the python API of Blender.
+
+## Installation
+Available on PyPI, install with pip:
+```bash
+pip install databpy
+```
+
+## Usage
+
+The main use cases are to create objects, store and retrieve attributes from them. The functions are named around nodes in Geometry Nodes `Store Named Attribute` and `Named Attribute`
+
+```python
+import databpy as db
+
+db.store_named_attribute() # store a named attribute on a mesh object
+db.named_attribute()       # retrieve a named attribute from a mesh object
+```
+
+Mostly oriented around creating mesh objects, assigning and getting back attributes from them. Currently designed around storing and retrieving `numpy` data types:
+
+```{python}
+import numpy as np
+import databpy as db
+
+# Create a mesh object
+
+random_verts = np.random.rand(10, 3)
+
+obj = db.create_object(random_verts, name="RandomMesh")
+
+obj.name
+```
+
+```{python}
+
+db.named_attribute(obj, 'position')
+
+```
+
+## `BlenderObject` class (bob)
+
+This is a convenience class that wraps around the `bpy.types.Object`, and provides access to all of the useful functions. We can wrap an existing Object or return one when creating a new object.
+
+This just gives us access to the `named_attribute()` and `store_named_attribute()` functions on the object class, but also provides a more intuitive way to access the object's attributes.
+
+```{python}
+bob = db.BlenderObject(obj)       # wraps the existing object 
+bob = db.create_bob(random_verts) # creates a new object and returns it already wrapped
+
+# these two are identical
+bob.named_attribute('position')
+bob.position
+```
+
+We can clear all of the data from the object and initialise a new mesh underneath:
+
+```{python}
+bob.new_from_pydata(np.random.randn(5, 3))
+bob.position
+```
