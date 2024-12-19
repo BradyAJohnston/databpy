@@ -32,6 +32,7 @@ Mostly oriented around creating mesh objects, assigning and getting back attribu
 
 ```{python}
 #| echo: false
+#| output: false
 import bpy
 bpy.ops.wm.read_homefile(app_template="")
 ```
@@ -50,6 +51,7 @@ obj = db.create_object(random_verts, name="RandomMesh")
 obj.name
 ```
 
+Access attributes from the object's mesh.
 ```{python}
 
 db.named_attribute(obj, 'position')
