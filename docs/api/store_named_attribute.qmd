@@ -29,20 +29,3 @@ Adds and sets the values of an attribute on the object.
 | Name   | Type                | Description          |
 |--------|---------------------|----------------------|
 |        | bpy.types.Attribute | The added attribute. |
-
-## Examples {.doc-section .doc-section-examples}
-
-```{python}
-import bpy
-import numpy as np
-from databpy import store_named_attribute, named_attribute
-
-obj = bpy.data.objects['Cube']
-data = np.random.rand(len(obj.data.vertices), 3)
-
-print(named_attribute(obj, 'position')) # get the vertex positions as as numpy array
-
-store_named_attribute(obj, data, 'position') # set the vertex positions with random data
-
-named_attribute(obj, 'position') # get the updated vertex positions
-```

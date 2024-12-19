@@ -7,6 +7,7 @@ create_bob(
     faces=None,
     name='NewObject',
     collection=None,
+    uuid=None,
 )
 ```
 

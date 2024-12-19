@@ -10,3 +10,4 @@
 /docs/_build
 *.ipynb
 *.quarto_ipynb
+/docs/api

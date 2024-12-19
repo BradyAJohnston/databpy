@@ -1,21 +1,10 @@
 # BlenderObject { #databpy.BlenderObject }
 
 ```python
-BlenderObject(self, obj)
+BlenderObject(self, obj=None)
 ```
 
 A convenience class for working with Blender objects
-
-## Examples {.doc-section .doc-section-examples}
-
-```{python}
-import bpy
-import numpy as np
-from databpy import BlenderObject
-obj = BlenderObject(bpy.data.objects['Cube'])
-print(obj.name)
-print(obj.object)
-```
 
 ## Attributes
 
@@ -34,9 +23,10 @@ print(obj.object)
 | Name | Description |
 | --- | --- |
 | [centroid](#databpy.BlenderObject.centroid) | Return the centroid, potentially weighted by an attribute. |
-| [evaluate](#databpy.BlenderObject.evaluate) | Evaluate the object and return a new BlenderObject with the evaluated object. |
+| [evaluate](#databpy.BlenderObject.evaluate) | Return a version of the object with all modifiers applied. |
 | [list_attributes](#databpy.BlenderObject.list_attributes) | Returns a list of attribute names for the object. |
 | [named_attribute](#databpy.BlenderObject.named_attribute) | Retrieve a named attribute from the object. |
+| [new_from_pydata](#databpy.BlenderObject.new_from_pydata) | Create a new Blender object from vertex, edge and face data. |
 | [remove_named_attribute](#databpy.BlenderObject.remove_named_attribute) | Remove a named attribute from the object. |
 | [selected_positions](#databpy.BlenderObject.selected_positions) | Get the positions of the selected vertices, optionally filtered by a mask. |
 | [set_boolean](#databpy.BlenderObject.set_boolean) | Store a boolean attribute on the Blender object. |
@@ -74,13 +64,13 @@ returns just the centroid calculation.
 BlenderObject.evaluate()
 ```
 
-Evaluate the object and return a new BlenderObject with the evaluated object.
+Return a version of the object with all modifiers applied.
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type          | Description                                    |
-|--------|---------------|------------------------------------------------|
-|        | BlenderObject | A new BlenderObject with the evaluated object. |
+| Name   | Type   | Description                                              |
+|--------|--------|----------------------------------------------------------|
+|        | Object | A new Object that isn't yet registered with the database |
 
 ### list_attributes { #databpy.BlenderObject.list_attributes }
 
@@ -120,15 +110,33 @@ Optionally, evaluate the object before reading the named attribute
 | name     | str    | Name of the attribute to get.                                                   | _required_ |
 | evaluate | bool   | Whether to evaluate the object before reading the attribute (default is False). | `False`    |
 
-#### Examples {.doc-section .doc-section-examples}
+#### Returns {.doc-section .doc-section-returns}
 
-```{python}
-import bpy
-from databpy import BlenderObject
+| Name   | Type       | Description                                        |
+|--------|------------|----------------------------------------------------|
+|        | np.ndarray | The attribute read from the mesh as a numpy array. |
 
-bob = BlenderObject(bpy.data.objects['Cube'])
-bob.named_attribute('position')
+### new_from_pydata { #databpy.BlenderObject.new_from_pydata }
+
+```python
+BlenderObject.new_from_pydata(vertices=None, edges=None, faces=None)
 ```
+
+Create a new Blender object from vertex, edge and face data.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name     | Type       | Description                 | Default   |
+|----------|------------|-----------------------------|-----------|
+| vertices | np.ndarray | The vertices of the object. | `None`    |
+| edges    | np.ndarray | The edges of the object.    | `None`    |
+| faces    | np.ndarray | The faces of the object.    | `None`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type   | Description             |
+|--------|--------|-------------------------|
+|        | Object | The new Blender object. |
 
 ### remove_named_attribute { #databpy.BlenderObject.remove_named_attribute }
 
