@@ -234,27 +234,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- margin-sidebar -->
     
 <!-- main -->
-<main class="content" id="quarto-document-content">
-
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/named_attribute.html">Attribute</a></li><li class="breadcrumb-item"><a href="../api/store_named_attribute.html">store_named_attribute</a></li></ol></nav>
-<div class="quarto-title">
-<h1 class="title">store_named_attribute</h1>
-</div>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/named_attribute.html">Attribute</a></li><li class="breadcrumb-item"><a href="../api/store_named_attribute.html">store_named_attribute</a></li></ol></nav></header>
 
 
 
-<div class="quarto-title-meta">
 
-    
-  
-    
-  </div>
-  
-
-
-</header>
-
-
+<section id="databpy.store_named_attribute" class="level1">
+<h1>store_named_attribute</h1>
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>store_named_attribute(</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    obj,</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    data,</span>
@@ -339,45 +325,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
+
+
 </section>
-<section id="examples" class="level2 doc-section doc-section-examples">
-<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div id="0bad7394" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> databpy <span class="im">import</span> store_named_attribute, named_attribute</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>obj <span class="op">=</span> bpy.data.objects[<span class="st">'Cube'</span>]</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> np.random.rand(<span class="bu">len</span>(obj.data.vertices), <span class="dv">3</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(named_attribute(obj, <span class="st">'position'</span>)) <span class="co"># get the vertex positions as as numpy array</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>store_named_attribute(obj, data, <span class="st">'position'</span>) <span class="co"># set the vertex positions with random data</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>named_attribute(obj, <span class="st">'position'</span>) <span class="co"># get the updated vertex positions</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[[ 1.  1.  1.]
- [ 1.  1. -1.]
- [ 1. -1.  1.]
- [ 1. -1. -1.]
- [-1.  1.  1.]
- [-1.  1. -1.]
- [-1. -1.  1.]
- [-1. -1. -1.]]</code></pre>
-</div>
-<div class="cell-output cell-output-display" data-execution_count="1">
-<pre><code>array([[0.38107061, 0.01303021, 0.27890354],
-       [0.12451492, 0.78275687, 0.40259659],
-       [0.17837293, 0.34535819, 0.300675  ],
-       [0.75672352, 0.03790022, 0.06538777],
-       [0.48386639, 0.68494654, 0.31185886],
-       [0.79360902, 0.56090236, 0.43866754],
-       [0.79714948, 0.07344536, 0.69401979],
-       [0.22976893, 0.17772701, 0.78052849]])</code></pre>
-</div>
-</div>
-
-
 </section>
 
 </main> <!-- /main -->

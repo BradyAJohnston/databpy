@@ -234,111 +234,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- margin-sidebar -->
     
 <!-- main -->
-<main class="content" id="quarto-document-content">
-
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/named_attribute.html">Attribute</a></li><li class="breadcrumb-item"><a href="../api/named_attribute.html">named_attribute</a></li></ol></nav>
-<div class="quarto-title">
-<h1 class="title">named_attribute</h1>
-</div>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/named_attribute.html">Attribute</a></li><li class="breadcrumb-item"><a href="../api/named_attribute.html">named_attribute</a></li></ol></nav></header>
 
 
 
-<div class="quarto-title-meta">
 
-    
-  
-    
-  </div>
-  
-
-
-</header>
-
-
+<section id="databpy.named_attribute" class="level1">
+<h1>named_attribute</h1>
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>named_attribute(obj, name<span class="op">=</span><span class="st">'position'</span>, evaluate<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Get the named attribute data from the object, optionally evaluating modifiers first.</p>
-<section id="parameters" class="level2 doc-section doc-section-parameters">
-<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 7%">
-<col style="width: 13%">
-<col style="width: 68%">
-<col style="width: 10%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>obj</td>
-<td>bpy.types.Object</td>
-<td>The Blender object.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td>name</td>
-<td>str</td>
-<td>The name of the attribute. Defaults to ‘position’.</td>
-<td><code>'position'</code></td>
-</tr>
-<tr class="odd">
-<td>evaluate</td>
-<td>bool</td>
-<td>Whether to evaluate the object’s modifiers before getting the attribute. Defaults to False.</td>
-<td><code>False</code></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns" class="level2 doc-section doc-section-returns">
-<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 6%">
-<col style="width: 29%">
-<col style="width: 64%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td>np.ndarray or bool or int or float</td>
-<td>The attribute data as a numpy array, or a single value if the attribute is 1D.</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="examples" class="level2 doc-section doc-section-examples">
-<h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<p>All data inside of Blender is stored as arbitrary attributes on a mesh, on a certain domain. We will mostly only interact with the ‘POINT’ domain, which is the vertices of the mesh.</p>
-<div id="84a85b91" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> databpy <span class="im">import</span> named_attribute</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>obj <span class="op">=</span> bpy.data.objects[<span class="st">'Cube'</span>]</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>named_attribute(obj, <span class="st">'position'</span>) <span class="co"># get the vertex positions as as numpy array</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="1">
-<pre><code>array([[ 1.,  1.,  1.],
-       [ 1.,  1., -1.],
-       [ 1., -1.,  1.],
-       [ 1., -1., -1.],
-       [-1.,  1.,  1.],
-       [-1.,  1., -1.],
-       [-1., -1.,  1.],
-       [-1., -1., -1.]])</code></pre>
-</div>
-</div>
+<p>Parameters: object (bpy.types.Object): The Blender object. name (str, optional): The name of the attribute. Defaults to ‘position’.</p>
+<p>Returns: np.ndarray: The attribute data as a numpy array.</p>
 
 
 </section>
