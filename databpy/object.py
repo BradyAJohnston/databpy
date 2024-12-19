@@ -42,9 +42,15 @@ class ObjectDatabase:
         return bpy.data.objects[key]
 
 
-def _check_obj_is_mesh(obj: Object) -> None:
-    if not isinstance(obj.data, bpy.types.Mesh):
-        raise ValueError("Object must be a mesh")
+def _check_obj_accsibble_attributes(obj: Object) -> None:
+    if isinstance(obj.data, bpy.types.Mesh):
+        return
+    if isinstance(obj, bpy.types.PointCloud):
+        return
+
+    raise ValueError(
+        f"Object must be a mesh or point cloud to have point attributes: {obj}"
+    )
 
 
 bdo = ObjectDatabase()
@@ -158,6 +164,9 @@ class BlenderObject:
         elif obj is None:
             self._object_name = ""
 
+    def _check_obj(self) -> None:
+        _check_obj_accsibble_attributes(self.object)
+
     @property
     def object(self) -> Object:
         """
@@ -196,8 +205,6 @@ class BlenderObject:
 
         if not isinstance(value, Object):
             raise ValueError(f"{value} must be a bpy.types.Object")
-
-        _check_obj_is_mesh(value)
 
         try:
             value.uuid = self.uuid
@@ -259,6 +266,7 @@ class BlenderObject:
         Object
             The new Blender object.
         """
+        self._check_obj()
         vertices, edges, faces = [
             [] if x is None else x for x in (vertices, edges, faces)
         ]
@@ -293,6 +301,7 @@ class BlenderObject:
         -------
         self
         """
+        self._check_obj()
         attr.store_named_attribute(
             self.object, data=data, name=name, atype=atype, domain=domain
         )
@@ -307,6 +316,7 @@ class BlenderObject:
         name : str
             The name of the attribute to remove.
         """
+        self._check_obj()
         attr.remove_named_attribute(self.object, name=name)
 
     def named_attribute(self, name: str, evaluate: bool = False) -> np.ndarray:
@@ -326,6 +336,7 @@ class BlenderObject:
         np.ndarray
             The attribute read from the mesh as a numpy array.
         """
+        self._check_obj()
         return attr.named_attribute(self.object, name=name, evaluate=evaluate)
 
     def set_boolean(self, array: np.ndarray, name: str) -> None:
@@ -339,6 +350,7 @@ class BlenderObject:
         name : str
             The name for the attribute.
         """
+        self._check_obj()
         self.store_named_attribute(array, name=name, atype=AttributeTypes.BOOLEAN)
 
     def evaluate(self) -> Object:
@@ -350,6 +362,7 @@ class BlenderObject:
         Object
             A new Object that isn't yet registered with the database
         """
+        self._check_obj()
         obj = self.object
         obj.update_tag()
         return obj.evaluated_get(bpy.context.evaluated_depsgraph_get())
@@ -372,6 +385,7 @@ class BlenderObject:
         np.ndarray
             A 3-component vector with the calculated centroid.
         """
+        self._check_obj()
         if isinstance(weight, str):
             return centre(self.position, self.named_attribute(weight))
 
@@ -402,6 +416,7 @@ class BlenderObject:
         bpy.types.Vertices
             The vertices of the Blender object.
         """
+
         return self.object.data.vertices
 
     @property
