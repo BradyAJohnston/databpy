@@ -1,9 +1,9 @@
 ---
 format: gfm
 jupyter: python3
+title: databpy
 ---
 
-# databpy
 [![codecov](https://codecov.io/gh/BradyAJohnston/databpy/graph/badge.svg?token=KFuu67hzAz)](https://codecov.io/gh/BradyAJohnston/databpy)
 ![PyPI - Version](https://img.shields.io/pypi/v/databpy)
 ![example workflow](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
@@ -49,7 +49,8 @@ db.named_attribute(obj, 'position')
 
 ```
 
-## `BlenderObject` class (bob)
+
+### `BlenderObject` class (bob)
 
 This is a convenience class that wraps around the `bpy.types.Object`, and provides access to all of the useful functions. We can wrap an existing Object or return one when creating a new object.
 
