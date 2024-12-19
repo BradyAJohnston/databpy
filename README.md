@@ -2,7 +2,7 @@
 
 
 [![codecov](https://codecov.io/gh/BradyAJohnston/databpy/graph/badge.svg?token=KFuu67hzAz)](https://codecov.io/gh/BradyAJohnston/databpy)
-![PyPI - Version](https://img.shields.io/pypi/v/databpy.png) ![example
+[![PyPI version](https://img.shields.io/pypi/v/databpy)](https://pypi.org/project/databpy/) ![example
 workflow](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
 ![example
 workflow](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
