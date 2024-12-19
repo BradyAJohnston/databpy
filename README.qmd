@@ -80,3 +80,41 @@ We can clear all of the data from the object and initialise a new mesh underneat
 bob.new_from_pydata(np.random.randn(5, 3))
 bob.position
 ```
+
+## Example with Polars data
+
+```{python}
+import polars as pl
+from io import StringIO
+
+json_file = StringIO("""
+{
+  "Dino": [
+    [55.3846, 97.1795, 0.0],
+    [51.5385, 96.0256, 0.0]
+  ],
+  "Star": [
+    [58.2136, 91.8819, 0.0],
+    [58.1961, 92.215, 0.0]
+  ]
+}
+""")
+
+df = pl.read_json(json_file)
+columns_to_explode = [col for col in df.columns if df[col].dtype == pl.List(pl.List)]
+df = df.explode(columns_to_explode)
+
+vertices = np.zeros((len(df), 3), dtype=np.float32)
+bob = db.create_bob(vertices, name="DinoStar")
+
+for col in df.columns:
+    data = np.array(df[col].to_list(), dtype=np.float32)
+    bob.store_named_attribute(np.array(data.tolist()), col)
+
+bob.named_attribute("Dino")
+```
+
+
+```{python}
+bob.named_attribute("Star")
+```
