@@ -110,7 +110,7 @@ bob = db.create_bob(vertices, name="DinoStar")
 
 for col in df.columns:
     data = np.array(df[col].to_list(), dtype=np.float32)
-    bob.store_named_attribute(np.array(data.tolist()), col)
+    bob.store_named_attribute(data, col)
 
 bob.named_attribute("Dino")
 ```
