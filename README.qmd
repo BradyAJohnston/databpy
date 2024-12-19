@@ -31,6 +31,13 @@ db.named_attribute()       # retrieve a named attribute from a mesh object
 Mostly oriented around creating mesh objects, assigning and getting back attributes from them. Currently designed around storing and retrieving `numpy` data types:
 
 ```{python}
+#| echo: false
+import bpy
+bpy.ops.wm.read_homefile(app_template="")
+```
+
+
+```{python}
 import numpy as np
 import databpy as db
 
