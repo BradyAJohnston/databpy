@@ -13,9 +13,25 @@ A set of data-oriented wrappers around the python API of Blender.
 
 ## Installation
 Available on PyPI, install with pip:
+
 ```bash
 pip install databpy
 ```
+
+::: {.callout-caution}
+
+`bpy` (Blener as a python module) is listed as an optional dependency, so that if you install `databpy` inside of Blender you won't install a redundant version of `bpy`. If you are using this outside of Blender, you will need to specifically request `bpy` with either of these methods:
+```bash
+# install wtih bpy dependency
+pip install 'databpy[bpy]'
+
+# install both packages
+pip install databpy bpy
+
+# install with all optional dependencies
+pip install 'databpy[all]'
+```
+:::
 
 ## Usage
 

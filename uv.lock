@@ -316,7 +316,7 @@ wheels = [
 
 [[package]]
 name = "databpy"
-version = "0.0.1"
+version = "0.0.3"
 source = { virtual = "." }
 dependencies = [
     { name = "numpy" },
@@ -328,12 +328,15 @@ bpy = [
 ]
 dev = [
     { name = "fake-bpy-module" },
+    { name = "polars" },
 ]
 docs = [
     { name = "jupyter" },
+    { name = "polars" },
     { name = "quartodoc" },
 ]
 test = [
+    { name = "polars" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "syrupy" },
@@ -345,6 +348,9 @@ requires-dist = [
     { name = "fake-bpy-module", marker = "extra == 'dev'" },
     { name = "jupyter", marker = "extra == 'docs'" },
     { name = "numpy", specifier = ">=1.26.0,<2.0" },
+    { name = "polars", marker = "extra == 'dev'" },
+    { name = "polars", marker = "extra == 'docs'" },
+    { name = "polars", marker = "extra == 'test'" },
     { name = "pytest", marker = "extra == 'test'" },
     { name = "pytest-cov", marker = "extra == 'test'" },
     { name = "quartodoc", marker = "extra == 'docs'" },
@@ -1124,6 +1130,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/8c/a6/d6b9db4d70d4ba7857800089ea65dd5e81dbf1a482db04eee89dbb8f9c3b/plum_dispatch-2.5.4.tar.gz", hash = "sha256:db09f143ccf8f8c2ca4440349e895fe4655f2ad42102988693bea1e6991ead35", size = 35237 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a2/03/69d3df4a87d14c0afc62a5492234d95a51a5abcc10bddbbebe0d08693d0e/plum_dispatch-2.5.4-py3-none-any.whl", hash = "sha256:8c05b120dd93a42f51adb0fb5e3e5f9b46129cd4d576872ad2ceb692ce1f6759", size = 42412 },
+]
+
+[[package]]
+name = "polars"
+version = "1.17.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/32/3b/40b42c6b0e54b001fbaaa55d3d769283e0d54541be783783e08da6a9c54a/polars-1.17.1.tar.gz", hash = "sha256:5a3dac3cb7cbe174d1fa898cba9afbede0c08e8728feeeab515554d762127019", size = 4220337 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5b/24/a7d97fb8988a3ccf9e285311fe9b04e8cec95657fc2b9f9a8ebedbcdd06f/polars-1.17.1-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:d3a2172f7cf332010f0b034345111e9c86d59b5a5b0fc5aa0509121f40d9e43c", size = 32993574 },
+    { url = "https://files.pythonhosted.org/packages/84/4f/b892993474850e85ac05ffa6d0f312c207dcbb1e4a55dc6383f826d5a87d/polars-1.17.1-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:82e98c69197df0d8ddc341a6175008508ceaea88f723f32044027810bcdb43fa", size = 28773084 },
+    { url = "https://files.pythonhosted.org/packages/29/08/54fe197c9d5f951cf85944ff9cfe0a706dc9d2230e98814a125eda8a1d09/polars-1.17.1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:59abdab015ed2ecfa0c63862b960816c35096e1f4df057dde3c44cd973af5029", size = 36360758 },
+    { url = "https://files.pythonhosted.org/packages/9b/0c/f5a100da6184f11838520a423a5830dabe194a0812c9fdbef419f2276a92/polars-1.17.1-cp39-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:6d2f922c403b8900b3ae3c23a27b2cae3a2db40ad790cc4fc368402b92629b11", size = 32685903 },
+    { url = "https://files.pythonhosted.org/packages/4b/59/cf2e88bebdffb7efb7e4f65f4ec9e293040c313d37e3628db87e4f64dca4/polars-1.17.1-cp39-abi3-win_amd64.whl", hash = "sha256:d38156c8259554cbcb17874d91e6dfa9c404335f08a3307496aadfdee46baa31", size = 35931768 },
 ]
 
 [[package]]
