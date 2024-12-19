@@ -85,6 +85,7 @@ bob.position
 
 ```{python}
 import polars as pl
+import databpy as db
 from io import StringIO
 
 json_file = StringIO("""
