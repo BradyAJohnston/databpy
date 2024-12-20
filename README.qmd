@@ -5,9 +5,9 @@ title: databpy
 ---
 
 [![codecov](https://codecov.io/gh/BradyAJohnston/databpy/graph/badge.svg?token=KFuu67hzAz)](https://codecov.io/gh/BradyAJohnston/databpy)
-![PyPI - Version](https://img.shields.io/pypi/v/databpy)
-![example workflow](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
-![example workflow](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
+[![pypi](https://img.shields.io/pypi/v/databpy)](https://pypi.org/project/databpy/)
+![tests](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
+![deployment](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
 
 A set of data-oriented wrappers around the python API of Blender.
 
@@ -20,7 +20,7 @@ pip install databpy
 
 ::: {.callout-caution}
 
-`bpy` (Blener as a python module) is listed as an optional dependency, so that if you install `databpy` inside of Blender you won't install a redundant version of `bpy`. If you are using this outside of Blender, you will need to specifically request `bpy` with either of these methods:
+`bpy` (Blender as a python module) is listed as an optional dependency, so that if you install `databpy` inside of Blender you won't install a redundant version of `bpy`. If you are using this outside of Blender, you will need to specifically request `bpy` with either of these methods:
 ```bash
 # install wtih bpy dependency
 pip install 'databpy[bpy]'
@@ -57,9 +57,9 @@ bpy.ops.wm.read_homefile(app_template="")
 ```{python}
 import numpy as np
 import databpy as db
+np.random.seed(6)
 
 # Create a mesh object
-
 random_verts = np.random.rand(10, 3)
 
 obj = db.create_object(random_verts, name="RandomMesh")

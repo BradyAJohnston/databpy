@@ -2,10 +2,9 @@
 
 
 [![codecov](https://codecov.io/gh/BradyAJohnston/databpy/graph/badge.svg?token=KFuu67hzAz)](https://codecov.io/gh/BradyAJohnston/databpy)
-[![PyPI version](https://img.shields.io/pypi/v/databpy)](https://pypi.org/project/databpy/) ![example
-workflow](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
-![example
-workflow](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
+[![pypi](https://img.shields.io/pypi/v/databpy.png)](https://pypi.org/project/databpy/)
+![tests](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
+![deployment](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
 
 A set of data-oriented wrappers around the python API of Blender.
 
@@ -19,11 +18,11 @@ pip install databpy
 
 > [!CAUTION]
 >
-> `bpy` (Blener as a python module) is listed as an optional dependency,
-> so that if you install `databpy` inside of Blender you won’t install a
-> redundant version of `bpy`. If you are using this outside of Blender,
-> you will need to specifically request `bpy` with either of these
-> methods:
+> `bpy` (Blender as a python module) is listed as an optional
+> dependency, so that if you install `databpy` inside of Blender you
+> won’t install a redundant version of `bpy`. If you are using this
+> outside of Blender, you will need to specifically request `bpy` with
+> either of these methods:
 >
 > ``` bash
 > # install wtih bpy dependency
@@ -56,9 +55,9 @@ attributes from them. Currently designed around storing and retrieving
 ``` python
 import numpy as np
 import databpy as db
+np.random.seed(6)
 
 # Create a mesh object
-
 random_verts = np.random.rand(10, 3)
 
 obj = db.create_object(random_verts, name="RandomMesh")
@@ -74,16 +73,16 @@ Access attributes from the object’s mesh.
 db.named_attribute(obj, 'position')
 ```
 
-    array([[0.73641926, 0.48488575, 0.72500235],
-           [0.93242395, 0.23630837, 0.10771675],
-           [0.61948055, 0.00335572, 0.08878344],
-           [0.71459097, 0.13228028, 0.26439887],
-           [0.06164043, 0.32223272, 0.03915258],
-           [0.26988253, 0.96634519, 0.9258244 ],
-           [0.46986273, 0.04557773, 0.40641493],
-           [0.86258143, 0.20877074, 0.58634591],
-           [0.45481128, 0.26667479, 0.37325892],
-           [0.98243082, 0.89934868, 0.30204201]])
+    array([[0.89286017, 0.33197981, 0.8212291 ],
+           [0.04169663, 0.10765668, 0.59505206],
+           [0.52981734, 0.41880742, 0.33540785],
+           [0.62251943, 0.43814144, 0.7358821 ],
+           [0.51803643, 0.57885861, 0.64535511],
+           [0.99022424, 0.81985819, 0.41320094],
+           [0.87626767, 0.82375944, 0.05447451],
+           [0.71863723, 0.80217057, 0.73640662],
+           [0.70913178, 0.54093683, 0.12482417],
+           [0.95764732, 0.4032563 , 0.21695116]])
 
 ### `BlenderObject` class (bob)
 
@@ -104,16 +103,16 @@ bob.named_attribute('position')
 bob.position
 ```
 
-    array([[0.73641926, 0.48488575, 0.72500235],
-           [0.93242395, 0.23630837, 0.10771675],
-           [0.61948055, 0.00335572, 0.08878344],
-           [0.71459097, 0.13228028, 0.26439887],
-           [0.06164043, 0.32223272, 0.03915258],
-           [0.26988253, 0.96634519, 0.9258244 ],
-           [0.46986273, 0.04557773, 0.40641493],
-           [0.86258143, 0.20877074, 0.58634591],
-           [0.45481128, 0.26667479, 0.37325892],
-           [0.98243082, 0.89934868, 0.30204201]])
+    array([[0.89286017, 0.33197981, 0.8212291 ],
+           [0.04169663, 0.10765668, 0.59505206],
+           [0.52981734, 0.41880742, 0.33540785],
+           [0.62251943, 0.43814144, 0.7358821 ],
+           [0.51803643, 0.57885861, 0.64535511],
+           [0.99022424, 0.81985819, 0.41320094],
+           [0.87626767, 0.82375944, 0.05447451],
+           [0.71863723, 0.80217057, 0.73640662],
+           [0.70913178, 0.54093683, 0.12482417],
+           [0.95764732, 0.4032563 , 0.21695116]])
 
 We can clear all of the data from the object and initialise a new mesh
 underneath:
@@ -123,11 +122,11 @@ bob.new_from_pydata(np.random.randn(5, 3))
 bob.position
 ```
 
-    array([[-0.71264023,  0.32978976, -0.63028884],
-           [-0.92074728,  0.11562137, -0.18979079],
-           [-0.66534227,  0.53521448,  0.65792871],
-           [ 0.61330676,  1.39815307,  0.59663987],
-           [ 1.02735949,  0.57145709, -0.6408332 ]])
+    array([[ 0.82465386, -1.17643154,  1.5644896 ],
+           [ 0.71270508, -0.1810066 ,  0.53419954],
+           [-0.58661294, -1.48185325,  0.85724759],
+           [ 0.94309896,  0.11444143, -0.02195668],
+           [-2.12714458, -0.83440745, -0.46550831]])
 
 ## Example with Polars data
 
