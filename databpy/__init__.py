@@ -14,6 +14,7 @@ from .collection import create_collection
 from .attribute import (
     named_attribute,
     store_named_attribute,
+    remove_named_attribute,
     Attribute,
     AttributeType,
     AttributeTypeInfo,

@@ -2,12 +2,47 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Type
 import bpy
+from bpy.types import Mesh, PointCloud, Curve, Object
 import numpy as np
-
 from pathlib import Path
+
+COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curve, bpy.types.PointCloud]
+
+
+def _check_obj_attributes(obj: Object) -> None:
+    if not isinstance(obj, bpy.types.Object):
+        raise TypeError(f"Object must be a bpy.types.Object, not {type(obj)}")
+    if not any(isinstance(obj.data, obj_type) for obj_type in COMPATIBLE_TYPES):
+        raise TypeError(
+            f"The object is not a a compatible type.\n- Obj: {obj}\n- Compatitble Types: {COMPATIBLE_TYPES}"
+        )
+
+
+def _check_is_mesh(obj: Object) -> None:
+    if not isinstance(obj.data, bpy.types.Mesh):
+        raise TypeError(f"Object must be a mesh to evaluate the modifiers")
 
 
 def path_resolve(path: str | Path) -> Path:
+    """
+    Resolve a path string or Path object to an absolute Path.
+
+    Parameters
+    ----------
+    path : str or Path
+        The path to resolve, either as a string or Path object.
+
+    Returns
+    -------
+    Path
+        The resolved absolute Path.
+
+    Raises
+    ------
+    ValueError
+        If the path cannot be resolved.
+    """
+
     if isinstance(path, str):
         return Path(bpy.path.abspath(path))
     elif isinstance(path, Path):
@@ -108,6 +143,25 @@ class AttributeTypes(Enum):
 
 
 def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
+    """
+    Determine the appropriate AttributeType based on array shape and dtype.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        Input numpy array to analyze.
+
+    Returns
+    -------
+    AttributeTypes
+        The inferred attribute type enum value.
+
+    Raises
+    ------
+    ValueError
+        If input is not a numpy array.
+    """
+
     if not isinstance(array, np.ndarray):
         raise ValueError(f"`array` must be a numpy array, not {type(array)=}")
 
@@ -138,7 +192,21 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
 
 class Attribute:
     """
-    Wrapper around a Blender attribute to provide a more convenient interface with numpy arrays
+    Wrapper around a Blender attribute to provide a more convenient interface with numpy arrays.
+
+    Parameters
+    ----------
+    attribute : bpy.types.Attribute
+        The Blender attribute to wrap.
+
+    Attributes
+    ----------
+    attribute : bpy.types.Attribute
+        The underlying Blender attribute.
+    n_attr : int
+        Number of attribute elements.
+    atype : AttributeType
+        Type information for the attribute.
     """
 
     def __init__(self, attribute: bpy.types.Attribute):
@@ -187,7 +255,17 @@ class Attribute:
 
     def from_array(self, array: np.ndarray) -> None:
         """
-        Set the attribute data from a numpy array
+        Set the attribute data from a numpy array.
+
+        Parameters
+        ----------
+        array : np.ndarray
+            Array containing the data to set. Must match the attribute shape.
+
+        Raises
+        ------
+        ValueError
+            If array shape does not match attribute shape.
         """
         if array.shape != self.shape:
             raise ValueError(
@@ -198,8 +276,14 @@ class Attribute:
 
     def as_array(self) -> np.ndarray:
         """
-        Returns the attribute data as a numpy array
+        Returns the attribute data as a numpy array.
+
+        Returns
+        -------
+        np.ndarray
+            Array containing the attribute data with appropriate shape and dtype.
         """
+
         # initialize empty 1D array that is needed to then be filled with values
         # from the Blender attribute
         array = np.zeros(self.n_values, dtype=self.dtype)
@@ -232,25 +316,28 @@ def store_named_attribute(
     ----------
     obj : bpy.types.Object
         The Blender object.
-    name : str
-        The name of the attribute.
     data : np.ndarray
         The attribute data as a numpy array.
-    atype : str, AttributeType, optional
-        The attribute type to store the data as. One of the AttributeType enums or a string
-        of the same name.
-        'FLOAT_VECTOR', 'FLOAT_COLOR', 'FLOAT4X4', 'QUATERNION', 'FLOAT', 'INT', 'BOOLEAN'
-    domain : str, optional
-        The domain of the attribute. Defaults to 'POINT'. Currently, only 'POINT', 'EDGE',
-        and 'FACE' have been tested.
-    overwrite : bool
-        Setting to false will create a new attribute if the given name is already an
-        attribute on the mesh.
+    name : str
+        The name of the attribute.
+    atype : str or AttributeTypes or None, optional
+        The attribute type to store the data as. If None, type is inferred from data.
+    domain : str or DomainType, optional
+        The domain of the attribute, by default 'POINT'.
+    overwrite : bool, optional
+        Whether to overwrite existing attribute, by default True.
 
     Returns
     -------
     bpy.types.Attribute
-        The added attribute.
+        The added or modified attribute.
+
+    Raises
+    ------
+    ValueError
+        If atype string doesn't match available types.
+    AttributeMismatchError
+        If data length doesn't match domain size.
     """
 
     if isinstance(atype, str):
@@ -295,7 +382,20 @@ def store_named_attribute(
 
 
 def evaluate_object(obj: bpy.types.Object):
-    "Return an object which has the modifiers evaluated."
+    """
+    Return an object which has the modifiers evaluated.
+
+    Parameters
+    ----------
+    obj : bpy.types.Object
+        The Blender object to evaluate.
+
+    Returns
+    -------
+    bpy.types.Object
+        The evaluated object with modifiers applied.
+    """
+    _check_is_mesh(obj)
     obj.update_tag()
     return obj.evaluated_get(bpy.context.evaluated_depsgraph_get())
 
@@ -304,17 +404,34 @@ def named_attribute(
     obj: bpy.types.Object, name="position", evaluate=False
 ) -> np.ndarray:
     """
-    Get the named attribute data from the object, optionally evaluating modifiers first.
+    Get the named attribute data from the object.
 
-    Parameters:
-        object (bpy.types.Object): The Blender object.
-        name (str, optional): The name of the attribute. Defaults to 'position'.
+    Parameters
+    ----------
+    obj : bpy.types.Object
+        The Blender object.
+    name : str, optional
+        The name of the attribute, by default 'position'.
+    evaluate : bool, optional
+        Whether to evaluate modifiers before reading, by default False.
 
-    Returns:
-        np.ndarray: The attribute data as a numpy array.
+    Returns
+    -------
+    np.ndarray
+        The attribute data as a numpy array.
+
+    Raises
+    ------
+    AttributeError
+        If the named attribute does not exist on the mesh.
     """
+    _check_obj_attributes(obj)
+
     if evaluate:
+        _check_is_mesh(obj)
+
         obj = evaluate_object(obj)
+
     verbose = False
     try:
         attr = Attribute(obj.data.attributes[name])
@@ -331,10 +448,28 @@ def named_attribute(
 def remove_named_attribute(
     obj: bpy.types.Object, name: str, domain: str | DomainType = Domains.POINT
 ):
+    """
+    Remove a named attribute from an object.
+
+    Parameters
+    ----------
+    obj : bpy.types.Object
+        The Blender object.
+    name : str
+        Name of the attribute to remove.
+    domain : str or DomainType, optional
+        The domain of the attribute, by default POINT.
+
+    Raises
+    ------
+    AttributeError
+        If the named attribute does not exist on the mesh.
+    """
+    _check_obj_attributes(obj)
     try:
         attr = obj.data.attributes[name]
         obj.data.attributes.remove(attr)
     except KeyError:
         raise AttributeError(
-            f"The selected attribute '{name}' does not exist on the mesh."
+            f"The selected attribute '{name}' does not exist on the object"
         )

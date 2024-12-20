@@ -5,6 +5,8 @@ from numpy import typing as npt
 from .attribute import (
     AttributeTypes,
     AttributeType,
+    evaluate_object,
+    _check_obj_attributes,
     Domains,
     DomainType,
 )
@@ -40,17 +42,6 @@ class ObjectDatabase:
             The object from the bpy.data.objects database
         """
         return bpy.data.objects[key]
-
-
-def _check_obj_accsibble_attributes(obj: Object) -> None:
-    if isinstance(obj.data, bpy.types.Mesh):
-        return
-    if isinstance(obj, bpy.types.PointCloud):
-        return
-
-    raise ValueError(
-        f"Object must be a mesh or point cloud to have point attributes: {obj}"
-    )
 
 
 bdo = ObjectDatabase()
@@ -165,7 +156,7 @@ class BlenderObject:
             self._object_name = ""
 
     def _check_obj(self) -> None:
-        _check_obj_accsibble_attributes(self.object)
+        _check_obj_attributes(self.object)
 
     @property
     def object(self) -> Object:
@@ -266,7 +257,8 @@ class BlenderObject:
         Object
             The new Blender object.
         """
-        self._check_obj()
+        if not isinstance(self.object.data, bpy.types.Mesh):
+            raise TypeError("Object must be a mesh to create a new object from pydata")
         vertices, edges, faces = [
             [] if x is None else x for x in (vertices, edges, faces)
         ]
@@ -350,7 +342,6 @@ class BlenderObject:
         name : str
             The name for the attribute.
         """
-        self._check_obj()
         self.store_named_attribute(array, name=name, atype=AttributeTypes.BOOLEAN)
 
     def evaluate(self) -> Object:
@@ -362,10 +353,7 @@ class BlenderObject:
         Object
             A new Object that isn't yet registered with the database
         """
-        self._check_obj()
-        obj = self.object
-        obj.update_tag()
-        return obj.evaluated_get(bpy.context.evaluated_depsgraph_get())
+        return evaluate_object(self.object)
 
     def centroid(self, weight: str | np.ndarray | None = None) -> np.ndarray:
         """
@@ -385,7 +373,6 @@ class BlenderObject:
         np.ndarray
             A 3-component vector with the calculated centroid.
         """
-        self._check_obj()
         if isinstance(weight, str):
             return centre(self.position, self.named_attribute(weight))
 
