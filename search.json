@@ -11,7 +11,43 @@
     "href": "api/named_attribute.html",
     "title": "named_attribute",
     "section": "",
-    "text": "named_attribute\nnamed_attribute(obj, name='position', evaluate=False)\nGet the named attribute data from the object, optionally evaluating modifiers first.\nParameters: object (bpy.types.Object): The Blender object. name (str, optional): The name of the attribute. Defaults to ‘position’.\nReturns: np.ndarray: The attribute data as a numpy array.",
+    "text": "named_attribute(obj, name='position', evaluate=False)\nGet the named attribute data from the object.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object.\nrequired\n\n\nname\nstr\nThe name of the attribute, by default ‘position’.\n'position'\n\n\nevaluate\nbool\nWhether to evaluate modifiers before reading, by default False.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nThe attribute data as a numpy array.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nAttributeError\nIf the named attribute does not exist on the mesh.",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "named_attribute"
+    ]
+  },
+  {
+    "objectID": "api/named_attribute.html#parameters",
+    "href": "api/named_attribute.html#parameters",
+    "title": "named_attribute",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object.\nrequired\n\n\nname\nstr\nThe name of the attribute, by default ‘position’.\n'position'\n\n\nevaluate\nbool\nWhether to evaluate modifiers before reading, by default False.\nFalse",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "named_attribute"
+    ]
+  },
+  {
+    "objectID": "api/named_attribute.html#returns",
+    "href": "api/named_attribute.html#returns",
+    "title": "named_attribute",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nnp.ndarray\nThe attribute data as a numpy array.",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "named_attribute"
+    ]
+  },
+  {
+    "objectID": "api/named_attribute.html#raises",
+    "href": "api/named_attribute.html#raises",
+    "title": "named_attribute",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nAttributeError\nIf the named attribute does not exist on the mesh.",
     "crumbs": [
       "API",
       "Attribute",
@@ -113,7 +149,7 @@
     "href": "api/attribute.store_named_attribute.html#examples",
     "title": "attribute.store_named_attribute",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import store_named_attribute, named_attribute\n\nobj = bpy.data.objects['Cube']\ndata = np.random.rand(len(obj.data.vertices), 3)\n\nprint(named_attribute(obj, 'position')) # get the vertex positions as as numpy array\n\nstore_named_attribute(obj, data, 'position') # set the vertex positions with random data\n\nnamed_attribute(obj, 'position') # get the updated vertex positions\n\n[[ 1.  1.  1.]\n [ 1.  1. -1.]\n [ 1. -1.  1.]\n [ 1. -1. -1.]\n [-1.  1.  1.]\n [-1.  1. -1.]\n [-1. -1.  1.]\n [-1. -1. -1.]]\n\n\narray([[0.14825812, 0.94597453, 0.80427092],\n       [0.18703124, 0.28447467, 0.98975444],\n       [0.93531764, 0.59292686, 0.84104174],\n       [0.43711454, 0.93774569, 0.04571577],\n       [0.19049537, 0.72616613, 0.06653868],\n       [0.41599753, 0.4917295 , 0.92447895],\n       [0.32068917, 0.33719891, 0.00366311],\n       [0.10625006, 0.33274651, 0.72584832]])"
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import store_named_attribute, named_attribute\n\nobj = bpy.data.objects['Cube']\ndata = np.random.rand(len(obj.data.vertices), 3)\n\nprint(named_attribute(obj, 'position')) # get the vertex positions as as numpy array\n\nstore_named_attribute(obj, data, 'position') # set the vertex positions with random data\n\nnamed_attribute(obj, 'position') # get the updated vertex positions\n\n[[ 1.  1.  1.]\n [ 1.  1. -1.]\n [ 1. -1.  1.]\n [ 1. -1. -1.]\n [-1.  1.  1.]\n [-1.  1. -1.]\n [-1. -1.  1.]\n [-1. -1. -1.]]\n\n\narray([[0.21566212, 0.7224372 , 0.07350197],\n       [0.30714807, 0.84207624, 0.22662432],\n       [0.45674014, 0.03711607, 0.61985844],\n       [0.33893999, 0.58104563, 0.70387369],\n       [0.26949975, 0.31313023, 0.56872606],\n       [0.8705802 , 0.94354558, 0.73873669],\n       [0.50757796, 0.6314081 , 0.37921926],\n       [0.46277311, 0.26443455, 0.11232596]])"
   },
   {
     "objectID": "api/collection.create_collection.html",
@@ -134,7 +170,7 @@
     "href": "api/object.BlenderObject.html#examples",
     "title": "object.BlenderObject",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import BlenderObject\nobj = BlenderObject(bpy.data.objects['Cube'])\nprint(obj.name)\nprint(obj.object)\n\nCube\n&lt;bpy_struct, Object(\"Cube\") at 0x5563b0bb1ef0&gt;"
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import BlenderObject\nobj = BlenderObject(bpy.data.objects['Cube'])\nprint(obj.name)\nprint(obj.object)\n\nCube\n&lt;bpy_struct, Object(\"Cube\") at 0x5566699f77c0&gt;"
   },
   {
     "objectID": "api/object.BlenderObject.html#attributes",
@@ -222,7 +258,7 @@
     "href": "api/index.html",
     "title": "Function reference",
     "section": "",
-    "text": "For interacting with attributes on meshes\n\n\n\nnamed_attribute\nGet the named attribute data from the object, optionally evaluating modifiers first.\n\n\nstore_named_attribute\nAdds and sets the values of an attribute on the object.\n\n\n\n\n\n\nWorking with collections in Blender\n\n\n\ncreate_collection\nCreate a new Blender collection or retrieve an existing one.\n\n\n\n\n\n\n\n\n\nBlenderObject\nA convenience class for working with Blender objects\n\n\ncreate_object\nCreate a new Blender object and corresponding mesh.\n\n\ncreate_bob\nCreate an object but return it wrapped as a BlenderObject",
+    "text": "For interacting with attributes on meshes\n\n\n\nnamed_attribute\nGet the named attribute data from the object.\n\n\nstore_named_attribute\nAdds and sets the values of an attribute on the object.\n\n\n\n\n\n\nWorking with collections in Blender\n\n\n\ncreate_collection\nCreate a new Blender collection or retrieve an existing one.\n\n\n\n\n\n\n\n\n\nBlenderObject\nA convenience class for working with Blender objects\n\n\ncreate_object\nCreate a new Blender object and corresponding mesh.\n\n\ncreate_bob\nCreate an object but return it wrapped as a BlenderObject",
     "crumbs": [
       "API",
       "Function reference"
@@ -233,7 +269,7 @@
     "href": "api/index.html#attribute",
     "title": "Function reference",
     "section": "",
-    "text": "For interacting with attributes on meshes\n\n\n\nnamed_attribute\nGet the named attribute data from the object, optionally evaluating modifiers first.\n\n\nstore_named_attribute\nAdds and sets the values of an attribute on the object.",
+    "text": "For interacting with attributes on meshes\n\n\n\nnamed_attribute\nGet the named attribute data from the object.\n\n\nstore_named_attribute\nAdds and sets the values of an attribute on the object.",
     "crumbs": [
       "API",
       "Function reference"
@@ -306,7 +342,7 @@
     "href": "api/store_named_attribute.html",
     "title": "store_named_attribute",
     "section": "",
-    "text": "store_named_attribute(\n    obj,\n    data,\n    name,\n    atype=None,\n    domain=Domains.POINT,\n    overwrite=True,\n)\nAdds and sets the values of an attribute on the object.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object.\nrequired\n\n\nname\nstr\nThe name of the attribute.\nrequired\n\n\ndata\nnp.ndarray\nThe attribute data as a numpy array.\nrequired\n\n\natype\n(str, AttributeType)\nThe attribute type to store the data as. One of the AttributeType enums or a string of the same name. ‘FLOAT_VECTOR’, ‘FLOAT_COLOR’, ‘FLOAT4X4’, ‘QUATERNION’, ‘FLOAT’, ‘INT’, ‘BOOLEAN’\nNone\n\n\ndomain\nstr\nThe domain of the attribute. Defaults to ‘POINT’. Currently, only ‘POINT’, ‘EDGE’, and ‘FACE’ have been tested.\nDomains.POINT\n\n\noverwrite\nbool\nSetting to false will create a new attribute if the given name is already an attribute on the mesh.\nTrue\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nbpy.types.Attribute\nThe added attribute.",
+    "text": "store_named_attribute(\n    obj,\n    data,\n    name,\n    atype=None,\n    domain=Domains.POINT,\n    overwrite=True,\n)\nAdds and sets the values of an attribute on the object.\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object.\nrequired\n\n\ndata\nnp.ndarray\nThe attribute data as a numpy array.\nrequired\n\n\nname\nstr\nThe name of the attribute.\nrequired\n\n\natype\nstr or AttributeTypes or None\nThe attribute type to store the data as. If None, type is inferred from data.\nNone\n\n\ndomain\nstr or DomainType\nThe domain of the attribute, by default ‘POINT’.\nDomains.POINT\n\n\noverwrite\nbool\nWhether to overwrite existing attribute, by default True.\nTrue\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nbpy.types.Attribute\nThe added or modified attribute.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nValueError\nIf atype string doesn’t match available types.\n\n\n\nAttributeMismatchError\nIf data length doesn’t match domain size.",
     "crumbs": [
       "API",
       "Attribute",
@@ -318,7 +354,7 @@
     "href": "api/store_named_attribute.html#parameters",
     "title": "store_named_attribute",
     "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object.\nrequired\n\n\nname\nstr\nThe name of the attribute.\nrequired\n\n\ndata\nnp.ndarray\nThe attribute data as a numpy array.\nrequired\n\n\natype\n(str, AttributeType)\nThe attribute type to store the data as. One of the AttributeType enums or a string of the same name. ‘FLOAT_VECTOR’, ‘FLOAT_COLOR’, ‘FLOAT4X4’, ‘QUATERNION’, ‘FLOAT’, ‘INT’, ‘BOOLEAN’\nNone\n\n\ndomain\nstr\nThe domain of the attribute. Defaults to ‘POINT’. Currently, only ‘POINT’, ‘EDGE’, and ‘FACE’ have been tested.\nDomains.POINT\n\n\noverwrite\nbool\nSetting to false will create a new attribute if the given name is already an attribute on the mesh.\nTrue",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object.\nrequired\n\n\ndata\nnp.ndarray\nThe attribute data as a numpy array.\nrequired\n\n\nname\nstr\nThe name of the attribute.\nrequired\n\n\natype\nstr or AttributeTypes or None\nThe attribute type to store the data as. If None, type is inferred from data.\nNone\n\n\ndomain\nstr or DomainType\nThe domain of the attribute, by default ‘POINT’.\nDomains.POINT\n\n\noverwrite\nbool\nWhether to overwrite existing attribute, by default True.\nTrue",
     "crumbs": [
       "API",
       "Attribute",
@@ -330,7 +366,19 @@
     "href": "api/store_named_attribute.html#returns",
     "title": "store_named_attribute",
     "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\n\nbpy.types.Attribute\nThe added attribute.",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nbpy.types.Attribute\nThe added or modified attribute.",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "store_named_attribute"
+    ]
+  },
+  {
+    "objectID": "api/store_named_attribute.html#raises",
+    "href": "api/store_named_attribute.html#raises",
+    "title": "store_named_attribute",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nValueError\nIf atype string doesn’t match available types.\n\n\n\nAttributeMismatchError\nIf data length doesn’t match domain size.",
     "crumbs": [
       "API",
       "Attribute",

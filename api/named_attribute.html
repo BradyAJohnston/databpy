@@ -242,11 +242,91 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="databpy.named_attribute" class="level1">
 <h1>named_attribute</h1>
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>named_attribute(obj, name<span class="op">=</span><span class="st">'position'</span>, evaluate<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Get the named attribute data from the object, optionally evaluating modifiers first.</p>
-<p>Parameters: object (bpy.types.Object): The Blender object. name (str, optional): The name of the attribute. Defaults to ‘position’.</p>
-<p>Returns: np.ndarray: The attribute data as a numpy array.</p>
+<p>Get the named attribute data from the object.</p>
+<section id="parameters" class="level2 doc-section doc-section-parameters">
+<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 16%">
+<col style="width: 60%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>obj</td>
+<td>bpy.types.Object</td>
+<td>The Blender object.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>name</td>
+<td>str</td>
+<td>The name of the attribute, by default ‘position’.</td>
+<td><code>'position'</code></td>
+</tr>
+<tr class="odd">
+<td>evaluate</td>
+<td>bool</td>
+<td>Whether to evaluate modifiers before reading, by default False.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns" class="level2 doc-section doc-section-returns">
+<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>np.ndarray</td>
+<td>The attribute data as a numpy array.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="raises" class="level2 doc-section doc-section-raises">
+<h2 class="doc-section doc-section-raises anchored" data-anchor-id="raises">Raises</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 21%">
+<col style="width: 68%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>AttributeError</td>
+<td>If the named attribute does not exist on the mesh.</td>
+</tr>
+</tbody>
+</table>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
