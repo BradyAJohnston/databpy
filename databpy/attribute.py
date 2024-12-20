@@ -9,6 +9,12 @@ from pathlib import Path
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curve, bpy.types.PointCloud]
 
 
+class NamedAttributeError(AttributeError):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
+
 def _check_obj_attributes(obj: Object) -> None:
     if not isinstance(obj, bpy.types.Object):
         raise TypeError(f"Object must be a bpy.types.Object, not {type(obj)}")
@@ -355,9 +361,14 @@ def store_named_attribute(
     if not attribute or not overwrite:
         attribute = obj.data.attributes.new(name, atype.value.type_name, str(domain))
 
+    target_atype = AttributeTypes[attribute.data_type]
     if len(data) != len(attribute.data):
-        raise AttributeMismatchError(
-            f"Data length {len(data)}, dimensions {data.shape} does not equal the size of the target domain {domain}, len={len(attribute.data)=}"
+        raise NamedAttributeError(
+            f"Data length {len(data)}, dimensions {data.shape} does not equal the size of the target `{domain=}`, `{len(attribute.data)=}`, {target_atype.value.dimensions=}`"
+        )
+    if target_atype != atype:
+        raise NamedAttributeError(
+            f"Attribute being written to: `{attribute.name}` of type `{target_atype.value.type_name}` does not match the type for the given data: `{atype.value.type_name}`"
         )
 
     # the 'foreach_set' requires a 1D array, regardless of the shape of the attribute
@@ -440,7 +451,7 @@ def named_attribute(
         if verbose:
             message += f"Possible attributes are: {obj.data.attributes.keys()}"
 
-        raise AttributeError(message)
+        raise NamedAttributeError(message)
 
     return attr.as_array()
 
@@ -470,6 +481,6 @@ def remove_named_attribute(
         attr = obj.data.attributes[name]
         obj.data.attributes.remove(attr)
     except KeyError:
-        raise AttributeError(
+        raise NamedAttributeError(
             f"The selected attribute '{name}' does not exist on the object"
         )
