@@ -32,7 +32,7 @@ def create_collection(
             parent = bpy.data.collections[name]
         except KeyError:
             parent = bpy.data.collections.new(name)
-            bpy.context.scene.collection.children.linke(parent)
+            bpy.context.scene.collection.children.link(parent)
     try:
         coll = bpy.data.collections[name]
     except KeyError:
