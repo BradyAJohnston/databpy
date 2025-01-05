@@ -581,9 +581,17 @@ def create_object(
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(vertices=vertices, edges=edges, faces=faces)
     obj = bpy.data.objects.new(name, mesh)
-    if not collection:
-        collection = bpy.data.collections["Collection"]
+
+    # Link object to collection
+    if collection is None:
+        # Ensure the default collection named "Collection" exists
+        if "Collection" not in bpy.data.collections:
+            collection = bpy.data.collections.new("Collection")
+            bpy.context.scene.collection.children.link(collection)
+        else:
+            collection = bpy.data.collections["Collection"]
     collection.objects.link(obj)
+    
     return obj
 
 
