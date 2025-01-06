@@ -33,7 +33,7 @@ jobs:
 
       - name: Quarto Render
         run: |
-            quarto render docs
+            uv run quarto render docs
 
       - name: Publish to GitHub Pages (and render)
         uses: quarto-dev/quarto-actions/publish@v2
