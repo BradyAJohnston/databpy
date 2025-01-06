@@ -4,7 +4,17 @@ from bpy.types import Collection
 
 def _get_collection(name: str) -> Collection:
     """
-    Retrieve a Blender collection by name.
+    Retrieve a Blender collection by name, if it doesn't exist, create it and link to scene
+
+    Parameters
+    ----------
+    name : str
+        The name of the collection to retrieve or create
+
+    Returns
+    -------
+    Collection
+        The retrieved or created Blender collection
     """
     try:
         return bpy.data.collections[name]
@@ -40,15 +50,15 @@ def create_collection(
         If the parent collection name provided does not exist in bpy.data.collections.
     """
 
+    if type(parent) not in [Collection, str, type(None)]:
+        raise TypeError("Parent must be a Collection, string or None")
+
     coll = _get_collection(name)
     if parent is None:
         return coll
 
     if isinstance(parent, str):
         parent = _get_collection(parent)
-
-    if not isinstance(parent, Collection):
-        raise TypeError("Parent must be a Collection or a string")
 
     parent.children.link(coll)
     return coll
