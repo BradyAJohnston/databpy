@@ -29,16 +29,12 @@ jobs:
             
             - name: Install
               run: |
-                uv venv --python=3.11
-                source .venv/bin/activate
-                uv pip install -r pyproject.toml --all-extras
-                uv pip install -e .
+                uv sync  --all-extras --dev
                 uv pip install bpy==${{ matrix.version }}
             
             - name: Run tests
               run: |
-                source .venv/bin/activate
-                pytest -vv --cov=databpy --cov-report=xml
+                uv run -m pytest -vv --cov=databpy --cov-report=xml
     
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v5
