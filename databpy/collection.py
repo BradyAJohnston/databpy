@@ -2,6 +2,18 @@ import bpy
 from bpy.types import Collection
 
 
+def _get_collection(name: str) -> Collection:
+    """
+    Retrieve a Blender collection by name.
+    """
+    try:
+        return bpy.data.collections[name]
+    except KeyError:
+        coll = bpy.data.collections.new(name)
+        bpy.context.scene.collection.children.link(coll)
+        return coll
+
+
 def create_collection(
     name: str = "NewCollection", parent: Collection | str | None = None
 ) -> Collection:
@@ -27,19 +39,16 @@ def create_collection(
     KeyError
         If the parent collection name provided does not exist in bpy.data.collections.
     """
-    if isinstance(parent, str):
-        try:
-            parent = bpy.data.collections[name]
-        except KeyError:
-            parent = bpy.data.collections.new(name)
-            bpy.context.scene.collection.children.link(parent)
-    try:
-        coll = bpy.data.collections[name]
-    except KeyError:
-        coll = bpy.data.collections.new(name)
-        if parent is None:
-            bpy.context.scene.collection.children.link(coll)
-        else:
-            parent.children.link(coll)
 
+    coll = _get_collection(name)
+    if parent is None:
+        return coll
+
+    if isinstance(parent, str):
+        parent = _get_collection(parent)
+
+    if not isinstance(parent, Collection):
+        raise TypeError("Parent must be a Collection or a string")
+
+    parent.children.link(coll)
     return coll
