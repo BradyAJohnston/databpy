@@ -53,12 +53,11 @@ def create_collection(
     if type(parent) not in [Collection, str, type(None)]:
         raise TypeError("Parent must be a Collection, string or None")
 
-    coll = _get_collection(name)
-    if parent is None:
-        return coll
-
     if isinstance(parent, str):
         parent = _get_collection(parent)
 
+    coll = _get_collection(name)
+    if parent is None:
+        return coll
     parent.children.link(coll)
     return coll

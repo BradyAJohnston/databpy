@@ -582,8 +582,8 @@ def create_object(
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(vertices=vertices, edges=edges, faces=faces)
     obj = bpy.data.objects.new(name, mesh)
-    if not collection:
-        collection = create_collection("")
+    if collection is None:
+        collection = create_collection("Collection")
     collection.objects.link(obj)
     return obj
 
