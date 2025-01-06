@@ -12,6 +12,7 @@ from .attribute import (
 )
 from .addon import register
 
+from .collection import create_collection
 from uuid import uuid1
 from . import attribute as attr
 from .utils import centre
@@ -582,7 +583,7 @@ def create_object(
     mesh.from_pydata(vertices=vertices, edges=edges, faces=faces)
     obj = bpy.data.objects.new(name, mesh)
     if not collection:
-        collection = bpy.data.collections["Collection"]
+        collection = create_collection("")
     collection.objects.link(obj)
     return obj
 
