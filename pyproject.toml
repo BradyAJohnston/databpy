@@ -17,7 +17,7 @@ Dcumentation = "https://bradyajohnston.github.io/databpy"
 
 [project.optional-dependencies]
 bpy = ["bpy>=4.2"]
-test = ["pytest", "pytest-cov", "syrupy", "polars"]
+test = ["pytest", "pytest-cov", "syrupy"]
 dev = ["fake-bpy-module", "polars"]
 docs = ["quartodoc", "jupyter", "polars"]
 
