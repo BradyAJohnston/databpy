@@ -149,6 +149,9 @@ class BlenderObject:
         self._uuid: str = str(uuid1())
         self._object_name: str = ""
 
+        if not hasattr(bpy.types.Object, "uuid"):
+            register()
+
         if isinstance(obj, Object):
             if obj.uuid != "":
                 self._uuid = obj.uuid
