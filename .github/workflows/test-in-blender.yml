@@ -21,6 +21,7 @@ jobs:
                 version: ${{ matrix.version }}
             - name: Install and Test
               run: |
+                cd ~
                 ls -lrta
                 ls tests/ -lrta
 
