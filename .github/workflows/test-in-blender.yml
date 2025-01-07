@@ -16,7 +16,7 @@ jobs:
               version: ["4.2.5", "4.3.2", "daily"]
               os: [macos-14]
         steps:
-            - uses: BradyAJohnston/setup-blender@v2
+            - uses: BradyAJohnston/setup-blender@v2.1
               with:
                 version: ${{ matrix.version }}
             - name: Install and Test
