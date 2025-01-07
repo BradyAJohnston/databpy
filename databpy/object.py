@@ -150,6 +150,8 @@ class BlenderObject:
         self._object_name: str = ""
 
         if isinstance(obj, Object):
+            if obj.uuid != "":
+                self._uuid = obj.uuid
             self.object = obj
         elif isinstance(obj, str):
             self.object = bpy.data.objects[obj]
