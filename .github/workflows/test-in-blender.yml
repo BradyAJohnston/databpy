@@ -23,4 +23,4 @@ jobs:
             - name: Install and Test
               run: |
                 blender -b -P tests/python.py -- -m pip install -e ".[test]"
-                blender -b -P tests/python.py -- -m pytest -vv
+                blender -b -P tests/run.py -- -vv
