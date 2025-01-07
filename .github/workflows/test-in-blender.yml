@@ -1,0 +1,26 @@
+name: Run Tests in Blender
+
+on: 
+    push:
+      branches: ["main"]
+    pull_request:
+      branches: ["*"]
+    
+jobs:
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            max-parallel: 4
+            fail-fast: false
+            matrix:
+              version: ["4.2.5", "4.3.2", "daily"]
+              os: [macos-14]
+        steps:
+            - uses: BradyAJohnston/setup-blender@v2
+              with:
+                version: ${{ matrix.version }}
+            - name: Install and Test
+              run: |
+                blender -b -P tests/python.py -- -m pip install uv
+                blender -b -P tests/python.py -- -m uv install -e ".[test]"
+                blender -b -P tests/python.py -- -m uv run --no-project --module pytest
