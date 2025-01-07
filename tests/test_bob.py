@@ -36,3 +36,18 @@ def test_bob(snapshot):
     assert not np.allclose(pos_a, pos_b)
     assert snapshot == pos_a
     assert snapshot == pos_b
+
+
+# test that we aren't overwriting an existing UUID on an object, when wrapping it with
+# with BlenderObject
+def test_bob_mismatch_uuid():
+    bob = db.BlenderObject(bpy.data.objects["Cube"])
+    obj = bob.object
+    old_uuid = obj.uuid
+    bob = db.BlenderObject(obj)
+    assert old_uuid == bob.uuid
+
+
+def test_register():
+    db.unregister()
+    bob = db.BlenderObject(bpy.data.objects["Cube"])
