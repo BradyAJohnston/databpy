@@ -16,15 +16,12 @@ jobs:
               version: ["4.2.5", "4.3.2", "daily"]
               os: [macos-14]
         steps:
+            - uses: actions/checkout@v4
             - uses: BradyAJohnston/setup-blender@v2.1
               with:
                 version: ${{ matrix.version }}
             - name: Install and Test
               run: |
-                cd ~
-                ls -lrta
-                ls tests/ -lrta
-
                 blender -b -P tests/python.py -- -m pip install uv
                 blender -b -P tests/python.py -- -m uv install -e ".[test]"
                 blender -b -P tests/python.py -- -m uv run --no-project --module pytest
