@@ -46,3 +46,8 @@ def test_bob_mismatch_uuid():
     old_uuid = obj.uuid
     bob = db.BlenderObject(obj)
     assert old_uuid == bob.uuid
+
+
+def test_register():
+    db.unregister()
+    bob = db.BlenderObject(bpy.data.objects["Cube"])
