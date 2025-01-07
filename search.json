@@ -149,7 +149,7 @@
     "href": "api/attribute.store_named_attribute.html#examples",
     "title": "attribute.store_named_attribute",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import store_named_attribute, named_attribute\n\nobj = bpy.data.objects['Cube']\ndata = np.random.rand(len(obj.data.vertices), 3)\n\nprint(named_attribute(obj, 'position')) # get the vertex positions as as numpy array\n\nstore_named_attribute(obj, data, 'position') # set the vertex positions with random data\n\nnamed_attribute(obj, 'position') # get the updated vertex positions\n\n[[ 1.  1.  1.]\n [ 1.  1. -1.]\n [ 1. -1.  1.]\n [ 1. -1. -1.]\n [-1.  1.  1.]\n [-1.  1. -1.]\n [-1. -1.  1.]\n [-1. -1. -1.]]\n\n\narray([[0.33320469, 0.73359346, 0.70420778],\n       [0.93130052, 0.27577397, 0.91230285],\n       [0.07988451, 0.79373771, 0.39477175],\n       [0.47859707, 0.10219058, 0.6183722 ],\n       [0.45228276, 0.53064644, 0.72095662],\n       [0.96704316, 0.84371454, 0.71853811],\n       [0.14153324, 0.9618026 , 0.84223121],\n       [0.46691325, 0.17665036, 0.41675964]])"
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import store_named_attribute, named_attribute\n\nobj = bpy.data.objects['Cube']\ndata = np.random.rand(len(obj.data.vertices), 3)\n\nprint(named_attribute(obj, 'position')) # get the vertex positions as as numpy array\n\nstore_named_attribute(obj, data, 'position') # set the vertex positions with random data\n\nnamed_attribute(obj, 'position') # get the updated vertex positions\n\n[[ 1.  1.  1.]\n [ 1.  1. -1.]\n [ 1. -1.  1.]\n [ 1. -1. -1.]\n [-1.  1.  1.]\n [-1.  1. -1.]\n [-1. -1.  1.]\n [-1. -1. -1.]]\n\n\narray([[0.50442296, 0.40374118, 0.59652573],\n       [0.53096497, 0.590716  , 0.73290461],\n       [0.81492513, 0.10539422, 0.59926879],\n       [0.63028437, 0.24646643, 0.43294239],\n       [0.77109033, 0.32222721, 0.72444743],\n       [0.82233804, 0.83133811, 0.04294272],\n       [0.51215434, 0.62614983, 0.09642277],\n       [0.91722918, 0.44450003, 0.69431323]])"
   },
   {
     "objectID": "api/collection.create_collection.html",
@@ -170,7 +170,7 @@
     "href": "api/object.BlenderObject.html#examples",
     "title": "object.BlenderObject",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import BlenderObject\nobj = BlenderObject(bpy.data.objects['Cube'])\nprint(obj.name)\nprint(obj.object)\n\nCube\n&lt;bpy_struct, Object(\"Cube\") at 0x562a51d17190&gt;"
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import BlenderObject\nobj = BlenderObject(bpy.data.objects['Cube'])\nprint(obj.name)\nprint(obj.object)\n\nCube\n&lt;bpy_struct, Object(\"Cube\") at 0x55b51f036d20&gt;"
   },
   {
     "objectID": "api/object.BlenderObject.html#attributes",
