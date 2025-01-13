@@ -336,7 +336,6 @@ docs = [
     { name = "quartodoc" },
 ]
 test = [
-    { name = "polars" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "syrupy" },
@@ -347,10 +346,9 @@ requires-dist = [
     { name = "bpy", marker = "extra == 'bpy'", specifier = ">=4.2" },
     { name = "fake-bpy-module", marker = "extra == 'dev'" },
     { name = "jupyter", marker = "extra == 'docs'" },
-    { name = "numpy", specifier = ">=1.26.0,<2.0" },
+    { name = "numpy", specifier = ">=1.24.0,<2.0" },
     { name = "polars", marker = "extra == 'dev'" },
     { name = "polars", marker = "extra == 'docs'" },
-    { name = "polars", marker = "extra == 'test'" },
     { name = "pytest", marker = "extra == 'test'" },
     { name = "pytest-cov", marker = "extra == 'test'" },
     { name = "quartodoc", marker = "extra == 'docs'" },
