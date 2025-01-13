@@ -60,4 +60,5 @@ def create_collection(
     if parent is None:
         return coll
     parent.children.link(coll)
+    bpy.context.scene.collection.children.unlink(coll)
     return coll

@@ -27,3 +27,8 @@ def test_collection():
     assert coll.name == "Example"
     assert coll.name in bpy.data.collections
     assert coll.name in bpy.data.collections["Collection"].children
+
+
+def test_collection_parent():
+    db.collection.create_collection(".MN_data", parent="MolecularNodes")
+    assert ".MN_data" not in bpy.context.scene.collection.children
