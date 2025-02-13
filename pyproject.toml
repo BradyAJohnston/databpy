@@ -1,6 +1,6 @@
 [project]
 name = "databpy"
-version = "0.0.8"
+version = "0.0.9"
 description = "A data-oriented wrapper library for the Blender Python API"
 readme = "README.md"
 dependencies = ["numpy>=2"]
