@@ -13,11 +13,11 @@ jobs:
             max-parallel: 4
             fail-fast: false
             matrix:
-              version: ["4.2.5", "4.3.2", "daily"]
-              os: [macos-14]
+              version: ["4.2", "4.3", "4.4", "daily"]
+              os: [macos-14, ubuntu-latest, windows-latest]
         steps:
             - uses: actions/checkout@v4
-            - uses: BradyAJohnston/setup-blender@v2.1
+            - uses: BradyAJohnston/setup-blender@v3
               with:
                 version: ${{ matrix.version }}
             - name: Install and Test
