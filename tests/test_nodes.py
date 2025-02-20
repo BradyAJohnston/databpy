@@ -61,3 +61,9 @@ def test_long_list():
     )
     for i, val in enumerate(range(1_000)):
         assert tree.nodes["Index Switch"].inputs[i + 1].default_value == str(val)
+
+
+def test_raises_error():
+    """Test that an error is raised if the node group already exists"""
+    with pytest.raises(NodeGroupCreationError):
+        custom_string_iswitch("TestSwitch", range(10))
