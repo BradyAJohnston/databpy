@@ -228,6 +228,7 @@ def custom_string_iswitch(
         return tree
 
     tree = new_tree(name=name, geometry=False)
+    tree.color_tag = "CONVERTER"
 
     # try creating the node group, otherwise on fail cleanup the created group and
     # report the error
