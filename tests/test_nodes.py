@@ -34,13 +34,13 @@ def test_custom_string_iswitch_values():
         assert iswitch.inputs[i + 1].default_value == val
 
 
-def test_custom_string_iswitch_reuse():
+def test_custom_string_iswitch_name_duplication():
     """Test that existing node group is returned if name exists"""
     tree1 = custom_string_iswitch("ReuseTest", ["A", "B"])
     tree2 = custom_string_iswitch("ReuseTest", ["X", "Y"])
 
-    assert tree1 == tree2
     assert tree1.name == "ReuseTest"
+    assert tree1.name + ".001" == tree2.name
 
 
 def test_custom_string_iswitch_minimal():

@@ -223,11 +223,13 @@ def custom_string_iswitch(
     Creates a node group containing a `Index Switch` node with all the given values.
     """
 
-    tree = bpy.data.node_groups.get(name)
-    if tree:
-        return tree
-
-    tree = new_tree(name=name, geometry=False)
+    # dont' attempt to return an already existing node tree. If a user is requesting a
+    # new one they are likely passing in a new list, so we have to createa a new one
+    # to ensure we are using the new iterables
+    tree = new_tree(name=name, geometry=False, fallback=False)
+    # name might have originally been the same, but on creation it might be name.001 or
+    # something similar so we just grab the name from the tree
+    name = tree.name
     tree.color_tag = "CONVERTER"
 
     # try creating the node group, otherwise on fail cleanup the created group and
