@@ -23,5 +23,10 @@ jobs:
           run: |
             uv build
 
+        - name: Create GH Release
+          run: |
+            # Create release with auto-generated notes
+            gh release create ${{ github.ref_name }} --generate-notes dist/*
+    
         - name: Publish to PyPI  
           uses: pypa/gh-action-pypi-publish@release/v1
