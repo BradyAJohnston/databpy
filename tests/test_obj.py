@@ -45,6 +45,35 @@ def test_set_position():
     assert np.allclose(pos_a, pos_b - 10, rtol=0.1)
 
 
+def test_centroid():
+    bpy.ops.wm.read_factory_settings()
+    # Create test object with known vertices
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    bob = db.create_bob(verts, name="TestObject")
+
+    # Test unweighted centroid
+    centroid = bob.centroid()
+    assert np.allclose(centroid, np.array([1, 1, 1]))
+
+    # Test weighted centroid with float weights
+    weights = np.array([0.5, 0.3, 0.2])
+    weighted_centroid = bob.centroid(weights)
+    expected = np.average(verts, weights=weights, axis=0)
+    assert np.allclose(weighted_centroid, expected)
+
+    # Test centroid with integer index selection
+    indices = np.array([0, 1])
+    indexed_centroid = bob.centroid(indices)
+    expected = np.mean(verts[indices], axis=0)
+    assert np.allclose(indexed_centroid, expected)
+
+    # Test centroid with named attribute weights
+    db.store_named_attribute(bob.object, weights, "weights")
+    named_centroid = bob.centroid("weights")
+    expected = np.average(verts, weights=weights, axis=0)
+    assert np.allclose(named_centroid, expected)
+
+
 def test_change_names():
     bob_cube = db.BlenderObject("Cube")
     assert bob_cube.name == "Cube"
