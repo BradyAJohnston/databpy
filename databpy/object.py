@@ -366,31 +366,34 @@ class BlenderObject:
 
     def centroid(self, weight: str | np.ndarray | None = None) -> np.ndarray:
         """
-        Return the centroid, potentially weighted by an attribute.
-
-        If the weight is a string, an attribute of that name is attempted to be accessed
-        on the mesh. If an array is given that array is used as weights. A value of None
-        returns just the centroid calculation.
+        Calculate the weighted or unweighted centroid of the object's positions.
 
         Parameters
         ----------
         weight : str | np.ndarray | None, optional
-            The weights to apply to the positions when calculating the centroid. Defaults to None.
+            The weights or indices for calculating the centroid:
+            - If str: Name of attribute to use as weights
+            - If np.ndarray with float dtype: Weights for each position
+            - If np.ndarray with int dtype: Indices of positions to include
+            - If None: Use all positions equally weighted
+            Defaults to None.
 
         Returns
         -------
         np.ndarray
-            A 3-component vector with the calculated centroid.
+            A 3D vector representing the centroid position.
         """
         if isinstance(weight, str):
-            return centre(self.position, self.named_attribute(weight))
+            weight = self.named_attribute(weight)
 
         if isinstance(weight, np.ndarray):
-            return centre(self.position, weight)
+            if weight.dtype.kind == "f":
+                return np.average(self.position, weights=weight, axis=0)
+            elif weight.dtype.kind == "i":
+                return np.average(self.position[weight], axis=0)
 
-        return centre(self.position)
+        return np.average(self.position, axis=0)
 
-    @property
     def attributes(self):
         """
         Get the attributes of the Blender object.
