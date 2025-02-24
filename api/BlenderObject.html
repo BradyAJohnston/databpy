@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.6.40">
+<meta name="generator" content="quarto-1.6.41">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -69,7 +69,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-48ffa3e5b9d089919c6712c39e5b00f2.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-bd89562929948232a0cfc2a2280e30cc.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -254,30 +254,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td><a href="#databpy.BlenderObject.attributes">attributes</a></td>
-<td>Get the attributes of the Blender object.</td>
-</tr>
-<tr class="even">
 <td><a href="#databpy.BlenderObject.edges">edges</a></td>
 <td>Get the edges of the Blender object.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#databpy.BlenderObject.name">name</a></td>
 <td>Get the name of the Blender object.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="#databpy.BlenderObject.object">object</a></td>
 <td>Get the Blender object.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#databpy.BlenderObject.position">position</a></td>
 <td>Get the position of the vertices of the Blender object.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="#databpy.BlenderObject.selected">selected</a></td>
 <td>Get the selected vertices of the Blender object.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#databpy.BlenderObject.vertices">vertices</a></td>
 <td>Get the vertices of the Blender object.</td>
 </tr>
@@ -295,64 +291,96 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td><a href="#databpy.BlenderObject.centroid">centroid</a></td>
-<td>Return the centroid, potentially weighted by an attribute.</td>
+<td><a href="#databpy.BlenderObject.attributes">attributes</a></td>
+<td>Get the attributes of the Blender object.</td>
 </tr>
 <tr class="even">
+<td><a href="#databpy.BlenderObject.centroid">centroid</a></td>
+<td>Calculate the weighted or unweighted centroid of the object’s positions.</td>
+</tr>
+<tr class="odd">
 <td><a href="#databpy.BlenderObject.evaluate">evaluate</a></td>
 <td>Return a version of the object with all modifiers applied.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#databpy.BlenderObject.list_attributes">list_attributes</a></td>
 <td>Returns a list of attribute names for the object.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="#databpy.BlenderObject.named_attribute">named_attribute</a></td>
 <td>Retrieve a named attribute from the object.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#databpy.BlenderObject.new_from_pydata">new_from_pydata</a></td>
 <td>Create a new Blender object from vertex, edge and face data.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="#databpy.BlenderObject.remove_named_attribute">remove_named_attribute</a></td>
 <td>Remove a named attribute from the object.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#databpy.BlenderObject.selected_positions">selected_positions</a></td>
 <td>Get the positions of the selected vertices, optionally filtered by a mask.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="#databpy.BlenderObject.set_boolean">set_boolean</a></td>
 <td>Store a boolean attribute on the Blender object.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#databpy.BlenderObject.store_named_attribute">store_named_attribute</a></td>
 <td>Store a named attribute on the Blender object.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="#databpy.BlenderObject.transform_origin">transform_origin</a></td>
 <td>Transform the origin of the Blender object.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="#databpy.BlenderObject.transform_points">transform_points</a></td>
 <td>Transform the points of the Blender object.</td>
 </tr>
 </tbody>
 </table>
+<section id="databpy.BlenderObject.attributes" class="level3">
+<h3 class="anchored" data-anchor-id="databpy.BlenderObject.attributes">attributes</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.attributes()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Get the attributes of the Blender object.</p>
+<section id="returns" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 31%">
+<col style="width: 56%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>bpy.types.Attributes</td>
+<td>The attributes of the Blender object.</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
 <section id="databpy.BlenderObject.centroid" class="level3">
 <h3 class="anchored" data-anchor-id="databpy.BlenderObject.centroid">centroid</h3>
-<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.centroid(weight<span class="op">=</span><span class="va">None</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Return the centroid, potentially weighted by an attribute.</p>
-<p>If the weight is a string, an attribute of that name is attempted to be accessed on the mesh. If an array is given that array is used as weights. A value of None returns just the centroid calculation.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.centroid(weight<span class="op">=</span><span class="va">None</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Calculate the weighted or unweighted centroid of the object’s positions.</p>
 <section id="parameters" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h4>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 5%">
-<col style="width: 20%">
-<col style="width: 65%">
+<col style="width: 2%">
 <col style="width: 8%">
+<col style="width: 86%">
+<col style="width: 3%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -366,19 +394,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>weight</td>
 <td>str | np.ndarray | None</td>
-<td>The weights to apply to the positions when calculating the centroid. Defaults to None.</td>
+<td>The weights or indices for calculating the centroid: - If str: Name of attribute to use as weights - If np.ndarray with float dtype: Weights for each position - If np.ndarray with int dtype: Indices of positions to include - If None: Use all positions equally weighted Defaults to None.</td>
 <td><code>None</code></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="returns" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h4>
+<section id="returns-1" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-1">Returns</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 11%">
-<col style="width: 16%">
-<col style="width: 72%">
+<col style="width: 17%">
+<col style="width: 71%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -391,7 +419,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td></td>
 <td>np.ndarray</td>
-<td>A 3-component vector with the calculated centroid.</td>
+<td>A 3D vector representing the centroid position.</td>
 </tr>
 </tbody>
 </table>
@@ -399,10 +427,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="databpy.BlenderObject.evaluate" class="level3">
 <h3 class="anchored" data-anchor-id="databpy.BlenderObject.evaluate">evaluate</h3>
-<div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.evaluate()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.evaluate()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Return a version of the object with all modifiers applied.</p>
-<section id="returns-1" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-1">Returns</h4>
+<section id="returns-2" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-2">Returns</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 10%">
@@ -428,7 +456,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="databpy.BlenderObject.list_attributes" class="level3">
 <h3 class="anchored" data-anchor-id="databpy.BlenderObject.list_attributes">list_attributes</h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.list_attributes(evaluate<span class="op">=</span><span class="va">False</span>, drop_hidden<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.list_attributes(evaluate<span class="op">=</span><span class="va">False</span>, drop_hidden<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Returns a list of attribute names for the object.</p>
 <section id="parameters-1" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-1">Parameters</h4>
@@ -463,8 +491,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="returns-2" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-2">Returns</h4>
+<section id="returns-3" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-3">Returns</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 7%">
@@ -490,7 +518,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="databpy.BlenderObject.named_attribute" class="level3">
 <h3 class="anchored" data-anchor-id="databpy.BlenderObject.named_attribute">named_attribute</h3>
-<div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.named_attribute(name, evaluate<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.named_attribute(name, evaluate<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Retrieve a named attribute from the object.</p>
 <p>Optionally, evaluate the object before reading the named attribute</p>
 <section id="parameters-2" class="level4 doc-section doc-section-parameters">
@@ -526,8 +554,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="returns-3" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-3">Returns</h4>
+<section id="returns-4" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-4">Returns</h4>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 11%">
@@ -553,7 +581,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="databpy.BlenderObject.new_from_pydata" class="level3">
 <h3 class="anchored" data-anchor-id="databpy.BlenderObject.new_from_pydata">new_from_pydata</h3>
-<div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.new_from_pydata(vertices<span class="op">=</span><span class="va">None</span>, edges<span class="op">=</span><span class="va">None</span>, faces<span class="op">=</span><span class="va">None</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.new_from_pydata(vertices<span class="op">=</span><span class="va">None</span>, edges<span class="op">=</span><span class="va">None</span>, faces<span class="op">=</span><span class="va">None</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Create a new Blender object from vertex, edge and face data.</p>
 <section id="parameters-3" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-3">Parameters</h4>
@@ -588,8 +616,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="returns-4" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-4">Returns</h4>
+<section id="returns-5" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-5">Returns</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -610,7 +638,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="databpy.BlenderObject.remove_named_attribute" class="level3">
 <h3 class="anchored" data-anchor-id="databpy.BlenderObject.remove_named_attribute">remove_named_attribute</h3>
-<div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.remove_named_attribute(name)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.remove_named_attribute(name)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Remove a named attribute from the object.</p>
 <section id="parameters-4" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-4">Parameters</h4>
@@ -636,7 +664,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="databpy.BlenderObject.selected_positions" class="level3">
 <h3 class="anchored" data-anchor-id="databpy.BlenderObject.selected_positions">selected_positions</h3>
-<div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.selected_positions(mask<span class="op">=</span><span class="va">None</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.selected_positions(mask<span class="op">=</span><span class="va">None</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Get the positions of the selected vertices, optionally filtered by a mask.</p>
 <section id="parameters-5" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-5">Parameters</h4>
@@ -665,8 +693,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="returns-5" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-5">Returns</h4>
+<section id="returns-6" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-6">Returns</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -687,7 +715,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="databpy.BlenderObject.set_boolean" class="level3">
 <h3 class="anchored" data-anchor-id="databpy.BlenderObject.set_boolean">set_boolean</h3>
-<div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.set_boolean(array, name)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.set_boolean(array, name)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Store a boolean attribute on the Blender object.</p>
 <section id="parameters-6" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-6">Parameters</h4>
@@ -725,12 +753,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="databpy.BlenderObject.store_named_attribute" class="level3">
 <h3 class="anchored" data-anchor-id="databpy.BlenderObject.store_named_attribute">store_named_attribute</h3>
-<div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.store_named_attribute(</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    data,</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    name,</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    atype<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    domain<span class="op">=</span>Domains.POINT,</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.store_named_attribute(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    data,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    name,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    atype<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    domain<span class="op">=</span>Domains.POINT,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Store a named attribute on the Blender object.</p>
 <section id="parameters-7" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-7">Parameters</h4>
@@ -777,8 +805,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-<section id="returns-6" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-6">Returns</h4>
+<section id="returns-7" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-7">Returns</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -799,7 +827,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="databpy.BlenderObject.transform_origin" class="level3">
 <h3 class="anchored" data-anchor-id="databpy.BlenderObject.transform_origin">transform_origin</h3>
-<div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.transform_origin(matrix)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.transform_origin(matrix)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Transform the origin of the Blender object.</p>
 <section id="parameters-8" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-8">Parameters</h4>
@@ -831,7 +859,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="databpy.BlenderObject.transform_points" class="level3">
 <h3 class="anchored" data-anchor-id="databpy.BlenderObject.transform_points">transform_points</h3>
-<div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.transform_points(matrix)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.transform_points(matrix)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Transform the points of the Blender object.</p>
 <section id="parameters-9" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-9">Parameters</h4>
