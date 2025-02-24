@@ -54,6 +54,7 @@ def test_centroid():
     # Test unweighted centroid
     centroid = bob.centroid()
     assert np.allclose(centroid, np.array([1, 1, 1]))
+    assert np.allclose(db.centre(verts), np.array([1, 1, 1]))
 
     # Test weighted centroid with float weights
     weights = np.array([0.5, 0.3, 0.2])
