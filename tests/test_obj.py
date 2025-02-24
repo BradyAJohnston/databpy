@@ -60,6 +60,7 @@ def test_centroid():
     weighted_centroid = bob.centroid(weights)
     expected = np.average(verts, weights=weights, axis=0)
     assert np.allclose(weighted_centroid, expected)
+    assert np.allclose(db.utils.centre(verts, weight=weights), expected)
 
     # Test centroid with integer index selection
     indices = np.array([0, 1])
