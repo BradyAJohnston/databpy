@@ -1,22 +1,21 @@
-name: Run Tests in Blender
+name: Test Upstream
 
 on: 
-    push:
-      branches: ["main"]
     pull_request:
-      branches: ["*"]
+      branches: ["main"]
     
 jobs:
     build:
         runs-on: ${{ matrix.os }}
         env:
             BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+            REPO_NAME: "BradyAJohnston/databpy"
         strategy:
             max-parallel: 4
             fail-fast: false
             matrix:
               version: ["4.2", "4.3"]
-              os: [macos-14, ubuntu-latest, windows-latest]
+              os: [ubuntu-latest]
               repo: ["BradyAJohnston/MolecularNodes"]
         steps:
             - uses: actions/checkout@v4
@@ -30,5 +29,5 @@ jobs:
             - name: Install and Test
               run: |
                 blender -b -P tests/python.py -- -m pip install -e ".[test]"
-                blender -b -P tests/python.py -- -m pip install git+https://github.com/BradyAJohnston/databpy.git@${{ env.BRANCH_NAME }}
+                blender -b -P tests/python.py -- -m pip install git+https://github.com/${{ env.REPO_NAME}}.git@${{ env.BRANCH_NAME }}
                 blender -b -P tests/run.py -- -vv
