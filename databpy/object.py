@@ -383,6 +383,9 @@ class BlenderObject:
         np.ndarray
             A 3D vector representing the centroid position.
         """
+        if weight == "centroid":
+            weight = None
+
         if isinstance(weight, str):
             weight = self.named_attribute(weight)
 
