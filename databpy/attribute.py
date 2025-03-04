@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Type
 import bpy
-from bpy.types import Mesh, PointCloud, Curve, Object
+from bpy.types import Object
 import numpy as np
 from pathlib import Path
 
@@ -27,6 +27,13 @@ def _check_obj_attributes(obj: Object) -> None:
 def _check_is_mesh(obj: Object) -> None:
     if not isinstance(obj.data, bpy.types.Mesh):
         raise TypeError(f"Object must be a mesh to evaluate the modifiers")
+
+
+def list_attribtues(
+    obj: Object, evaluate: bool = False, drop_hidden: bool = False
+) -> list[str]:
+    _check_obj_attributes(obj)
+    return list([name for name in obj.data.attributes.keys()])
 
 
 def path_resolve(path: str | Path) -> Path:
@@ -65,7 +72,7 @@ class AttributeTypeInfo:
 
 
 @dataclass
-class DomainType:
+class AttributeDomain:
     name: str
 
     def __str__(self):
@@ -79,14 +86,35 @@ class AttributeMismatchError(Exception):
 
 
 # https://docs.blender.org/api/current/bpy_types_enum_items/attribute_domain_items.html#rna-enum-attribute-domain-items
-class Domains:
-    POINT = DomainType(name="POINT")
-    EDGE = DomainType(name="EDGE")
-    FACE = DomainType(name="FACE")
-    CORNER = DomainType(name="CORNER")
-    CURVE = DomainType(name="CURVE")
-    INSTANCE = DomainType(name="INSTNANCE")
-    LAYER = DomainType(name="LAYER")
+class AttributeDomains:
+    """
+    Enumeration of attribute domains in Blender.
+
+    Attributes
+    ----------
+    POINT : AttributeDomain
+        The point domain of geometry data which includes vertices, point cloud and control points of curves.
+    EDGE : AttributeDomain
+        The edges of meshes, defined as pairs of vertices.
+    FACE : AttributeDomain
+        The face domain of meshes, defined as groups of edges.
+    CORNER : AttributeDomain
+        The face domain of meshes, defined as pairs of edges that share a vertex.
+    CURVE : AttributeDomain
+        The Spline domain, which includes the individual splines that each contain at least one control point.
+    INSTANCE : AttributeDomain
+        The Instance domain, which can include sets of other geometry to be treated as a single group.
+    LAYER : AttributeDomain
+        The domain of single Grease Pencil layers.
+    """
+
+    POINT = AttributeDomain(name="POINT")
+    EDGE = AttributeDomain(name="EDGE")
+    FACE = AttributeDomain(name="FACE")
+    CORNER = AttributeDomain(name="CORNER")
+    CURVE = AttributeDomain(name="CURVE")
+    INSTANCE = AttributeDomain(name="INSTNANCE")
+    LAYER = AttributeDomain(name="LAYER")
 
 
 @dataclass
@@ -100,49 +128,80 @@ class AttributeType:
         return self.type_name
 
 
-# https://docs.blender.org/api/current/bpy_types_enum_items/attribute_type_items.html#rna-enum-attribute-type-items
 class AttributeTypes(Enum):
+    """
+    Enumeration of attribute types in Blender.
+
+    Each attribute type has a specific data type and dimensionality.
+
+    Attributes
+    ----------
+    FLOAT : AttributeType
+        Single float value with dimensions (1,)
+    FLOAT_VECTOR : AttributeType
+        3D vector of floats with dimensions (3,)
+    FLOAT2 : AttributeType
+        2D vector of floats with dimensions (2,)
+    FLOAT_COLOR : AttributeType
+        RGBA color values as floats with dimensions (4,)
+    BYTE_COLOR : AttributeType
+        RGBA color values as integers with dimensions (4,)
+    QUATERNION : AttributeType
+        Quaternion rotation (w, x, y, z) as floats with dimensions (4,)
+    INT : AttributeType
+        Single integer value with dimensions (1,)
+    INT8 : AttributeType
+        8-bit integer value with dimensions (1,)
+    INT32_2D : AttributeType
+        2D vector of 32-bit integers with dimensions (2,)
+    FLOAT4X4 : AttributeType
+        4x4 transformation matrix of floats with dimensions (4, 4)
+    BOOLEAN : AttributeType
+        Single boolean value with dimensions (1,)
+    """
+
     # https://docs.blender.org/api/current/bpy.types.FloatAttribute.html#bpy.types.FloatAttribute
+    # https://docs.blender.org/api/current/bpy.types.FloatVectorAttribute.html#bpy.types.FloatVectorAttribute
+    # https://docs.blender.org/api/current/bpy.types.Float2Attribute.html#bpy.types.Float2Attribute
+    # https://docs.blender.org/api/current/bpy.types.FloatColorAttributeValue.html#bpy.types.FloatColorAttributeValue
+    # https://docs.blender.org/api/current/bpy.types.ByteColorAttribute.html#bpy.types.ByteColorAttribute
+    # https://docs.blender.org/api/current/bpy.types.QuaternionAttribute.html#bpy.types.QuaternionAttribute
+    # https://docs.blender.org/api/current/bpy.types.IntAttribute.html#bpy.types.IntAttribute
+    # https://docs.blender.org/api/current/bpy.types.ByteIntAttributeValue.html#bpy.types.ByteIntAttributeValue
+    # https://docs.blender.org/api/current/bpy.types.Int2Attribute.html#bpy.types.Int2Attribute
+    # https://docs.blender.org/api/current/bpy.types.Float4x4Attribute.html#bpy.types.Float4x4Attribute
+    # https://docs.blender.org/api/current/bpy.types.BoolAttribute.html#bpy.types.BoolAttribute
+
     FLOAT = AttributeType(
         type_name="FLOAT", value_name="value", dtype=float, dimensions=(1,)
     )
-    # https://docs.blender.org/api/current/bpy.types.FloatVectorAttribute.html#bpy.types.FloatVectorAttribute
     FLOAT_VECTOR = AttributeType(
         type_name="FLOAT_VECTOR", value_name="vector", dtype=float, dimensions=(3,)
     )
-    # https://docs.blender.org/api/current/bpy.types.Float2Attribute.html#bpy.types.Float2Attribute
     FLOAT2 = AttributeType(
         type_name="FLOAT2", value_name="vector", dtype=float, dimensions=(2,)
     )
     # alternatively use color_srgb to get the color info in sRGB color space, otherwise linear color space
-    # https://docs.blender.org/api/current/bpy.types.FloatColorAttributeValue.html#bpy.types.FloatColorAttributeValue
     FLOAT_COLOR = AttributeType(
         type_name="FLOAT_COLOR", value_name="color", dtype=float, dimensions=(4,)
     )
-    # https://docs.blender.org/api/current/bpy.types.ByteColorAttribute.html#bpy.types.ByteColorAttribute
     # TODO unsure about this, int values are stored but float values are returned
     BYTE_COLOR = AttributeType(
         type_name="BYTE_COLOR", value_name="color", dtype=int, dimensions=(4,)
     )
-    # https://docs.blender.org/api/current/bpy.types.QuaternionAttribute.html#bpy.types.QuaternionAttribute
     QUATERNION = AttributeType(
         type_name="QUATERNION", value_name="value", dtype=float, dimensions=(4,)
     )
-    # https://docs.blender.org/api/current/bpy.types.IntAttribute.html#bpy.types.IntAttribute
     INT = AttributeType(type_name="INT", value_name="value", dtype=int, dimensions=(1,))
-    # https://docs.blender.org/api/current/bpy.types.ByteIntAttributeValue.html#bpy.types.ByteIntAttributeValue
     INT8 = AttributeType(
         type_name="INT8", value_name="value", dtype=int, dimensions=(1,)
     )
-    # https://docs.blender.org/api/current/bpy.types.Int2Attribute.html#bpy.types.Int2Attribute
     INT32_2D = AttributeType(
         type_name="INT32_2D", value_name="value", dtype=int, dimensions=(2,)
     )
-    # https://docs.blender.org/api/current/bpy.types.Float4x4Attribute.html#bpy.types.Float4x4Attribute
     FLOAT4X4 = AttributeType(
         type_name="FLOAT4X4", value_name="value", dtype=float, dimensions=(4, 4)
     )
-    # https://docs.blender.org/api/current/bpy.types.BoolAttribute.html#bpy.types.BoolAttribute
     BOOLEAN = AttributeType(
         type_name="BOOLEAN", value_name="value", dtype=bool, dimensions=(1,)
     )
@@ -250,7 +309,7 @@ class Attribute:
         obj: bpy.types.Object,
         name: str,
         atype: AttributeType,
-        domain: DomainType,
+        domain: AttributeDomain,
     ):
         att = obj.data.get(name)
         if att is None:
@@ -312,7 +371,7 @@ def store_named_attribute(
     data: np.ndarray,
     name: str,
     atype: str | AttributeTypes | None = None,
-    domain: str | DomainType = Domains.POINT,
+    domain: str | AttributeDomain = AttributeDomains.POINT,
     overwrite: bool = True,
 ) -> bpy.types.Attribute:
     """
@@ -328,7 +387,7 @@ def store_named_attribute(
         The name of the attribute.
     atype : str or AttributeTypes or None, optional
         The attribute type to store the data as. If None, type is inferred from data.
-    domain : str or DomainType, optional
+    domain : str or AttributeDomain, optional
         The domain of the attribute, by default 'POINT'.
     overwrite : bool, optional
         Whether to overwrite existing attribute, by default True.
@@ -344,6 +403,18 @@ def store_named_attribute(
         If atype string doesn't match available types.
     AttributeMismatchError
         If data length doesn't match domain size.
+
+    Examples
+    --------
+    ```{python}
+    import bpy
+    from databpy import store_named_attribute, list_attributes, named_attribute
+    obj = bpy.data.objects["Cube"]
+    list_attributes(obj)
+    store_named_attribute(obj, np.arange(8), "test_attribute")
+    list_attributes(obj)
+    named_attribute(obj, "test_attribute")
+    ```
     """
 
     if isinstance(atype, str):
@@ -435,6 +506,17 @@ def named_attribute(
     ------
     AttributeError
         If the named attribute does not exist on the mesh.
+
+    Examples
+    --------
+    ```{python}
+    import bpy
+    from databpy import named_attribute, list_attributes
+    obj = bpy.data.objects["Cube"]
+    list_attributes(obj)
+    named_attribute(obj, "position")
+    ```
+
     """
     _check_obj_attributes(obj)
 
@@ -457,7 +539,9 @@ def named_attribute(
 
 
 def remove_named_attribute(
-    obj: bpy.types.Object, name: str, domain: str | DomainType = Domains.POINT
+    obj: bpy.types.Object,
+    name: str,
+    domain: str | AttributeDomain = AttributeDomains.POINT,
 ):
     """
     Remove a named attribute from an object.
@@ -468,7 +552,7 @@ def remove_named_attribute(
         The Blender object.
     name : str
         Name of the attribute to remove.
-    domain : str or DomainType, optional
+    domain : str or AttributeDomain, optional
         The domain of the attribute, by default POINT.
 
     Raises

@@ -10,7 +10,6 @@ A convenience class for working with Blender objects
 
 | Name | Description |
 | --- | --- |
-| [attributes](#databpy.BlenderObject.attributes) | Get the attributes of the Blender object. |
 | [edges](#databpy.BlenderObject.edges) | Get the edges of the Blender object. |
 | [name](#databpy.BlenderObject.name) | Get the name of the Blender object. |
 | [object](#databpy.BlenderObject.object) | Get the Blender object. |
@@ -22,7 +21,8 @@ A convenience class for working with Blender objects
 
 | Name | Description |
 | --- | --- |
-| [centroid](#databpy.BlenderObject.centroid) | Return the centroid, potentially weighted by an attribute. |
+| [attributes](#databpy.BlenderObject.attributes) | Get the attributes of the Blender object. |
+| [centroid](#databpy.BlenderObject.centroid) | Calculate the weighted or unweighted centroid of the object's positions. |
 | [evaluate](#databpy.BlenderObject.evaluate) | Return a version of the object with all modifiers applied. |
 | [list_attributes](#databpy.BlenderObject.list_attributes) | Returns a list of attribute names for the object. |
 | [named_attribute](#databpy.BlenderObject.named_attribute) | Retrieve a named attribute from the object. |
@@ -34,29 +34,39 @@ A convenience class for working with Blender objects
 | [transform_origin](#databpy.BlenderObject.transform_origin) | Transform the origin of the Blender object. |
 | [transform_points](#databpy.BlenderObject.transform_points) | Transform the points of the Blender object. |
 
+### attributes { #databpy.BlenderObject.attributes }
+
+```python
+BlenderObject.attributes()
+```
+
+Get the attributes of the Blender object.
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                 | Description                           |
+|--------|----------------------|---------------------------------------|
+|        | bpy.types.Attributes | The attributes of the Blender object. |
+
 ### centroid { #databpy.BlenderObject.centroid }
 
 ```python
 BlenderObject.centroid(weight=None)
 ```
 
-Return the centroid, potentially weighted by an attribute.
-
-If the weight is a string, an attribute of that name is attempted to be accessed
-on the mesh. If an array is given that array is used as weights. A value of None
-returns just the centroid calculation.
+Calculate the weighted or unweighted centroid of the object's positions.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name   | Type                      | Description                                                                            | Default   |
-|--------|---------------------------|----------------------------------------------------------------------------------------|-----------|
-| weight | str \| np.ndarray \| None | The weights to apply to the positions when calculating the centroid. Defaults to None. | `None`    |
+| Name   | Type                      | Description                                                                                                                                                                                                                                                                                    | Default   |
+|--------|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| weight | str \| np.ndarray \| None | The weights or indices for calculating the centroid: - If str: Name of attribute to use as weights - If np.ndarray with float dtype: Weights for each position - If np.ndarray with int dtype: Indices of positions to include - If None: Use all positions equally weighted Defaults to None. | `None`    |
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type       | Description                                        |
-|--------|------------|----------------------------------------------------|
-|        | np.ndarray | A 3-component vector with the calculated centroid. |
+| Name   | Type       | Description                                     |
+|--------|------------|-------------------------------------------------|
+|        | np.ndarray | A 3D vector representing the centroid position. |
 
 ### evaluate { #databpy.BlenderObject.evaluate }
 
@@ -194,7 +204,7 @@ BlenderObject.store_named_attribute(
     data,
     name,
     atype=None,
-    domain=Domains.POINT,
+    domain=AttributeDomains.POINT,
 )
 ```
 
@@ -202,12 +212,12 @@ Store a named attribute on the Blender object.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name   | Type                         | Description                                                                                                                                                           | Default         |
-|--------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
-| data   | np.ndarray                   | The data to be stored as an attribute.                                                                                                                                | _required_      |
-| name   | str                          | The name for the attribute. Will overwrite an already existing attribute.                                                                                             | _required_      |
-| atype  | str or AttributeType or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array. | `None`          |
-| domain | str or DomainType            | The domain to store the attribute on. Defaults to Domains.POINT.                                                                                                      | `Domains.POINT` |
+| Name   | Type                         | Description                                                                                                                                                           | Default                  |
+|--------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| data   | np.ndarray                   | The data to be stored as an attribute.                                                                                                                                | _required_               |
+| name   | str                          | The name for the attribute. Will overwrite an already existing attribute.                                                                                             | _required_               |
+| atype  | str or AttributeType or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array. | `None`                   |
+| domain | str or AttributeDomain       | The domain to store the attribute on. Defaults to Domains.POINT.                                                                                                      | `AttributeDomains.POINT` |
 
 #### Returns {.doc-section .doc-section-returns}
 
