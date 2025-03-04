@@ -5,6 +5,8 @@ website:
     - contents:
       - api/named_attribute.qmd
       - api/store_named_attribute.qmd
+      - api/AttributeDomains.qmd
+      - api/AttributeTypes.qmd
       section: Attribute
     - contents:
       - api/create_collection.qmd

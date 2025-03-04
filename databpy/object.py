@@ -7,8 +7,8 @@ from .attribute import (
     AttributeType,
     evaluate_object,
     _check_obj_attributes,
-    Domains,
-    DomainType,
+    AttributeDomains,
+    AttributeDomain,
 )
 from .addon import register
 
@@ -280,7 +280,7 @@ class BlenderObject:
         data: np.ndarray,
         name: str,
         atype: str | AttributeTypes | None = None,
-        domain: str | DomainType = Domains.POINT,
+        domain: str | AttributeDomain = AttributeDomains.POINT,
     ) -> None:
         """
         Store a named attribute on the Blender object.
@@ -295,7 +295,7 @@ class BlenderObject:
             The attribute type to store the data as. Either string or selection from the
             AttributeTypes enum. None will attempt to infer the attribute type from the
             input array.
-        domain : str or DomainType, optional
+        domain : str or AttributeDomain, optional
             The domain to store the attribute on. Defaults to Domains.POINT.
 
         Returns
@@ -490,7 +490,7 @@ class BlenderObject:
             value,
             name="position",
             atype=AttributeTypes.FLOAT_VECTOR,
-            domain=Domains.POINT,
+            domain=AttributeDomains.POINT,
         )
 
     def selected_positions(self, mask: np.ndarray | None = None) -> np.ndarray:
