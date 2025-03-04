@@ -16,7 +16,7 @@ jobs:
             matrix:
               version: ["4.2", "4.3"]
               os: [ubuntu-latest]
-              repo: ["BradyAJohnston/MolecularNodes"]
+              repo: ["BradyAJohnston/MolecularNodes", "kolibril13/blender_csv_import"]
         steps:
             - uses: actions/checkout@v4
               with:
