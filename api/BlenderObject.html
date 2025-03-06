@@ -179,6 +179,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">store_named_attribute</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/AttributeDomains.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">AttributeDomains</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/AttributeTypes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">AttributeTypes</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -757,7 +769,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    data,</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    name,</span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    atype<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    domain<span class="op">=</span>Domains.POINT,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    domain<span class="op">=</span>AttributeDomains.POINT,</span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Store a named attribute on the Blender object.</p>
 <section id="parameters-7" class="level4 doc-section doc-section-parameters">
@@ -765,9 +777,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <table class="caption-top table">
 <colgroup>
 <col style="width: 3%">
-<col style="width: 13%">
-<col style="width: 75%">
-<col style="width: 7%">
+<col style="width: 12%">
+<col style="width: 72%">
+<col style="width: 11%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -798,9 +810,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td>domain</td>
-<td>str or DomainType</td>
+<td>str or AttributeDomain</td>
 <td>The domain to store the attribute on. Defaults to Domains.POINT.</td>
-<td><code>Domains.POINT</code></td>
+<td><code>AttributeDomains.POINT</code></td>
 </tr>
 </tbody>
 </table>
