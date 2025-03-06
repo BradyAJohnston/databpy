@@ -29,7 +29,7 @@ def _check_is_mesh(obj: Object) -> None:
         raise TypeError(f"Object must be a mesh to evaluate the modifiers")
 
 
-def list_attribtues(
+def list_attributes(
     obj: Object, evaluate: bool = False, drop_hidden: bool = False
 ) -> list[str]:
     _check_obj_attributes(obj)
@@ -408,6 +408,7 @@ def store_named_attribute(
     --------
     ```{python}
     import bpy
+    import numpy as np
     from databpy import store_named_attribute, list_attributes, named_attribute
     obj = bpy.data.objects["Cube"]
     list_attributes(obj)

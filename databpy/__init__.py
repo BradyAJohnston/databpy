@@ -16,11 +16,11 @@ from .attribute import (
     named_attribute,
     store_named_attribute,
     remove_named_attribute,
+    list_attributes,
     Attribute,
     AttributeType,
     AttributeTypeInfo,
     AttributeTypes,
     AttributeDomains,
     AttributeDomain,
-    list_attribtues,
 )
