@@ -41,6 +41,7 @@ Adds and sets the values of an attribute on the object.
 
 ```{python}
 import bpy
+import numpy as np
 from databpy import store_named_attribute, list_attributes, named_attribute
 obj = bpy.data.objects["Cube"]
 list_attributes(obj)
