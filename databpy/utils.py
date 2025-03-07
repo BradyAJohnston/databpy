@@ -35,22 +35,19 @@ def lerp(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
 
     Examples
     --------
-    >>> lerp(1, 2, 0.5)
-    1.5
-
-    >>> lerp(3, 7, 0.2)
-    3.8
-
-    >>> lerp([1, 2, 3], [4, 5, 6], 0.5)
-    array([2.5, 3.5, 4.5])
-
+    ```{python}
+    from databpy.utils import lerp
+    lerp(1, 2, 0.5)
+    lerp(3, 7, 0.2)
+    lerp([1, 2, 3], [4, 5, 6], 0.5)
+    ```
     """
     return np.add(a, np.multiply(np.subtract(b, a), t))
 
 
 def path_resolve(path: str | Path) -> Path:
     """
-    Resolve a path string or Path object to an absolute Path.
+    Resolve a path string or Path object to an absolute Path
 
     Parameters
     ----------
@@ -69,8 +66,8 @@ def path_resolve(path: str | Path) -> Path:
     """
 
     if isinstance(path, str):
-        return Path(bpy.path.abspath(path))
+        return Path(bpy.path.abspath(path)).absolute()
     elif isinstance(path, Path):
-        return Path(bpy.path.abspath(str(path)))
+        return Path(bpy.path.abspath(str(path))).absolute()
     else:
         raise ValueError(f"Unable to resolve path: {path}")
