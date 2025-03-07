@@ -1,25 +1,38 @@
-import bpy
-from bpy.types import Object
-import numpy as np
-from numpy import typing as npt
-from .attribute import (
-    AttributeTypes,
-    AttributeType,
-    evaluate_object,
-    _check_obj_attributes,
-    AttributeDomains,
-    AttributeDomain,
-)
-from .addon import register
-
-from .collection import create_collection
 from uuid import uuid1
-from . import attribute as attr
-from .utils import centre
+
+import bpy
+import numpy as np
+from bpy.types import Object
 from mathutils import Matrix
+from numpy import typing as npt
+
+from . import attribute as attr
+from .addon import register
+from .attribute import (
+    AttributeDomain,
+    AttributeDomains,
+    AttributeTypes,
+    _check_obj_attributes,
+    evaluate_object,
+)
+from .collection import create_collection
 
 
 class LinkedObjectError(Exception):
+    """
+    Error raised when a Python object doesn't have a linked object in the 3D scene.
+
+    Parameters
+    ----------
+    message : str
+        The error message describing why the linked object is missing or invalid.
+
+    Attributes
+    ----------
+    message : str
+        The error message that was passed.
+    """
+
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
@@ -607,7 +620,58 @@ def create_bob(
     collection: bpy.types.Collection | None = None,
     uuid: str | None = None,
 ) -> BlenderObject:
-    "Create an object but return it wrapped as a BlenderObject"
+    """
+    Create a BlenderObject wrapper around a new Blender object.
+
+    Parameters
+    ----------
+    vertices : ndarray or None, optional
+        Array of vertex coordinates. Each row represents a vertex.
+        Default is None.
+    edges : ndarray or None, optional
+        Array of edge indices. Each row contains indices of vertices forming an edge.
+        Default is None.
+    faces : ndarray or None, optional
+        Array of face indices. Each row contains indices of vertices forming a face.
+        Default is None.
+    name : str, optional
+        Name of the created object.
+        Default is "NewObject".
+    collection : bpy.types.Collection or None, optional
+        Blender collection to link the object to.
+        Default is None.
+    uuid : str or None, optional
+        Directly set the UUID on the resulting BlenderObject rather than generating one.
+        Default is None.
+
+    Returns
+    -------
+    BlenderObject
+        A wrapped Blender object with additional functionality.
+
+    See Also
+    --------
+    :func:`create_object` : The underlying function used to create the Blender object.
+
+    Notes
+    -----
+    If uuid is provided, it will be set both on the BlenderObject wrapper
+    and the underlying Blender object.
+
+    Examples
+    --------
+    ```{python}
+    import numpy as np
+    from databpy.object import create_bob
+    vertices = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])
+    bob = create_bob(vertices=vertices, name="MyObject")
+    print(bob.name)
+    print(len(bob))
+    bob.named_attribute("position")
+    ```
+
+
+    """
     bob = BlenderObject(
         create_object(
             vertices=vertices,

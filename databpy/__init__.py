@@ -17,6 +17,7 @@ from .attribute import (
     store_named_attribute,
     remove_named_attribute,
     list_attributes,
+    evaluate_object,
     Attribute,
     AttributeType,
     AttributeTypeInfo,

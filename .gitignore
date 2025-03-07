@@ -11,3 +11,4 @@
 *.ipynb
 *.quarto_ipynb
 /docs/api
+/build

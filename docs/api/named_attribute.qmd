@@ -32,6 +32,6 @@ Get the named attribute data from the object.
 import bpy
 from databpy import named_attribute, list_attributes
 obj = bpy.data.objects["Cube"]
-list_attributes(obj)
+print(f"{list_attributes(obj)=}")
 named_attribute(obj, "position")
 ```
