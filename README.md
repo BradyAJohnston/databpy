@@ -8,7 +8,9 @@
 
 A set of data-oriented wrappers around the python API of Blender.
 
-This was originally used internally inside of [Molecular Nodes](https://github.com/BradyAJohnston/MolecularNodes) but was broken out into a separate python module for re-use in other projects.
+This was originally used internally inside of [Molecular
+Nodes](https://github.com/BradyAJohnston/MolecularNodes) but was broken
+out into a separate python module for re-use in other projects.
 
 ## Installation
 
