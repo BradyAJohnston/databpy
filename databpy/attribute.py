@@ -4,7 +4,6 @@ from typing import Type
 import bpy
 from bpy.types import Object
 import numpy as np
-from pathlib import Path
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curve, bpy.types.PointCloud]
 
@@ -34,34 +33,6 @@ def list_attributes(
 ) -> list[str]:
     _check_obj_attributes(obj)
     return list([name for name in obj.data.attributes.keys()])
-
-
-def path_resolve(path: str | Path) -> Path:
-    """
-    Resolve a path string or Path object to an absolute Path.
-
-    Parameters
-    ----------
-    path : str or Path
-        The path to resolve, either as a string or Path object.
-
-    Returns
-    -------
-    Path
-        The resolved absolute Path.
-
-    Raises
-    ------
-    ValueError
-        If the path cannot be resolved.
-    """
-
-    if isinstance(path, str):
-        return Path(bpy.path.abspath(path))
-    elif isinstance(path, Path):
-        return Path(bpy.path.abspath(str(path)))
-    else:
-        raise ValueError(f"Unable to resolve path: {path}")
 
 
 @dataclass

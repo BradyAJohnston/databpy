@@ -100,3 +100,59 @@ def test_obj_type_error():
 
     with pytest.raises(TypeError):
         db.named_attribute(bpy.data.objects["Camera"], "position")
+
+
+def test_check_obj():
+    db.attribute._check_obj_attributes(bpy.data.objects["Cube"])
+    assert pytest.raises(
+        TypeError,
+        db.attribute._check_obj_attributes,
+        bpy.data.objects["Camera"],
+    )
+    assert pytest.raises(
+        TypeError,
+        db.attribute._check_obj_attributes,
+        bpy.data.objects["Light"],
+    )
+    assert pytest.raises(
+        TypeError,
+        db.attribute._check_is_mesh,
+        bpy.data.objects["Light"],
+    )
+    assert pytest.raises(
+        TypeError,
+        db.attribute._check_is_mesh,
+        bpy.data.objects["Camera"],
+    )
+
+
+def test_guess_attribute_type():
+    # Create test object
+    verts = np.array([[0, 0, 0], [1, 1, 1]])
+    assert pytest.raises(
+        ValueError,
+        db.attribute.guess_atype_from_array,
+        ["A", "B", "C"],
+    )
+
+
+def test_guess_atype():
+    assert (
+        db.attribute.AttributeTypes.FLOAT_COLOR
+        == db.attribute.guess_atype_from_array(np.zeros((10, 4)))
+    )
+    assert (
+        db.attribute.AttributeTypes.FLOAT_VECTOR
+        == db.attribute.guess_atype_from_array(np.zeros((10, 3)))
+    )
+    assert db.attribute.AttributeTypes.BOOLEAN == db.attribute.guess_atype_from_array(
+        np.zeros(10, dtype=bool)
+    )
+
+
+def test_raise_error():
+    with pytest.raises(db.attribute.NamedAttributeError):
+        db.store_named_attribute(bpy.data.objects["Cube"], np.zeros((10, 3)), "test")
+
+    with pytest.raises(db.attribute.NamedAttributeError):
+        db.remove_named_attribute(bpy.data.objects["Cube"], "testing")
