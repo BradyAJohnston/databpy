@@ -181,6 +181,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/remove_named_attribute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">remove_named_attribute</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/AttributeDomains.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">AttributeDomains</span></a>
   </div>
@@ -221,12 +227,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/BlenderObject.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">BlenderObject</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="../api/create_object.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">create_object</span></a>
   </div>
@@ -235,6 +235,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../api/create_bob.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">create_bob</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/evaluate_object.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">evaluate_object</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/BlenderObject.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BlenderObject</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/LinkedObjectError.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LinkedObjectError</span></a>
   </div>
 </li>
       </ul>
@@ -353,12 +371,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div id="7a4cc063" class="cell" data-execution_count="1">
+<div id="18633070" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> databpy <span class="im">import</span> named_attribute, list_attributes</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>obj <span class="op">=</span> bpy.data.objects[<span class="st">"Cube"</span>]</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>list_attributes(obj)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>list_attributes(obj)<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>named_attribute(obj, <span class="st">"position"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>list_attributes(obj)=['position', '.select_vert', '.edge_verts', '.select_edge', '.select_poly', 'sharp_face', '.corner_vert', '.corner_edge', 'UVMap']</code></pre>
+</div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>array([[ 1.,  1.,  1.],
        [ 1.,  1., -1.],

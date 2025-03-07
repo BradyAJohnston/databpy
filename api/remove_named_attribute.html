@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>store_named_attribute – databpy</title>
+<title>remove_named_attribute – databpy</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -140,7 +140,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/named_attribute.html">Attribute</a></li><li class="breadcrumb-item"><a href="../api/store_named_attribute.html">store_named_attribute</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/named_attribute.html">Attribute</a></li><li class="breadcrumb-item"><a href="../api/remove_named_attribute.html">remove_named_attribute</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -175,13 +175,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/store_named_attribute.html" class="sidebar-item-text sidebar-link active">
+  <a href="../api/store_named_attribute.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">store_named_attribute</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/remove_named_attribute.html" class="sidebar-item-text sidebar-link">
+  <a href="../api/remove_named_attribute.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">remove_named_attribute</span></a>
   </div>
 </li>
@@ -266,9 +266,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/named_attribute.html">Attribute</a></li><li class="breadcrumb-item"><a href="../api/store_named_attribute.html">store_named_attribute</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/named_attribute.html">Attribute</a></li><li class="breadcrumb-item"><a href="../api/remove_named_attribute.html">remove_named_attribute</a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">store_named_attribute</h1>
+<h1 class="title">remove_named_attribute</h1>
 </div>
 
 
@@ -285,23 +285,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>store_named_attribute(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    obj,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    data,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    name,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    atype<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    domain<span class="op">=</span>AttributeDomains.POINT,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    overwrite<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Adds and sets the values of an attribute on the object.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>remove_named_attribute(obj, name)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Remove a named attribute from an object.</p>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 7%">
-<col style="width: 21%">
-<col style="width: 53%">
-<col style="width: 17%">
+<col style="width: 11%">
+<col style="width: 25%">
+<col style="width: 47%">
+<col style="width: 16%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -319,53 +312,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td><em>required</em></td>
 </tr>
 <tr class="even">
-<td>data</td>
-<td>np.ndarray</td>
-<td>The attribute data as a numpy array.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="odd">
 <td>name</td>
 <td>str</td>
-<td>The name of the attribute.</td>
+<td>Name of the attribute to remove.</td>
 <td><em>required</em></td>
-</tr>
-<tr class="even">
-<td>atype</td>
-<td>str or AttributeTypes or None</td>
-<td>The attribute type to store the data as. If None, type is inferred from data.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>domain</td>
-<td>str or AttributeDomain</td>
-<td>The domain of the attribute, by default ‘POINT’.</td>
-<td><code>AttributeDomains.POINT</code></td>
-</tr>
-<tr class="even">
-<td>overwrite</td>
-<td>bool</td>
-<td>Whether to overwrite existing attribute, by default True.</td>
-<td><code>True</code></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns" class="level2 doc-section doc-section-returns">
-<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td>bpy.types.Attribute</td>
-<td>The added or modified attribute.</td>
 </tr>
 </tbody>
 </table>
@@ -375,8 +325,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <table class="caption-top table">
 <colgroup>
 <col style="width: 10%">
-<col style="width: 30%">
-<col style="width: 60%">
+<col style="width: 21%">
+<col style="width: 68%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -388,34 +338,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td></td>
-<td>ValueError</td>
-<td>If atype string doesn’t match available types.</td>
-</tr>
-<tr class="even">
-<td></td>
-<td>AttributeMismatchError</td>
-<td>If data length doesn’t match domain size.</td>
+<td>AttributeError</td>
+<td>If the named attribute does not exist on the mesh.</td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div id="3b4df331" class="cell" data-execution_count="1">
+<div id="35ce5105" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> databpy <span class="im">import</span> store_named_attribute, list_attributes, named_attribute</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> databpy <span class="im">import</span> remove_named_attribute, list_attributes, store_named_attribute</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>obj <span class="op">=</span> bpy.data.objects[<span class="st">"Cube"</span>]</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>list_attributes(obj)<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>store_named_attribute(obj, np.arange(<span class="dv">8</span>), <span class="st">"test_attribute"</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>list_attributes(obj)<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>named_attribute(obj, <span class="st">"test_attribute"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>store_named_attribute(obj, np.random.rand(<span class="dv">8</span>, <span class="dv">3</span>), <span class="st">"random_numbers"</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>list_attributes(obj)<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>remove_named_attribute(obj, <span class="st">"random_numbers"</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>list_attributes(obj)<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>list_attributes(obj)=['position', '.select_vert', '.edge_verts', '.select_edge', '.select_poly', 'sharp_face', '.corner_vert', '.corner_edge', 'UVMap']
-list_attributes(obj)=['test_attribute', 'position', '.select_vert', '.edge_verts', '.select_edge', '.select_poly', 'sharp_face', '.corner_vert', '.corner_edge', 'UVMap']</code></pre>
-</div>
-<div class="cell-output cell-output-display" data-execution_count="1">
-<pre><code>array([0, 1, 2, 3, 4, 5, 6, 7])</code></pre>
+<pre><code>list_attributes(obj)=['position', 'random_numbers', '.select_vert', '.edge_verts', '.select_edge', '.select_poly', 'sharp_face', '.corner_vert', '.corner_edge', 'UVMap']
+list_attributes(obj)=['position', '.select_vert', '.edge_verts', '.select_edge', '.select_poly', 'sharp_face', '.corner_vert', '.corner_edge', 'UVMap']</code></pre>
 </div>
 </div>
 

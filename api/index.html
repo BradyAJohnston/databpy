@@ -147,6 +147,12 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/remove_named_attribute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">remove_named_attribute</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/AttributeDomains.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">AttributeDomains</span></a>
   </div>
@@ -187,12 +193,6 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/BlenderObject.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">BlenderObject</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="../api/create_object.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">create_object</span></a>
   </div>
@@ -201,6 +201,24 @@ ul.task-list li input[type="checkbox"] {
   <div class="sidebar-item-container"> 
   <a href="../api/create_bob.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">create_bob</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/evaluate_object.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">evaluate_object</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/BlenderObject.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BlenderObject</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/LinkedObjectError.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LinkedObjectError</span></a>
   </div>
 </li>
       </ul>
@@ -233,10 +251,14 @@ ul.task-list li input[type="checkbox"] {
 <td>Adds and sets the values of an attribute on the object.</td>
 </tr>
 <tr class="odd">
-<td><a href="../api/AttributeDomains.html#databpy.AttributeDomains">AttributeDomains</a></td>
-<td>Enumeration of attribute domains in Blender.</td>
+<td><a href="../api/remove_named_attribute.html#databpy.remove_named_attribute">remove_named_attribute</a></td>
+<td>Remove a named attribute from an object.</td>
 </tr>
 <tr class="even">
+<td><a href="../api/AttributeDomains.html#databpy.AttributeDomains">AttributeDomains</a></td>
+<td>Enumeration of attribute domains in Blender. You can store an attribute onto one of</td>
+</tr>
+<tr class="odd">
 <td><a href="../api/AttributeTypes.html#databpy.AttributeTypes">AttributeTypes</a></td>
 <td>Enumeration of attribute types in Blender.</td>
 </tr>
@@ -260,16 +282,24 @@ ul.task-list li input[type="checkbox"] {
 <table class="caption-top table">
 <tbody>
 <tr class="odd">
-<td><a href="../api/BlenderObject.html#databpy.BlenderObject">BlenderObject</a></td>
-<td>A convenience class for working with Blender objects</td>
-</tr>
-<tr class="even">
 <td><a href="../api/create_object.html#databpy.create_object">create_object</a></td>
 <td>Create a new Blender object and corresponding mesh.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="../api/create_bob.html#databpy.create_bob">create_bob</a></td>
-<td>Create an object but return it wrapped as a BlenderObject</td>
+<td>Create a BlenderObject wrapper around a new Blender object.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/evaluate_object.html#databpy.evaluate_object">evaluate_object</a></td>
+<td>Return an object which has the modifiers evaluated.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/BlenderObject.html#databpy.BlenderObject">BlenderObject</a></td>
+<td>A convenience class for working with Blender objects</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/LinkedObjectError.html#databpy.LinkedObjectError">LinkedObjectError</a></td>
+<td>Error raised when a Python object doesn’t have a linked object in the 3D scene.</td>
 </tr>
 </tbody>
 </table>
