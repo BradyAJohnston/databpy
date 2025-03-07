@@ -34,6 +34,7 @@ quartodoc:
       contents:
         - named_attribute
         - store_named_attribute
+        - remove_named_attribute
         - AttributeDomains
         - AttributeTypes
     - title: Collections
@@ -43,6 +44,9 @@ quartodoc:
     - title: Objects
       contents:
         # - object.ObjectTracker
-        - BlenderObject
         - create_object
         - create_bob
+        - evaluate_object
+        - BlenderObject
+        - LinkedObjectError
+        # - ObjectTracker

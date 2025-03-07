@@ -88,7 +88,8 @@ class AttributeMismatchError(Exception):
 # https://docs.blender.org/api/current/bpy_types_enum_items/attribute_domain_items.html#rna-enum-attribute-domain-items
 class AttributeDomains:
     """
-    Enumeration of attribute domains in Blender.
+    Enumeration of attribute domains in Blender. You can store an attribute onto one of
+    these domains if there is corressponding geometry. All data is on a domain on geometry.
 
     Attributes
     ----------
@@ -411,9 +412,9 @@ def store_named_attribute(
     import numpy as np
     from databpy import store_named_attribute, list_attributes, named_attribute
     obj = bpy.data.objects["Cube"]
-    list_attributes(obj)
+    print(f"{list_attributes(obj)=}")
     store_named_attribute(obj, np.arange(8), "test_attribute")
-    list_attributes(obj)
+    print(f"{list_attributes(obj)=}")
     named_attribute(obj, "test_attribute")
     ```
     """
@@ -464,7 +465,9 @@ def store_named_attribute(
     return attribute
 
 
-def evaluate_object(obj: bpy.types.Object):
+def evaluate_object(
+    obj: bpy.types.Object, context: bpy.types.Context | None = None
+) -> bpy.types.Object:
     """
     Return an object which has the modifiers evaluated.
 
@@ -472,15 +475,33 @@ def evaluate_object(obj: bpy.types.Object):
     ----------
     obj : bpy.types.Object
         The Blender object to evaluate.
+    context : bpy.types.Context | None, optional
+        The Blender context to use for evaluation, by default None
 
     Returns
     -------
     bpy.types.Object
         The evaluated object with modifiers applied.
+
+    Notes
+    -----
+    This function evaluates the object's modifiers using the current depsgraph.
+    If no context is provided, it uses the current bpy.context.
+
+    Examples
+    --------
+    ```{python}
+    import bpy
+    from databpy import evaluate_object
+    obj = bpy.data.objects['Cube']
+    evaluated_obj = evaluate_object(obj)
+    ```
     """
+    if context is None:
+        context = bpy.context
     _check_is_mesh(obj)
     obj.update_tag()
-    return obj.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    return obj.evaluated_get(context.evaluated_depsgraph_get())
 
 
 def named_attribute(
@@ -514,7 +535,7 @@ def named_attribute(
     import bpy
     from databpy import named_attribute, list_attributes
     obj = bpy.data.objects["Cube"]
-    list_attributes(obj)
+    print(f"{list_attributes(obj)=}")
     named_attribute(obj, "position")
     ```
 
@@ -539,11 +560,7 @@ def named_attribute(
     return attr.as_array()
 
 
-def remove_named_attribute(
-    obj: bpy.types.Object,
-    name: str,
-    domain: str | AttributeDomain = AttributeDomains.POINT,
-):
+def remove_named_attribute(obj: bpy.types.Object, name: str):
     """
     Remove a named attribute from an object.
 
@@ -553,13 +570,24 @@ def remove_named_attribute(
         The Blender object.
     name : str
         Name of the attribute to remove.
-    domain : str or AttributeDomain, optional
-        The domain of the attribute, by default POINT.
 
     Raises
     ------
     AttributeError
         If the named attribute does not exist on the mesh.
+
+    Examples
+    --------
+    ```{python}
+    import bpy
+    import numpy as np
+    from databpy import remove_named_attribute, list_attributes, store_named_attribute
+    obj = bpy.data.objects["Cube"]
+    store_named_attribute(obj, np.random.rand(8, 3), "random_numbers")
+    print(f"{list_attributes(obj)=}")
+    remove_named_attribute(obj, "random_numbers")
+    print(f"{list_attributes(obj)=}")
+    ```
     """
     _check_obj_attributes(obj)
     try:

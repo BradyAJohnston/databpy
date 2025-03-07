@@ -11,4 +11,42 @@ create_bob(
 )
 ```
 
-Create an object but return it wrapped as a BlenderObject
+Create a BlenderObject wrapper around a new Blender object.
+
+## Parameters {.doc-section .doc-section-parameters}
+
+| Name       | Type                         | Description                                                                                       | Default       |
+|------------|------------------------------|---------------------------------------------------------------------------------------------------|---------------|
+| vertices   | ndarray or None              | Array of vertex coordinates. Each row represents a vertex. Default is None.                       | `None`        |
+| edges      | ndarray or None              | Array of edge indices. Each row contains indices of vertices forming an edge. Default is None.    | `None`        |
+| faces      | ndarray or None              | Array of face indices. Each row contains indices of vertices forming a face. Default is None.     | `None`        |
+| name       | str                          | Name of the created object. Default is "NewObject".                                               | `'NewObject'` |
+| collection | bpy.types.Collection or None | Blender collection to link the object to. Default is None.                                        | `None`        |
+| uuid       | str or None                  | Directly set the UUID on the resulting BlenderObject rather than generating one. Default is None. | `None`        |
+
+## Returns {.doc-section .doc-section-returns}
+
+| Name   | Type          | Description                                             |
+|--------|---------------|---------------------------------------------------------|
+|        | BlenderObject | A wrapped Blender object with additional functionality. |
+
+## See Also {.doc-section .doc-section-see-also}
+
+[](:func:`create_object`) : The underlying function used to create the Blender object.
+
+## Notes {.doc-section .doc-section-notes}
+
+If uuid is provided, it will be set both on the BlenderObject wrapper
+and the underlying Blender object.
+
+## Examples {.doc-section .doc-section-examples}
+
+```{python}
+import numpy as np
+from databpy.object import create_bob
+vertices = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])
+bob = create_bob(vertices=vertices, name="MyObject")
+print(bob.name)
+print(len(bob))
+bob.named_attribute("position")
+```
