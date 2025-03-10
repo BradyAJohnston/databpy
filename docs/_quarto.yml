@@ -10,14 +10,28 @@ website:
         text: Home
       - href: api/index.qmd
         text: API
+    tools:
+      - icon: github
+        href: https://github.com/BradyAJohnston/databpy
+
+
+format:
+  html:
+    page-layout: full
+    theme: 
+      - sandstone
+      - style.scss
+    toc: true
+    toc-depth: 2
+    preview-colour:
+      code: true
+      text: true
+
+
 # tell quarto to read the generated sidebar
 metadata-files:
   - api/_sidebar.yml
 
-# tell quarto to read the generated styles
-# format:
-#   css:
-#     - api/_styles-quartodoc.css
 
 quartodoc:
   # the name used to import the package you want to create reference docs for
@@ -26,7 +40,7 @@ quartodoc:
 
   # write sidebar and style data
   sidebar: api/_sidebar.yml
-  # css: api/_styles-quartodoc.css
+  css: api/_styles-quartodoc.css
 
   sections:
     - title: Attribute
