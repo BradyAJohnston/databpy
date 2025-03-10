@@ -56,11 +56,12 @@ class AttributeMismatchError(Exception):
         super().__init__(self.message)
 
 
-# https://docs.blender.org/api/current/bpy_types_enum_items/attribute_domain_items.html#rna-enum-attribute-domain-items
 class AttributeDomains:
     """
     Enumeration of attribute domains in Blender. You can store an attribute onto one of
     these domains if there is corressponding geometry. All data is on a domain on geometry.
+
+    [More Info](https://docs.blender.org/api/current/bpy_types_enum_items/attribute_domain_items.html#rna-enum-attribute-domain-items)
 
     Attributes
     ----------
@@ -110,39 +111,38 @@ class AttributeTypes(Enum):
     ----------
     FLOAT : AttributeType
         Single float value with dimensions (1,)
+        [More Info](https://docs.blender.org/api/current/bpy.types.FloatAttribute.html#bpy.types.FloatAttribute)
     FLOAT_VECTOR : AttributeType
         3D vector of floats with dimensions (3,)
+        [More Info](https://docs.blender.org/api/current/bpy.types.FloatVectorAttribute.html#bpy.types.FloatVectorAttribute)
     FLOAT2 : AttributeType
         2D vector of floats with dimensions (2,)
+        [More Info](https://docs.blender.org/api/current/bpy.types.Float2Attribute.html#bpy.types.Float2Attribute)
     FLOAT_COLOR : AttributeType
         RGBA color values as floats with dimensions (4,)
+        [More Info](https://docs.blender.org/api/current/bpy.types.FloatColorAttributeValue.html#bpy.types.FloatColorAttributeValue)
     BYTE_COLOR : AttributeType
         RGBA color values as integers with dimensions (4,)
+        [More Info](https://docs.blender.org/api/current/bpy.types.ByteColorAttribute.html#bpy.types.ByteColorAttribute)
     QUATERNION : AttributeType
         Quaternion rotation (w, x, y, z) as floats with dimensions (4,)
+        [More Info](https://docs.blender.org/api/current/bpy.types.QuaternionAttribute.html#bpy.types.QuaternionAttribute)
     INT : AttributeType
         Single integer value with dimensions (1,)
+        [More Info](https://docs.blender.org/api/current/bpy.types.IntAttribute.html#bpy.types.IntAttribute)
     INT8 : AttributeType
         8-bit integer value with dimensions (1,)
+        [More Info](https://docs.blender.org/api/current/bpy.types.ByteIntAttributeValue.html#bpy.types.ByteIntAttributeValue)
     INT32_2D : AttributeType
         2D vector of 32-bit integers with dimensions (2,)
+        [More Info](https://docs.blender.org/api/current/bpy.types.Int2Attribute.html#bpy.types.Int2Attribute)
     FLOAT4X4 : AttributeType
         4x4 transformation matrix of floats with dimensions (4, 4)
+        [More Info](https://docs.blender.org/api/current/bpy.types.Float4x4Attribute.html#bpy.types.Float4x4Attribute)
     BOOLEAN : AttributeType
         Single boolean value with dimensions (1,)
+        [More Info](https://docs.blender.org/api/current/bpy.types.BoolAttribute.html#bpy.types.BoolAttribute)
     """
-
-    # https://docs.blender.org/api/current/bpy.types.FloatAttribute.html#bpy.types.FloatAttribute
-    # https://docs.blender.org/api/current/bpy.types.FloatVectorAttribute.html#bpy.types.FloatVectorAttribute
-    # https://docs.blender.org/api/current/bpy.types.Float2Attribute.html#bpy.types.Float2Attribute
-    # https://docs.blender.org/api/current/bpy.types.FloatColorAttributeValue.html#bpy.types.FloatColorAttributeValue
-    # https://docs.blender.org/api/current/bpy.types.ByteColorAttribute.html#bpy.types.ByteColorAttribute
-    # https://docs.blender.org/api/current/bpy.types.QuaternionAttribute.html#bpy.types.QuaternionAttribute
-    # https://docs.blender.org/api/current/bpy.types.IntAttribute.html#bpy.types.IntAttribute
-    # https://docs.blender.org/api/current/bpy.types.ByteIntAttributeValue.html#bpy.types.ByteIntAttributeValue
-    # https://docs.blender.org/api/current/bpy.types.Int2Attribute.html#bpy.types.Int2Attribute
-    # https://docs.blender.org/api/current/bpy.types.Float4x4Attribute.html#bpy.types.Float4x4Attribute
-    # https://docs.blender.org/api/current/bpy.types.BoolAttribute.html#bpy.types.BoolAttribute
 
     FLOAT = AttributeType(
         type_name="FLOAT", value_name="value", dtype=float, dimensions=(1,)
