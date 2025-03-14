@@ -12,14 +12,15 @@ def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
 
     for node_tree in node_trees:
         # Check if the node tree's name matches the duplicate pattern and is not a "NodeGroup"
+        print(f"{node_tree.name=}")
 
         for node in node_tree.nodes:
+            if not hasattr(node, "node_tree"):
+                continue
             tree = node.node_tree  # type: ignore
-            if not (
-                hasattr(node, "node_tree")
-                and node_duplicate_pattern.search(tree.name)
-                and "NodeGroup" not in tree.name
-            ):
+            if tree.name.startswith("NodeGroup"):
+                continue
+            if not node_duplicate_pattern.search(tree.name):
                 continue
 
             old_name = tree.name
@@ -57,20 +58,19 @@ class DuplicatePrevention:
     "Context manager to cleanup duplicated node trees when appending node groups"
 
     def __init__(self, timing=False):
-        self.current_names: List[str] = []
+        self.old_names: List[str] = []
         self.start_time: float = 0.0
         self.timing = timing
 
     def __enter__(self):
-        self.current_names = [tree.name for tree in bpy.data.node_groups]
+        self.old_names = [tree.name for tree in bpy.data.node_groups]
         if self.timing:
             self.start_time = time.time()
 
     def __exit__(self, type, value, traceback):
-        new_trees = [
-            tree for tree in bpy.data.node_groups if tree.name not in self.current_names
-        ]
-        deduplicate_node_trees(new_trees)
+        deduplicate_node_trees(
+            [tree for tree in bpy.data.node_groups if tree.name not in self.old_names]
+        )
         if self.timing:
             end_time = time.time()
             print(f"De-duplication time: {end_time - self.start_time:.2f} seconds")
