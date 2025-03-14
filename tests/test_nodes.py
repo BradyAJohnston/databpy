@@ -67,3 +67,111 @@ def test_raises_error():
     """Test that an error is raised if the node group already exists"""
     with pytest.raises(NodeGroupCreationError):
         custom_string_iswitch("TestSwitch", range(10))
+
+
+def test_input_output():
+    tree = db.nodes.new_tree()
+    tree.interface.new_socket("test_int", in_out="INPUT", socket_type="NodeSocketInt")
+    tree.interface.new_socket(
+        "test_float", in_out="INPUT", socket_type="NodeSocketFloat"
+    )
+    tree.interface.new_socket("test_int1", in_out="INPUT", socket_type="NodeSocketInt")
+
+    group1 = db.nodes.new_tree("Group1")
+    group1.interface.new_socket(
+        "test_float", in_out="INPUT", socket_type="NodeSocketFloat"
+    )
+    group1.interface.new_socket("test_int", in_out="INPUT", socket_type="NodeSocketInt")
+    group1.interface.new_socket(
+        "test_int1", in_out="INPUT", socket_type="NodeSocketInt"
+    )
+
+    group2 = db.nodes.new_tree("Group2")
+    group2.interface.new_socket(
+        "test_float", in_out="INPUT", socket_type="NodeSocketFloat"
+    )
+    group2.interface.new_socket("test_int", in_out="INPUT", socket_type="NodeSocketInt")
+    group2.interface.new_socket(
+        "test_int2", in_out="INPUT", socket_type="NodeSocketInt"
+    )
+
+    node = tree.nodes.new("GeometryNodeGroup")
+    node.node_tree = group1
+    tree.links.new(
+        db.nodes.get_input(tree).outputs["Geometry"],
+        node.inputs["Geometry"],
+    )
+    tree.links.new(
+        node.outputs["Geometry"],
+        db.nodes.get_output(tree).inputs["Geometry"],
+    )
+    for name in ["test_int", "test_float", "test_int1"]:
+        tree.links.new(
+            db.nodes.get_input(tree).outputs[name],
+            node.inputs[name],
+        )
+
+    assert "test_int1" in node.inputs
+    assert node.inputs["test_int1"].is_linked
+
+    with db.nodes.MaintainConnections(node):
+        node.node_tree = group2
+
+    assert node.inputs["Geometry"].is_linked
+    assert node.inputs["test_float"].is_linked
+    assert node.inputs["test_int"].is_linked
+    assert "test_int1" not in node.inputs
+    assert not node.inputs["test_int2"].is_linked
+
+
+def test_duplicate_prevention():
+    tree = db.nodes.new_tree()
+    tree.interface.new_socket("test_int", in_out="INPUT", socket_type="NodeSocketInt")
+    tree.interface.new_socket(
+        "test_float", in_out="INPUT", socket_type="NodeSocketFloat"
+    )
+    tree.interface.new_socket("test_int1", in_out="INPUT", socket_type="NodeSocketInt")
+
+    group1 = db.nodes.new_tree("Group1")
+    group1.interface.new_socket(
+        "test_float", in_out="INPUT", socket_type="NodeSocketFloat"
+    )
+    group1.interface.new_socket("test_int", in_out="INPUT", socket_type="NodeSocketInt")
+    group1.interface.new_socket(
+        "test_int1", in_out="INPUT", socket_type="NodeSocketInt"
+    )
+
+    group2 = db.nodes.new_tree("Group2")
+    group2.interface.new_socket(
+        "test_float", in_out="INPUT", socket_type="NodeSocketFloat"
+    )
+    group2.interface.new_socket("test_int", in_out="INPUT", socket_type="NodeSocketInt")
+    group2.interface.new_socket(
+        "test_int2", in_out="INPUT", socket_type="NodeSocketInt"
+    )
+
+    node = tree.nodes.new("GeometryNodeGroup")
+    node.node_tree = group1
+    tree.links.new(
+        db.nodes.get_input(tree).outputs["Geometry"],
+        node.inputs["Geometry"],
+    )
+    tree.links.new(
+        node.outputs["Geometry"],
+        db.nodes.get_output(tree).inputs["Geometry"],
+    )
+    for name in ["test_int", "test_float", "test_int1"]:
+        tree.links.new(
+            db.nodes.get_input(tree).outputs[name],
+            node.inputs[name],
+        )
+    assert len(bpy.data.node_groups) == 3
+    group1.copy()
+    assert len(bpy.data.node_groups) == 4
+    with db.nodes.DuplicatePrevention(timing=True):
+        tree2 = tree.copy()
+        for _ in range(10):
+            group = tree2.nodes.new("GeometryNodeGroup")
+            group.node_tree = group1.copy()
+
+    assert len(bpy.data.node_groups) == 5
