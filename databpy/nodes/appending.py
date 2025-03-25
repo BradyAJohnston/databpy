@@ -12,7 +12,7 @@ def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
 
     for node_tree in node_trees:
         # Check if the node tree's name matches the duplicate pattern and is not a "NodeGroup"
-        print(f"{node_tree.name=}")
+        # print(f"{node_tree.name=}")
 
         for node in node_tree.nodes:
             if not hasattr(node, "node_tree"):
