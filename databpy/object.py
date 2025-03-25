@@ -527,7 +527,7 @@ class BlenderObject:
 
     def list_attributes(
         self, evaluate: bool = False, drop_hidden: bool = False
-    ) -> list | None:
+    ) -> list[str]:
         """
         Returns a list of attribute names for the object.
 
