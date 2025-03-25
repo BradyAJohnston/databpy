@@ -13,7 +13,7 @@ jobs:
             max-parallel: 4
             fail-fast: false
             matrix:
-              version: ["4.2", "4.3"]
+              version: ["4.2", "4.3", "4.4"]
               os: [macos-14]
         steps:
             - uses: actions/checkout@v4
