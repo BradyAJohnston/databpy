@@ -8,7 +8,8 @@
 
 A set of data-oriented wrappers around the python API of Blender.
 
-![CleanShot 2025-04-13 at 09 47 02@2x](https://github.com/user-attachments/assets/fa5c106a-3b9f-4a5d-a58c-a35f5ede38cc)
+![CleanShot 2025-04-13 at 13 17 32@2x](https://github.com/user-attachments/assets/bceb48e3-ba56-4893-be5f-5a5c2e71b19f)
+
 
 
 This was originally used internally inside of [Molecular
