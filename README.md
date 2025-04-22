@@ -56,9 +56,24 @@ db.store_named_attribute() # store a named attribute on a mesh object
 db.named_attribute()       # retrieve a named attribute from a mesh object
 ```
 
-Mostly oriented around creating mesh objects, assigning and getting back
-attributes from them. Currently designed around storing and retrieving
-`numpy` data types:
+Here's an example on how to store an attribute:
+```python
+import numpy as np
+import databpy as db
+
+coords = np.array([
+    [0, 0, 0],
+    [0, 5, 0],
+    [5, 0, 0],
+    [5, 5, 0]
+])
+
+obj = db.create_object(coords, name="Box")
+db.store_named_attribute(obj, np.array([10, 20, 31, 42]), "vals")
+```
+![image](https://github.com/user-attachments/assets/2af6046a-8d73-4881-af63-8ed175fe2136)
+
+This module is mainly used to create mesh objects and work with their attributes. It is built to store and retrieve data using NumPy arrays:
 
 ``` python
 import numpy as np
