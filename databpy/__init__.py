@@ -1,3 +1,8 @@
+import importlib.metadata
+
+# Get the version of the package
+__version__: str = importlib.metadata.version(__name__)
+
 from .object import (
     ObjectTracker,
     BlenderObject,
