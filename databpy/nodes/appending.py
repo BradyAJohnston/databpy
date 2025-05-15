@@ -1,9 +1,11 @@
-from typing import List
-import bpy
 import re
 import time
 import warnings
 from pathlib import Path
+from typing import List
+
+import bpy
+
 
 def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
     # Compile the regex pattern for matching a suffix of a dot followed by 3 numbers
@@ -75,11 +77,15 @@ class DuplicatePrevention:
             end_time = time.time()
             print(f"De-duplication time: {end_time - self.start_time:.2f} seconds")
 
+
 def append_from_blend(
     name: str, filepath: str | Path, link: bool = False
 ) -> bpy.types.NodeTree:
     "Append a Geometry Nodes node tree from the given .blend file"
-    print(f"Appending {name} from {filepath}")
+    # to access the nodes we need to specify the "NodeTree" folder but this isn't a real
+    # folder, just for accessing when appending. Ensure that the filepath ends with "NodeTree"
+    filepath = str(Path(filepath)).removesuffix("NodeTree")
+    filepath = str(Path(filepath) / "NodeTree")
     try:
         return bpy.data.node_groups[name]
     except KeyError:
@@ -87,10 +93,9 @@ def append_from_blend(
             warnings.simplefilter("ignore")
             with DuplicatePrevention():
                 # Append from NodeTree directory inside blend file
-                directory = str(Path(filepath) / "NodeTree")
                 bpy.ops.wm.append(
-                    "EXEC_DEFAULT", 
-                    directory=directory,
+                    "EXEC_DEFAULT",
+                    directory=filepath,
                     filename=name,
                     link=link,
                     use_recursive=True,

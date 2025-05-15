@@ -1,6 +1,3 @@
-import importlib.metadata
-
-
 from .object import (
     ObjectTracker,
     BlenderObject,

@@ -1,7 +1,11 @@
-import pytest
+import tempfile
+from pathlib import Path
+
 import bpy
+import pytest
+
 import databpy as db
-from databpy.nodes import custom_string_iswitch, NodeGroupCreationError
+from databpy.nodes import NodeGroupCreationError, custom_string_iswitch
 
 
 def test_custom_string_iswitch_basic():
@@ -175,3 +179,29 @@ def test_duplicate_prevention():
             group.node_tree = group1.copy()
 
     assert len(bpy.data.node_groups) == 5
+
+
+@pytest.mark.parametrize("suffix", ["NodeTree", ""])
+def test_append_from_blend(suffix):
+    # we have to use the test node group on an object/ modifier otherwise it will get
+    # cleaned up by Blener when we save and exit the file
+    tree = db.nodes.custom_string_iswitch("TestSwitch", ["A", "B", "C", "D"])
+    obj = bpy.data.objects["Cube"]
+    obj.modifiers.new(type="NODES", name="Modifier").node_group = tree
+    assert bpy.data.node_groups.get("TestSwitch")
+    # save the blend file in a temp file
+    with tempfile.NamedTemporaryFile(suffix=".blend") as f:
+        # save the current working Blender file and reload a fresh one, which doesn't
+        # contain any node groups
+        bpy.ops.wm.save_as_mainfile(filepath=f.name)
+        bpy.ops.wm.read_homefile("EXEC_DEFAULT")
+        assert not bpy.data.node_groups.get("TestSwitch")
+
+        # test appending the node group from the save .blend file into the current one
+        tree2 = db.nodes.append_from_blend("TestSwitch", Path(f.name) / suffix)
+        assert tree2.name == "TestSwitch"
+        assert len(tree2.nodes) == 3
+        assert tree2.nodes["Index Switch"].inputs[1].default_value == "A"
+        assert tree2.nodes["Index Switch"].inputs[2].default_value == "B"
+        assert tree2.nodes["Index Switch"].inputs[3].default_value == "C"
+        assert tree2.nodes["Index Switch"].inputs[4].default_value == "D"
