@@ -87,7 +87,7 @@ def append_from_blend(
             warnings.simplefilter("ignore")
             with DuplicatePrevention():
                 # Append from NodeTree directory inside blend file
-                directory = str(filepath) + "/NodeTree/"
+                directory = str(Path(filepath) / "NodeTree")
                 bpy.ops.wm.append(
                     "EXEC_DEFAULT", 
                     directory=directory,
