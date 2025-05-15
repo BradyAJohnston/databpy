@@ -3,7 +3,7 @@ import bpy
 import re
 import time
 import warnings
-
+from pathlib import Path
 
 def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
     # Compile the regex pattern for matching a suffix of a dot followed by 3 numbers
@@ -77,9 +77,10 @@ class DuplicatePrevention:
 
 
 def append_from_blend(
-    name: str, filepath: str, link: bool = False
+    name: str, filepath: str | Path, link: bool = False
 ) -> bpy.types.NodeTree:
     "Append a Geometry Nodes node tree from the given .blend file"
+    print(f"Appending {name} from {filepath}")
     try:
         return bpy.data.node_groups[name]
     except KeyError:
@@ -88,7 +89,7 @@ def append_from_blend(
             with DuplicatePrevention():
                 bpy.ops.wm.append(
                     "EXEC_DEFAULT",
-                    directory=filepath,
+                    directory=str(filepath),
                     filename=name,
                     link=link,
                     use_recursive=True,
