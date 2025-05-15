@@ -75,7 +75,6 @@ class DuplicatePrevention:
             end_time = time.time()
             print(f"De-duplication time: {end_time - self.start_time:.2f} seconds")
 
-
 def append_from_blend(
     name: str, filepath: str | Path, link: bool = False
 ) -> bpy.types.NodeTree:
@@ -87,9 +86,11 @@ def append_from_blend(
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             with DuplicatePrevention():
+                # Append from NodeTree directory inside blend file
+                directory = str(filepath) + "/NodeTree/"
                 bpy.ops.wm.append(
-                    "EXEC_DEFAULT",
-                    directory=str(filepath),
+                    "EXEC_DEFAULT", 
+                    directory=directory,
                     filename=name,
                     link=link,
                     use_recursive=True,
