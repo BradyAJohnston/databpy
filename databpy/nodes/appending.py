@@ -1,8 +1,10 @@
-from typing import List
-import bpy
 import re
 import time
 import warnings
+from pathlib import Path
+from typing import List
+
+import bpy
 
 
 def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
@@ -77,15 +79,20 @@ class DuplicatePrevention:
 
 
 def append_from_blend(
-    name: str, filepath: str, link: bool = False
+    name: str, filepath: str | Path, link: bool = False
 ) -> bpy.types.NodeTree:
     "Append a Geometry Nodes node tree from the given .blend file"
+    # to access the nodes we need to specify the "NodeTree" folder but this isn't a real
+    # folder, just for accessing when appending. Ensure that the filepath ends with "NodeTree"
+    filepath = str(Path(filepath)).removesuffix("NodeTree")
+    filepath = str(Path(filepath) / "NodeTree")
     try:
         return bpy.data.node_groups[name]
     except KeyError:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             with DuplicatePrevention():
+                # Append from NodeTree directory inside blend file
                 bpy.ops.wm.append(
                     "EXEC_DEFAULT",
                     directory=filepath,

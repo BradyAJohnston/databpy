@@ -7,6 +7,7 @@ from .object import (
     bdo,
 )
 from .vdb import import_vdb
+from . import nodes
 from .nodes import utils
 import bpy
 from .addon import register, unregister
