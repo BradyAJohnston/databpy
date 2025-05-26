@@ -263,3 +263,50 @@ class AttributeArray(np.ndarray):
     def __itruediv__(self, other):
         """In-place division with Blender syncing."""
         return self._inplace_operation_with_sync(super().__itruediv__, other)
+
+    def __str__(self):
+        """String representation showing attribute info and array data."""
+        # Get basic info
+        attr_name = getattr(self, "_attr_name", "Unknown")
+        domain = getattr(self._attribute, "domain", None)
+        domain_name = domain.name if domain else "Unknown"
+
+        # Get object info
+        obj_name = "Unknown"
+        obj_type = "Unknown"
+        if self._blender_object and hasattr(self._blender_object, "object"):
+            obj_name = getattr(self._blender_object.object, "name", "Unknown")
+            obj_type = getattr(self._blender_object.object, "type", "Unknown")
+
+        # Get array info
+        array_str = np.array_str(np.asarray(self).view(np.ndarray))
+
+        return (
+            f"AttributeArray '{attr_name}' from {obj_type} '{obj_name}' "
+            f"(domain: {domain_name}, shape: {self.shape}, dtype: {self.dtype})\n"
+            f"{array_str}"
+        )
+
+    def __repr__(self):
+        """Detailed representation for debugging."""
+        # Get basic info
+        attr_name = getattr(self, "_attr_name", "Unknown")
+        domain = getattr(self._attribute, "domain", None)
+        domain_name = domain.name if domain else "Unknown"
+        atype = getattr(self._attribute, "atype", "Unknown")
+
+        # Get object info
+        obj_name = "Unknown"
+        obj_type = "Unknown"
+        if self._blender_object and hasattr(self._blender_object, "object"):
+            obj_name = getattr(self._blender_object.object, "name", "Unknown")
+            obj_type = getattr(self._blender_object.object, "type", "Unknown")
+
+        # Get array representation
+        array_repr = np.array_repr(np.asarray(self).view(np.ndarray))
+
+        return (
+            f"AttributeArray(name='{attr_name}', object='{obj_name}' ({obj_type}), "
+            f"domain={domain_name}, type={atype}, shape={self.shape}, dtype={self.dtype})\n"
+            f"{array_repr}"
+        )
