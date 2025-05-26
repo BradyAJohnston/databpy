@@ -56,7 +56,7 @@
     "href": "api/object.BlenderObject.html#examples",
     "title": "object.BlenderObject",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import BlenderObject\nobj = BlenderObject(bpy.data.objects['Cube'])\nprint(obj.name)\nprint(obj.object)\n\nCube\n&lt;bpy_struct, Object(\"Cube\") at 0x561e636b60c0&gt;"
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import BlenderObject\nobj = BlenderObject(bpy.data.objects['Cube'])\nprint(obj.name)\nprint(obj.object)\n\nCube\n&lt;bpy_struct, Object(\"Cube\") at 0x5633b7120c90&gt;"
   },
   {
     "objectID": "api/object.BlenderObject.html#attributes",
@@ -227,7 +227,7 @@
     "href": "api/attribute.store_named_attribute.html#examples",
     "title": "attribute.store_named_attribute",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import store_named_attribute, named_attribute\n\nobj = bpy.data.objects['Cube']\ndata = np.random.rand(len(obj.data.vertices), 3)\n\nprint(named_attribute(obj, 'position')) # get the vertex positions as as numpy array\n\nstore_named_attribute(obj, data, 'position') # set the vertex positions with random data\n\nnamed_attribute(obj, 'position') # get the updated vertex positions\n\n[[ 1.  1.  1.]\n [ 1.  1. -1.]\n [ 1. -1.  1.]\n [ 1. -1. -1.]\n [-1.  1.  1.]\n [-1.  1. -1.]\n [-1. -1.  1.]\n [-1. -1. -1.]]\n\n\narray([[0.65918559, 0.98949283, 0.74621391],\n       [0.18589923, 0.01758011, 0.13783504],\n       [0.72671378, 0.42047837, 0.50951254],\n       [0.88988334, 0.41289854, 0.50942236],\n       [0.33309913, 0.48390225, 0.26201627],\n       [0.69687194, 0.17377879, 0.68680686],\n       [0.12731798, 0.96041572, 0.80079246],\n       [0.87934089, 0.70976418, 0.96048212]])"
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import store_named_attribute, named_attribute\n\nobj = bpy.data.objects['Cube']\ndata = np.random.rand(len(obj.data.vertices), 3)\n\nprint(named_attribute(obj, 'position')) # get the vertex positions as as numpy array\n\nstore_named_attribute(obj, data, 'position') # set the vertex positions with random data\n\nnamed_attribute(obj, 'position') # get the updated vertex positions\n\n[[ 1.  1.  1.]\n [ 1.  1. -1.]\n [ 1. -1.  1.]\n [ 1. -1. -1.]\n [-1.  1.  1.]\n [-1.  1. -1.]\n [-1. -1.  1.]\n [-1. -1. -1.]]\n\n\narray([[0.00238886, 0.66744739, 0.27664623],\n       [0.27765784, 0.27725509, 0.03722959],\n       [0.48878753, 0.23588134, 0.2636905 ],\n       [0.5088923 , 0.36095563, 0.82267922],\n       [0.38287923, 0.19546042, 0.5658204 ],\n       [0.91428393, 0.2526263 , 0.77352977],\n       [0.73947608, 0.02684951, 0.44277039],\n       [0.56974441, 0.40894812, 0.81007862]])"
   },
   {
     "objectID": "api/index.html",
