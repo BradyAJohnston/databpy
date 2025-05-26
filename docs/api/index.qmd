@@ -11,6 +11,7 @@ For interacting with attributes on meshes
 | [remove_named_attribute](remove_named_attribute.qmd#databpy.remove_named_attribute) | Remove a named attribute from an object. |
 | [AttributeDomains](AttributeDomains.qmd#databpy.AttributeDomains) | Enumeration of attribute domains in Blender. You can store an attribute onto one of |
 | [AttributeTypes](AttributeTypes.qmd#databpy.AttributeTypes) | Enumeration of attribute types in Blender. |
+| [AttributeArray](AttributeArray.qmd#databpy.AttributeArray) | A numpy array subclass that automatically syncs changes back to the Blender object. |
 
 ## Collections
 

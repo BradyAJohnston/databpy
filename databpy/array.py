@@ -71,8 +71,22 @@ class AttributeArray(np.ndarray):
     """
     A numpy array subclass that automatically syncs changes back to the Blender object.
 
-    This class handles array operations and ensures that changes are properly
-    synced back to Blender with the correct shape.
+    Values are retrieved from the Blender object as a numpy array, the operation is applied
+    and the result is store back on the Blender object.
+    This allows for operations like `pos[:, 2] += 1.0` to work seamlessly.
+
+    Examples:
+    --------
+
+    ```{python}
+    import databpy as db
+    import numpy as np
+
+    bob = db.create_bob(np.random.rand(10, 3), name="test_bob")
+    print(bob.position)  # Access the position attribute as an AttributeArray
+    bob.position[:, 2] += 1.0
+    print(bob.position)
+    ```
     """
 
     def __new__(cls, blender_object: "BlenderObject", name: str) -> "AttributeArray":
@@ -160,37 +174,6 @@ class AttributeArray(np.ndarray):
 
         super().__setitem__(key, value)
         self._sync_to_blender()
-
-    def _apply_column_operation(self, column_idx, operation, value):
-        """Common method for column operations."""
-        arr_view = np.asarray(self).view(np.ndarray)
-        operation(arr_view[:, column_idx], value)
-        self._sync_to_blender()
-        return self
-
-    def add_column(self, column_idx, value):
-        """Add a value to a specific column."""
-        return self._apply_column_operation(
-            column_idx, lambda arr, val: arr.__iadd__(val), value
-        )
-
-    def subtract_column(self, column_idx, value):
-        """Subtract a value from a specific column."""
-        return self._apply_column_operation(
-            column_idx, lambda arr, val: arr.__isub__(val), value
-        )
-
-    def multiply_column(self, column_idx, value):
-        """Multiply a specific column by a value."""
-        return self._apply_column_operation(
-            column_idx, lambda arr, val: arr.__imul__(val), value
-        )
-
-    def divide_column(self, column_idx, value):
-        """Divide a specific column by a value."""
-        return self._apply_column_operation(
-            column_idx, lambda arr, val: arr.__itruediv__(val), value
-        )
 
     def _get_expected_components(self):
         """Get the expected number of components for the attribute type."""

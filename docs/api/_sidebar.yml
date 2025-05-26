@@ -8,6 +8,7 @@ website:
       - api/remove_named_attribute.qmd
       - api/AttributeDomains.qmd
       - api/AttributeTypes.qmd
+      - api/AttributeArray.qmd
       section: Attribute
     - contents:
       - api/create_collection.qmd
