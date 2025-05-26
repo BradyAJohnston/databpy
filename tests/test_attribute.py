@@ -4,7 +4,7 @@ import bpy
 import databpy as db
 
 
-def test_named_attribute_position():
+def test_attribute_properties():
     # Create test object with known vertices
     verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
     obj = db.create_object(verts, name="TestObject")
