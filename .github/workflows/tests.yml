@@ -34,12 +34,12 @@ jobs:
     
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v5
-              if: matrix.os == 'macos-14' && matrix.version == '4.2'
+              if: matrix.os == 'macos-14' && matrix.version == '4.4'
               with:
                 token: ${{ secrets.CODECOV_TOKEN }}
                 name: coverage.xml
 
             - name: Upload coverage reports to Codecov
-              if: matrix.os == 'maxos-14' && matrix.version == '4.2'
+              if: matrix.os == 'maxos-14' && matrix.version == '4.4'
               uses: codecov/codecov-action@v3
     
