@@ -8,6 +8,17 @@ def test_named_attribute_position():
     # Create test object with known vertices
     verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
     obj = db.create_object(verts, name="TestObject")
+    att = db.Attribute(obj.data.attributes["position"])
+    assert att.name == "position"
+    assert att.type_name == "FLOAT_VECTOR"
+    db.store_named_attribute(obj, np.random.rand(3, 3), "test_attr", domain="POINT")
+    assert att.name == "test_attr"
+
+
+def test_named_attribute_position():
+    # Create test object with known vertices
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    obj = db.create_object(verts, name="TestObject")
 
     # Test retrieving position attribute
     result = db.named_attribute(obj, "position")
