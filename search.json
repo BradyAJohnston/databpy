@@ -56,7 +56,7 @@
     "href": "api/object.BlenderObject.html#examples",
     "title": "object.BlenderObject",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import BlenderObject\nobj = BlenderObject(bpy.data.objects['Cube'])\nprint(obj.name)\nprint(obj.object)\n\nCube\n&lt;bpy_struct, Object(\"Cube\") at 0x562c9dec8e40&gt;"
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import BlenderObject\nobj = BlenderObject(bpy.data.objects['Cube'])\nprint(obj.name)\nprint(obj.object)\n\nCube\n&lt;bpy_struct, Object(\"Cube\") at 0x55d5444fa330&gt;"
   },
   {
     "objectID": "api/object.BlenderObject.html#attributes",
@@ -227,14 +227,14 @@
     "href": "api/attribute.store_named_attribute.html#examples",
     "title": "attribute.store_named_attribute",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import store_named_attribute, named_attribute\n\nobj = bpy.data.objects['Cube']\ndata = np.random.rand(len(obj.data.vertices), 3)\n\nprint(named_attribute(obj, 'position')) # get the vertex positions as as numpy array\n\nstore_named_attribute(obj, data, 'position') # set the vertex positions with random data\n\nnamed_attribute(obj, 'position') # get the updated vertex positions\n\n[[ 1.  1.  1.]\n [ 1.  1. -1.]\n [ 1. -1.  1.]\n [ 1. -1. -1.]\n [-1.  1.  1.]\n [-1.  1. -1.]\n [-1. -1.  1.]\n [-1. -1. -1.]]\n\n\narray([[0.61836433, 0.78445417, 0.67817611],\n       [0.76248801, 0.28027159, 0.72094548],\n       [0.47127411, 0.19008143, 0.7900061 ],\n       [0.89890462, 0.56407291, 0.18107085],\n       [0.39307413, 0.48451108, 0.29976982],\n       [0.98991656, 0.20028616, 0.63236606],\n       [0.33394662, 0.48961958, 0.02076105],\n       [0.17250967, 0.83669633, 0.82343006]])"
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import store_named_attribute, named_attribute\n\nobj = bpy.data.objects['Cube']\ndata = np.random.rand(len(obj.data.vertices), 3)\n\nprint(named_attribute(obj, 'position')) # get the vertex positions as as numpy array\n\nstore_named_attribute(obj, data, 'position') # set the vertex positions with random data\n\nnamed_attribute(obj, 'position') # get the updated vertex positions\n\n[[ 1.  1.  1.]\n [ 1.  1. -1.]\n [ 1. -1.  1.]\n [ 1. -1. -1.]\n [-1.  1.  1.]\n [-1.  1. -1.]\n [-1. -1.  1.]\n [-1. -1. -1.]]\n\n\narray([[0.89265531, 0.73258805, 0.1886446 ],\n       [0.02120216, 0.32048088, 0.58862096],\n       [0.84766215, 0.28522882, 0.35389018],\n       [0.04863752, 0.51227814, 0.73440617],\n       [0.00389445, 0.81170183, 0.81221038],\n       [0.21185635, 0.74584776, 0.78145796],\n       [0.03531199, 0.53991443, 0.37029529],\n       [0.0048516 , 0.89629346, 0.97967339]])"
   },
   {
     "objectID": "api/index.html",
     "href": "api/index.html",
     "title": "Function reference",
     "section": "",
-    "text": "For interacting with attributes on meshes\n\n\n\nnamed_attribute\nGet the named attribute data from the object.\n\n\nstore_named_attribute\nAdds and sets the values of an attribute on the object.\n\n\nremove_named_attribute\nRemove a named attribute from an object.\n\n\nAttributeDomains\nEnumeration of attribute domains in Blender. You can store an attribute onto one of\n\n\nAttributeTypes\nEnumeration of attribute types in Blender.\n\n\n\n\n\n\nWorking with collections in Blender\n\n\n\ncreate_collection\nCreate a new Blender collection or retrieve an existing one.\n\n\n\n\n\n\n\n\n\ncreate_object\nCreate a new Blender object and corresponding mesh.\n\n\ncreate_bob\nCreate a BlenderObject wrapper around a new Blender object.\n\n\nevaluate_object\nReturn an object which has the modifiers evaluated.\n\n\nBlenderObject\nA convenience class for working with Blender objects\n\n\nLinkedObjectError\nError raised when a Python object doesn’t have a linked object in the 3D scene.",
+    "text": "For interacting with attributes on meshes\n\n\n\nnamed_attribute\nGet the named attribute data from the object.\n\n\nstore_named_attribute\nAdds and sets the values of an attribute on the object.\n\n\nremove_named_attribute\nRemove a named attribute from an object.\n\n\nAttributeDomains\nEnumeration of attribute domains in Blender. You can store an attribute onto one of\n\n\nAttributeTypes\nEnumeration of attribute types in Blender.\n\n\nAttributeArray\nA numpy array subclass that automatically syncs changes back to the Blender object.\n\n\n\n\n\n\nWorking with collections in Blender\n\n\n\ncreate_collection\nCreate a new Blender collection or retrieve an existing one.\n\n\n\n\n\n\n\n\n\ncreate_object\nCreate a new Blender object and corresponding mesh.\n\n\ncreate_bob\nCreate a BlenderObject wrapper around a new Blender object.\n\n\nevaluate_object\nReturn an object which has the modifiers evaluated.\n\n\nBlenderObject\nA convenience class for working with Blender objects\n\n\nLinkedObjectError\nError raised when a Python object doesn’t have a linked object in the 3D scene.",
     "crumbs": [
       "API",
       "Function reference"
@@ -245,7 +245,7 @@
     "href": "api/index.html#attribute",
     "title": "Function reference",
     "section": "",
-    "text": "For interacting with attributes on meshes\n\n\n\nnamed_attribute\nGet the named attribute data from the object.\n\n\nstore_named_attribute\nAdds and sets the values of an attribute on the object.\n\n\nremove_named_attribute\nRemove a named attribute from an object.\n\n\nAttributeDomains\nEnumeration of attribute domains in Blender. You can store an attribute onto one of\n\n\nAttributeTypes\nEnumeration of attribute types in Blender.",
+    "text": "For interacting with attributes on meshes\n\n\n\nnamed_attribute\nGet the named attribute data from the object.\n\n\nstore_named_attribute\nAdds and sets the values of an attribute on the object.\n\n\nremove_named_attribute\nRemove a named attribute from an object.\n\n\nAttributeDomains\nEnumeration of attribute domains in Blender. You can store an attribute onto one of\n\n\nAttributeTypes\nEnumeration of attribute types in Blender.\n\n\nAttributeArray\nA numpy array subclass that automatically syncs changes back to the Blender object.",
     "crumbs": [
       "API",
       "Function reference"
@@ -274,63 +274,75 @@
     ]
   },
   {
-    "objectID": "api/named_attribute.html",
-    "href": "api/named_attribute.html",
-    "title": "named_attribute",
+    "objectID": "api/AttributeArray.html",
+    "href": "api/AttributeArray.html",
+    "title": "AttributeArray",
     "section": "",
-    "text": "named_attribute(obj, name='position', evaluate=False)\nGet the named attribute data from the object.",
+    "text": "AttributeArray()\nA numpy array subclass that automatically syncs changes back to the Blender object.\nValues are retrieved from the Blender object as a numpy array, the operation is applied and the result is store back on the Blender object. This allows for operations like pos[:, 2] += 1.0 to work seamlessly.",
     "crumbs": [
       "API",
       "Attribute",
-      "named_attribute"
+      "AttributeArray"
     ]
   },
   {
-    "objectID": "api/named_attribute.html#parameters",
-    "href": "api/named_attribute.html#parameters",
-    "title": "named_attribute",
+    "objectID": "api/AttributeArray.html#examples",
+    "href": "api/AttributeArray.html#examples",
+    "title": "AttributeArray",
+    "section": "Examples:",
+    "text": "Examples:\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(10, 3), name=\"test_bob\")\nprint(bob.position)  # Access the position attribute as an AttributeArray\nbob.position[:, 2] += 1.0\nprint(bob.position)\n\nAttributeArray 'position' from MESH 'test_bob' (domain: POINT, shape: (10, 3), dtype: float64)\n[[0.3719081  0.35423723 0.99023712]\n [0.56023389 0.93241578 0.91937912]\n [0.36569333 0.71687198 0.10257597]\n [0.73220873 0.30890706 0.64052647]\n [0.3912921  0.172571   0.47769928]\n [0.29547614 0.29812464 0.26037636]\n [0.02318771 0.90376103 0.58425862]\n [0.95380992 0.15213673 0.3448005 ]\n [0.10403359 0.15760286 0.62957579]\n [0.39084378 0.5976786  0.82422429]]\nAttributeArray 'position' from MESH 'test_bob' (domain: POINT, shape: (10, 3), dtype: float64)\n[[0.3719081  0.35423723 1.99023712]\n [0.56023389 0.93241578 1.91937912]\n [0.36569333 0.71687198 1.10257602]\n [0.73220873 0.30890706 1.64052653]\n [0.3912921  0.172571   1.47769928]\n [0.29547614 0.29812464 1.26037633]\n [0.02318771 0.90376103 1.58425856]\n [0.95380992 0.15213673 1.34480047]\n [0.10403359 0.15760286 1.62957573]\n [0.39084378 0.5976786  1.82422423]]",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "AttributeArray"
+    ]
+  },
+  {
+    "objectID": "api/remove_named_attribute.html",
+    "href": "api/remove_named_attribute.html",
+    "title": "remove_named_attribute",
+    "section": "",
+    "text": "remove_named_attribute(obj, name)\nRemove a named attribute from an object.",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "remove_named_attribute"
+    ]
+  },
+  {
+    "objectID": "api/remove_named_attribute.html#parameters",
+    "href": "api/remove_named_attribute.html#parameters",
+    "title": "remove_named_attribute",
     "section": "Parameters",
-    "text": "Parameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object.\nrequired\n\n\nname\nstr\nThe name of the attribute, by default ‘position’.\n'position'\n\n\nevaluate\nbool\nWhether to evaluate modifiers before reading, by default False.\nFalse",
+    "text": "Parameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object.\nrequired\n\n\nname\nstr\nName of the attribute to remove.\nrequired",
     "crumbs": [
       "API",
       "Attribute",
-      "named_attribute"
+      "remove_named_attribute"
     ]
   },
   {
-    "objectID": "api/named_attribute.html#returns",
-    "href": "api/named_attribute.html#returns",
-    "title": "named_attribute",
-    "section": "Returns",
-    "text": "Returns\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nThe attribute data as a numpy array.",
-    "crumbs": [
-      "API",
-      "Attribute",
-      "named_attribute"
-    ]
-  },
-  {
-    "objectID": "api/named_attribute.html#raises",
-    "href": "api/named_attribute.html#raises",
-    "title": "named_attribute",
+    "objectID": "api/remove_named_attribute.html#raises",
+    "href": "api/remove_named_attribute.html#raises",
+    "title": "remove_named_attribute",
     "section": "Raises",
     "text": "Raises\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nAttributeError\nIf the named attribute does not exist on the mesh.",
     "crumbs": [
       "API",
       "Attribute",
-      "named_attribute"
+      "remove_named_attribute"
     ]
   },
   {
-    "objectID": "api/named_attribute.html#examples",
-    "href": "api/named_attribute.html#examples",
-    "title": "named_attribute",
+    "objectID": "api/remove_named_attribute.html#examples",
+    "href": "api/remove_named_attribute.html#examples",
+    "title": "remove_named_attribute",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nfrom databpy import named_attribute, list_attributes\nobj = bpy.data.objects[\"Cube\"]\nprint(f\"{list_attributes(obj)=}\")\nnamed_attribute(obj, \"position\")\n\nlist_attributes(obj)=['position', '.select_vert', '.edge_verts', '.select_edge', '.select_poly', 'sharp_face', '.corner_vert', '.corner_edge', 'UVMap']\n\n\narray([[ 1.,  1.,  1.],\n       [ 1.,  1., -1.],\n       [ 1., -1.,  1.],\n       [ 1., -1., -1.],\n       [-1.,  1.,  1.],\n       [-1.,  1., -1.],\n       [-1., -1.,  1.],\n       [-1., -1., -1.]])",
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import remove_named_attribute, list_attributes, store_named_attribute\nobj = bpy.data.objects[\"Cube\"]\nstore_named_attribute(obj, np.random.rand(8, 3), \"random_numbers\")\nprint(f\"{list_attributes(obj)=}\")\nremove_named_attribute(obj, \"random_numbers\")\nprint(f\"{list_attributes(obj)=}\")\n\nlist_attributes(obj)=['position', 'random_numbers', '.select_vert', '.edge_verts', '.select_edge', '.select_poly', 'sharp_face', '.corner_vert', '.corner_edge', 'UVMap']\nlist_attributes(obj)=['position', '.select_vert', '.edge_verts', '.select_edge', '.select_poly', 'sharp_face', '.corner_vert', '.corner_edge', 'UVMap']",
     "crumbs": [
       "API",
       "Attribute",
-      "named_attribute"
+      "remove_named_attribute"
     ]
   },
   {
@@ -394,51 +406,63 @@
     ]
   },
   {
-    "objectID": "api/remove_named_attribute.html",
-    "href": "api/remove_named_attribute.html",
-    "title": "remove_named_attribute",
+    "objectID": "api/named_attribute.html",
+    "href": "api/named_attribute.html",
+    "title": "named_attribute",
     "section": "",
-    "text": "remove_named_attribute(obj, name)\nRemove a named attribute from an object.",
+    "text": "named_attribute(obj, name='position', evaluate=False)\nGet the named attribute data from the object.",
     "crumbs": [
       "API",
       "Attribute",
-      "remove_named_attribute"
+      "named_attribute"
     ]
   },
   {
-    "objectID": "api/remove_named_attribute.html#parameters",
-    "href": "api/remove_named_attribute.html#parameters",
-    "title": "remove_named_attribute",
+    "objectID": "api/named_attribute.html#parameters",
+    "href": "api/named_attribute.html#parameters",
+    "title": "named_attribute",
     "section": "Parameters",
-    "text": "Parameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object.\nrequired\n\n\nname\nstr\nName of the attribute to remove.\nrequired",
+    "text": "Parameters\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object.\nrequired\n\n\nname\nstr\nThe name of the attribute, by default ‘position’.\n'position'\n\n\nevaluate\nbool\nWhether to evaluate modifiers before reading, by default False.\nFalse",
     "crumbs": [
       "API",
       "Attribute",
-      "remove_named_attribute"
+      "named_attribute"
     ]
   },
   {
-    "objectID": "api/remove_named_attribute.html#raises",
-    "href": "api/remove_named_attribute.html#raises",
-    "title": "remove_named_attribute",
+    "objectID": "api/named_attribute.html#returns",
+    "href": "api/named_attribute.html#returns",
+    "title": "named_attribute",
+    "section": "Returns",
+    "text": "Returns\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nThe attribute data as a numpy array.",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "named_attribute"
+    ]
+  },
+  {
+    "objectID": "api/named_attribute.html#raises",
+    "href": "api/named_attribute.html#raises",
+    "title": "named_attribute",
     "section": "Raises",
     "text": "Raises\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nAttributeError\nIf the named attribute does not exist on the mesh.",
     "crumbs": [
       "API",
       "Attribute",
-      "remove_named_attribute"
+      "named_attribute"
     ]
   },
   {
-    "objectID": "api/remove_named_attribute.html#examples",
-    "href": "api/remove_named_attribute.html#examples",
-    "title": "remove_named_attribute",
+    "objectID": "api/named_attribute.html#examples",
+    "href": "api/named_attribute.html#examples",
+    "title": "named_attribute",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import remove_named_attribute, list_attributes, store_named_attribute\nobj = bpy.data.objects[\"Cube\"]\nstore_named_attribute(obj, np.random.rand(8, 3), \"random_numbers\")\nprint(f\"{list_attributes(obj)=}\")\nremove_named_attribute(obj, \"random_numbers\")\nprint(f\"{list_attributes(obj)=}\")\n\nlist_attributes(obj)=['position', 'random_numbers', '.select_vert', '.edge_verts', '.select_edge', '.select_poly', 'sharp_face', '.corner_vert', '.corner_edge', 'UVMap']\nlist_attributes(obj)=['position', '.select_vert', '.edge_verts', '.select_edge', '.select_poly', 'sharp_face', '.corner_vert', '.corner_edge', 'UVMap']",
+    "text": "Examples\n\nimport bpy\nfrom databpy import named_attribute, list_attributes\nobj = bpy.data.objects[\"Cube\"]\nprint(f\"{list_attributes(obj)=}\")\nnamed_attribute(obj, \"position\")\n\nlist_attributes(obj)=['position', '.select_vert', '.edge_verts', '.select_edge', '.select_poly', 'sharp_face', '.corner_vert', '.corner_edge', 'UVMap']\n\n\narray([[ 1.,  1.,  1.],\n       [ 1.,  1., -1.],\n       [ 1., -1.,  1.],\n       [ 1., -1., -1.],\n       [-1.,  1.,  1.],\n       [-1.,  1., -1.],\n       [-1., -1.,  1.],\n       [-1., -1., -1.]])",
     "crumbs": [
       "API",
       "Attribute",
-      "remove_named_attribute"
+      "named_attribute"
     ]
   },
   {
