@@ -83,10 +83,16 @@ class AttributeArray(np.ndarray):
     import numpy as np
 
     bob = db.create_bob(np.random.rand(10, 3), name="test_bob")
+    print('Initial position:')
     print(bob.position)  # Access the position attribute as an AttributeArray
     bob.position[:, 2] += 1.0
+    print('Updated position:')
     print(bob.position)
+
+    print('As Array:')
+    print(np.asarray(bob.position))  # Convert to a regular numpy array
     ```
+
     """
 
     def __new__(cls, blender_object: "BlenderObject", name: str) -> "AttributeArray":

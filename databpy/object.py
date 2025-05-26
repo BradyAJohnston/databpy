@@ -487,17 +487,14 @@ class BlenderObject:
         -------
         PositionArray
             A numpy array subclass that automatically syncs changes back to Blender.
-        
+
         Examples
         --------
         ```
         # Regular array operations
         pos = bob.position
         pos[0] = [1, 2, 3]  # Set position of first vertex
-        
-        # Column operations (manually)
-        pos.add_column(2, 1.0)  # Add 1.0 to all Z coordinates
-        
+
         # Column operations will be intercepted automatically
         pos[:, 2] = 5.0  # Set all Z coordinates to 5.0
         ```
