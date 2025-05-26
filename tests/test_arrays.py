@@ -1,8 +1,6 @@
 import numpy as np
-import pytest
 import databpy as db
-from databpy.object import AttributeArray, BlenderObject, create_bob
-from databpy.attribute import AttributeTypes, AttributeDomains
+from databpy.object import AttributeArray, create_bob
 
 np.random.seed(11)
 
