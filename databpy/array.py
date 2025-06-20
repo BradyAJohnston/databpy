@@ -1,5 +1,6 @@
 import numpy as np
-from .attribute import Attribute, AttributeTypes
+from .attribute import Attribute, AttributeTypes, store_named_attribute
+import bpy
 
 
 class ColumnAccessor:
@@ -95,11 +96,11 @@ class AttributeArray(np.ndarray):
 
     """
 
-    def __new__(cls, blender_object: "BlenderObject", name: str) -> "AttributeArray":
+    def __new__(cls, obj: bpy.types.Object, name: str) -> "AttributeArray":
         """Create a new AttributeArray that wraps a Blender attribute."""
-        attr = Attribute(blender_object.object.data.attributes[name])
+        attr = Attribute(obj.data.attributes[name])
         arr = np.asarray(attr.as_array()).view(cls)
-        arr._blender_object = blender_object
+        arr._blender_object = obj
         arr._attribute = attr
         arr._attr_name = name
         return arr
@@ -224,7 +225,8 @@ class AttributeArray(np.ndarray):
         if data_to_sync.dtype != np.float32:
             data_to_sync = data_to_sync.astype(np.float32)
 
-        self._blender_object.store_named_attribute(
+        store_named_attribute(
+            self._blender_object,
             data_to_sync,
             name=self._attr_name,
             atype=self._attribute.atype,
@@ -263,15 +265,15 @@ class AttributeArray(np.ndarray):
         # Get object info
         obj_name = "Unknown"
         obj_type = "Unknown"
-        if self._blender_object and hasattr(self._blender_object, "object"):
-            obj_name = getattr(self._blender_object.object, "name", "Unknown")
-            obj_type = getattr(self._blender_object.object, "type", "Unknown")
+        if self._blender_object:
+            obj_name = getattr(self._blender_object, "name", "Unknown")
+            obj_type = getattr(self._blender_object.data, "name", "Unknown")
 
         # Get array info
         array_str = np.array_str(np.asarray(self).view(np.ndarray))
 
         return (
-            f"AttributeArray '{attr_name}' from {obj_type} '{obj_name}' "
+            f"AttributeArray '{attr_name}' from {obj_type}('{obj_name}')"
             f"(domain: {domain_name}, shape: {self.shape}, dtype: {self.dtype})\n"
             f"{array_str}"
         )
@@ -287,15 +289,15 @@ class AttributeArray(np.ndarray):
         # Get object info
         obj_name = "Unknown"
         obj_type = "Unknown"
-        if self._blender_object and hasattr(self._blender_object, "object"):
-            obj_name = getattr(self._blender_object.object, "name", "Unknown")
-            obj_type = getattr(self._blender_object.object, "type", "Unknown")
+        if self._blender_object:
+            obj_name = getattr(self._blender_object, "name", "Unknown")
+            obj_type = getattr(self._blender_object.data, "name", "Unknown")
 
         # Get array representation
         array_repr = np.array_repr(np.asarray(self).view(np.ndarray))
 
         return (
-            f"AttributeArray(name='{attr_name}', object='{obj_name}' ({obj_type}), "
-            f"domain={domain_name}, type={atype}, shape={self.shape}, dtype={self.dtype})\n"
+            f"AttributeArray(name='{attr_name}', object='{obj_name}', mesh='{obj_type}', "
+            f"domain={domain_name}, type={atype.value}, shape={self.shape}, dtype={self.dtype})\n"
             f"{array_repr}"
         )

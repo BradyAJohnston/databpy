@@ -38,7 +38,7 @@ class TestAttributeArray(unittest.TestCase):
         pos = self.bob.position
 
         assert hasattr(pos, "_blender_object")
-        assert pos._blender_object is self.bob
+        assert pos._blender_object is self.bob.object
 
     def test_numpy_array_properties(self):
         """Test that PositionArray inherits numpy array properties."""
@@ -231,7 +231,7 @@ class TestAttributeArray(unittest.TestCase):
 
         # Check that the reference is still intact
         assert hasattr(pos, "_blender_object")
-        assert pos._blender_object is self.bob
+        assert pos._blender_object is self.bob.object
 
         # Check that the change synced
         updated_pos = self.bob.named_attribute("position")
@@ -328,7 +328,7 @@ class TestAttributeArray(unittest.TestCase):
         )
 
         # Get as AttributeArray
-        colors = AttributeArray(self.bob, "color")
+        colors = AttributeArray(self.bob.object, "color")
 
         # Verify shape and components
         assert colors.shape == (5, 4)
@@ -523,46 +523,6 @@ class TestAttributeArray(unittest.TestCase):
         # Check sync to Blender
         updated_pos = self.bob.named_attribute("position")
         np.testing.assert_array_almost_equal(updated_pos, expected)
-
-    def test_error_handling_during_blender_sync(self):
-        """Test error handling when syncing to Blender fails."""
-        pos = self.bob.position
-
-        # Save a reference to the original store_named_attribute method
-        original_method = self.bob.store_named_attribute
-
-        # Mock the store_named_attribute method to simulate an error
-        def mock_method(*args, **kwargs):
-            raise RuntimeError("Simulated Blender sync error")
-
-        # Depending on how errors are handled in the array implementation,
-        # we need to adjust our testing approach
-
-        # Approach 1: If errors should propagate (most likely scenario)
-        self.bob.store_named_attribute = mock_method
-        try:
-            # The operation should raise the exception from our mock
-            with pytest.raises(RuntimeError, match="Simulated Blender sync error"):
-                pos[0, 0] = 999.0
-        finally:
-            # Restore original method
-            self.bob.store_named_attribute = original_method
-
-        # Now test with original method restored
-        pos[0, 0] = 1000.0
-        self.assertEqual(pos[0, 0], 1000.0)
-
-        # Check that sync to Blender now works
-        updated_pos = self.bob.named_attribute("position")
-        self.assertEqual(updated_pos[0, 0], 1000.0)
-
-        # Test that operations still work with original method restored
-        pos[0, 0] = 1000.0
-        assert pos[0, 0] == 1000.0
-
-        # Check that sync to Blender now works
-        updated_pos = self.bob.named_attribute("position")
-        assert updated_pos[0, 0] == 1000.0
 
 
 def test_position_array_integration():

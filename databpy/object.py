@@ -499,7 +499,7 @@ class BlenderObject:
         pos[:, 2] = 5.0  # Set all Z coordinates to 5.0
         ```
         """
-        return AttributeArray(self, "position")
+        return AttributeArray(self.object, "position")
 
     @position.setter
     def position(self, value: np.ndarray) -> None:

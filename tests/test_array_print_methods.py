@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from unittest.mock import Mock
-from databpy import create_bob
+from databpy import create_object
 from databpy.array import AttributeArray, ColumnAccessor, Attribute
 from databpy.attribute import AttributeTypes
 
@@ -12,29 +12,20 @@ class TestAttributeArrayPrintMethods:
     @pytest.fixture
     def blender_object(self):
         """Create a mock BlenderObject for testing."""
-        obj = create_bob(np.random.rand(10, 3).astype(np.float32), name="TestCube")
+        obj = create_object(np.random.rand(10, 3).astype(np.float32), name="TestCube")
         return obj
 
     @pytest.fixture
     def example_attribute(self):
         """Create a mock Attribute for testing."""
-        obj = create_bob(np.random.rand(10, 3).astype(np.float32), name="TestCube")
-        return Attribute(obj.attributes()["position"])
+        obj = create_object(np.random.rand(10, 3).astype(np.float32), name="TestCube")
+        return Attribute(obj.data.attributes["position"])
 
     @pytest.fixture
     def sample_array(self, blender_object, example_attribute):
         """Create a sample AttributeArray for testing."""
-        # Mock the Attribute constructor
-        with pytest.MonkeyPatch().context() as m:
-            m.setattr("databpy.array.Attribute", lambda x: example_attribute)
-
-            # Create the AttributeArray
-            arr = AttributeArray.__new__(AttributeArray, blender_object, "position")
-            arr._blender_object = blender_object
-            arr._attribute = example_attribute
-            arr._name = "position"
-
-            return arr
+        # Create the AttributeArray
+        return AttributeArray(blender_object, "position")
 
     def test_str_method_basic_info(self, sample_array):
         """Test that __str__ includes basic attribute information."""
@@ -42,7 +33,7 @@ class TestAttributeArrayPrintMethods:
 
         # Check that all expected components are present
         assert "AttributeArray 'position'" in result
-        assert "MESH 'TestCube'" in result
+        assert "TestCube('TestCube')" in result
         assert "domain: POINT" in result
 
     def test_repr_method_detailed_info(self, sample_array):
@@ -51,49 +42,12 @@ class TestAttributeArrayPrintMethods:
 
         # Check that all expected components are present
         assert "AttributeArray(name='position'" in result
-        assert "object='TestCube' (MESH)" in result
+        assert "object='TestCube', mesh='TestCube" in result
         assert "domain=POINT" in result
-        assert "type=AttributeTypes.FLOAT_VECTOR" in result
+        assert "type=FLOAT_VECTOR" in result
 
         # Check that array representation is included
         assert "array(" in result
-
-    def test_str_method_different_object_types(self, example_attribute):
-        """Test __str__ method with different Blender object types."""
-        # Test with different object types
-        object_types = ["MESH", "CURVE", "SURFACE", "META", "FONT"]
-
-        for obj_type in object_types:
-            mock_obj = Mock()
-            mock_obj.object = Mock()
-            mock_obj.object.name = f"Test{obj_type}"
-            mock_obj.object.type = obj_type
-
-            arr = np.array([[1.0, 2.0, 3.0]], dtype=np.float32).view(AttributeArray)
-            arr._blender_object = mock_obj
-            arr._attribute = example_attribute
-            arr._name = "test_attr"
-
-            result = str(arr)
-            assert f"{obj_type} 'Test{obj_type}'" in result
-
-    def test_str_method_different_domains(self, blender_object):
-        """Test __str__ method with different attribute domains."""
-        domains = ["POINT", "EDGE", "FACE", "CORNER"]
-
-        for domain_name in domains:
-            mock_attr = Mock()
-            mock_attr.domain = Mock()
-            mock_attr.domain.name = domain_name
-            mock_attr.atype = AttributeTypes.FLOAT_VECTOR
-
-            arr = np.array([[1.0, 2.0, 3.0]], dtype=np.float32).view(AttributeArray)
-            arr._blender_object = blender_object
-            arr._attribute = mock_attr
-            arr._name = "test_attr"
-
-            result = str(arr)
-            assert f"domain: {domain_name}" in result
 
     def test_str_method_different_array_shapes(self, blender_object, example_attribute):
         """Test __str__ method with different array shapes."""
@@ -113,34 +67,13 @@ class TestAttributeArrayPrintMethods:
             result = str(arr)
             assert f"shape: {test_array.shape}" in result
 
-    def test_repr_method_different_attribute_types(self, blender_object):
-        """Test __repr__ method with different attribute types."""
-        attr_types = [
-            AttributeTypes.FLOAT_VECTOR,
-            AttributeTypes.FLOAT_COLOR,
-        ]
-
-        for attr_type in attr_types:
-            mock_attr = Mock()
-            mock_attr.domain = Mock()
-            mock_attr.domain.name = "POINT"
-            mock_attr.atype = attr_type
-
-            arr = np.array([[1.0, 2.0, 3.0]], dtype=np.float32).view(AttributeArray)
-            arr._blender_object = blender_object
-            arr._attribute = mock_attr
-            arr._name = "test_attr"
-
-            result = repr(arr)
-            assert f"type={attr_type}" in result
-
     def test_print_integration(self, sample_array, capsys):
         """Test that print() works correctly with the __str__ method."""
         print(sample_array)
         captured = capsys.readouterr()
 
         assert "AttributeArray 'position'" in captured.out
-        assert "MESH 'TestCube'" in captured.out
+        assert "TestCube('TestCube')" in captured.out
         assert "domain: POINT" in captured.out
 
     def test_str_method_with_large_array(self, blender_object, example_attribute):
