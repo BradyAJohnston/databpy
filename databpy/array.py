@@ -78,6 +78,13 @@ class AttributeArray(np.ndarray):
 
     Examples:
     --------
+    ```{python}
+    import databpy as db
+    import numpy as np
+
+    obj = db.create_object(np.random.rand(10, 3), name="test_bob")
+    db.AttributeArray(obj, "position")
+    ```
 
     ```{python}
     import databpy as db
@@ -93,7 +100,6 @@ class AttributeArray(np.ndarray):
     print('As Array:')
     print(np.asarray(bob.position))  # Convert to a regular numpy array
     ```
-
     """
 
     def __new__(cls, obj: bpy.types.Object, name: str) -> "AttributeArray":
