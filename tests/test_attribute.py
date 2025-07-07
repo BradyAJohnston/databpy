@@ -4,6 +4,36 @@ import bpy
 import databpy as db
 
 
+def test_attribute_properties():
+    # Create test object with known vertices
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    obj = db.create_object(verts, name="TestObject")
+    att = db.Attribute(obj.data.attributes["position"])
+    assert att.name == "position"
+    assert att.type_name == "FLOAT_VECTOR"
+    att = db.store_named_attribute(
+        obj, np.random.rand(3, 3), "test_attr", domain="POINT"
+    )
+    assert att.name == "test_attr"
+
+
+def test_errores():
+    # Create test object with known vertices
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    obj = db.create_object(verts, name="TestObject")
+    att = db.Attribute(obj.data.attributes["position"])
+    with pytest.raises(ValueError):
+        db.store_named_attribute(
+            obj, np.random.rand(3, 3), "test_attr", domain="FAKE_DOMAIN"
+        )
+    with pytest.raises(ValueError):
+        db.store_named_attribute(
+            obj, np.random.rand(3, 3), "test_attr", atype="FAKE_TYPE"
+        )
+    with pytest.raises(db.attribute.NamedAttributeError):
+        db.remove_named_attribute(obj, "nonexistent_attr")
+
+
 def test_named_attribute_position():
     # Create test object with known vertices
     verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])

@@ -6,32 +6,29 @@ website:
   title: "databpy"
   navbar:
     left:
-      - href: index.qmd
-        text: Home
-      - href: api/index.qmd
-        text: API
+    - href: index.qmd
+      text: Home
+    - href: api/index.qmd
+      text: API
     tools:
-      - icon: github
-        href: https://github.com/BradyAJohnston/databpy
-
+    - icon: github
+      href: https://github.com/BradyAJohnston/databpy
 
 format:
   html:
     page-layout: full
-    theme: 
-      - sandstone
-      - style.scss
+    theme:
+    - sandstone
+    - style.scss
     toc: true
     toc-depth: 2
     preview-colour:
       code: true
       text: true
 
-
 # tell quarto to read the generated sidebar
 metadata-files:
-  - api/_sidebar.yml
-
+- api/_sidebar.yml
 
 quartodoc:
   # the name used to import the package you want to create reference docs for
@@ -43,24 +40,25 @@ quartodoc:
   css: api/_styles-quartodoc.css
 
   sections:
-    - title: Attribute
-      desc: For interacting with attributes on meshes
-      contents:
-        - named_attribute
-        - store_named_attribute
-        - remove_named_attribute
-        - AttributeDomains
-        - AttributeTypes
-    - title: Collections
-      desc: Working with collections in Blender
-      contents:
-        - create_collection
-    - title: Objects
-      contents:
-        # - object.ObjectTracker
-        - create_object
-        - create_bob
-        - evaluate_object
-        - BlenderObject
-        - LinkedObjectError
-        # - ObjectTracker
+  - title: Attribute
+    desc: For interacting with attributes on meshes
+    contents:
+    - named_attribute
+    - store_named_attribute
+    - remove_named_attribute
+    - AttributeDomains
+    - AttributeTypes
+    - AttributeArray
+  - title: Collections
+    desc: Working with collections in Blender
+    contents:
+    - create_collection
+  - title: Objects
+    contents:
+    # - object.ObjectTracker
+    - create_object
+    - create_bob
+    - evaluate_object
+    - BlenderObject
+    - LinkedObjectError
+    # - ObjectTracker

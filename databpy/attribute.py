@@ -56,7 +56,7 @@ class AttributeMismatchError(Exception):
         super().__init__(self.message)
 
 
-class AttributeDomains:
+class AttributeDomains(Enum):
     """
     Enumeration of attribute domains in Blender. You can store an attribute onto one of
     these domains if there is corressponding geometry. All data is on a domain on geometry.
@@ -248,28 +248,73 @@ class Attribute:
 
     def __init__(self, attribute: bpy.types.Attribute):
         self.attribute = attribute
-        self.n_attr = len(attribute.data)
-        self.atype = AttributeTypes[self.attribute.data_type].value
+
+    def __len__(self):
+        """
+        Returns the number of attribute elements.
+
+        Returns
+        -------
+        int
+            The number of elements in the attribute.
+        """
+        return len(self.attribute.data)
+
+    @property
+    def name(self) -> str:
+        """
+        Returns the name of the attribute.
+
+        Returns
+        -------
+        str
+            The name of the attribute.
+        """
+        return self.attribute.name
+
+    @property
+    def atype(self) -> AttributeTypes:
+        """
+        Returns the attribute type information for this attribute.
+
+        Returns
+        -------
+        AttributeType
+            The type information of the attribute.
+        """
+        return AttributeTypes[self.attribute.data_type]
+
+    @property
+    def domain(self) -> AttributeDomains:
+        """
+        Returns the attribute domain for this attribute.
+
+        Returns
+        -------
+        AttributeDomain
+            The domain of the attribute.
+        """
+        return AttributeDomains[self.attribute.domain]
 
     @property
     def value_name(self):
-        return self.atype.value_name
+        return self.atype.value.value_name
 
     @property
     def is_1d(self):
-        return self.atype.dimensions == (1,)
+        return self.atype.value.dimensions == (1,)
 
     @property
     def type_name(self):
-        return self.atype.type_name
+        return self.atype.value.type_name
 
     @property
     def shape(self):
-        return (self.n_attr, *self.atype.dimensions)
+        return (len(self), *self.atype.value.dimensions)
 
     @property
     def dtype(self) -> Type:
-        return self.atype.dtype
+        return self.atype.value.dtype
 
     @property
     def n_values(self) -> int:
@@ -343,7 +388,7 @@ def store_named_attribute(
     data: np.ndarray,
     name: str,
     atype: str | AttributeTypes | None = None,
-    domain: str | AttributeDomain = AttributeDomains.POINT,
+    domain: str | AttributeDomain | AttributeDomains = AttributeDomains.POINT,
     overwrite: bool = True,
 ) -> bpy.types.Attribute:
     """
@@ -398,12 +443,20 @@ def store_named_attribute(
                 f"Given data type {atype=} does not match any of the possible attribute types: {list(AttributeTypes)=}"
             )
 
+    if isinstance(domain, str):
+        try:
+            domain = AttributeDomains[domain].value
+        except KeyError:
+            raise ValueError(
+                f"Given domain {domain=} does not match any of the possible attribute domains: {list(AttributeDomains)=}"
+            )
+
     if atype is None:
         atype = guess_atype_from_array(data)
 
     attribute = obj.data.attributes.get(name)  # type: ignore
     if not attribute or not overwrite:
-        attribute = obj.data.attributes.new(name, atype.value.type_name, str(domain))
+        attribute = obj.data.attributes.new(name, atype.value.type_name, domain.name)
 
     target_atype = AttributeTypes[attribute.data_type]
     if len(data) != len(attribute.data):

@@ -13,6 +13,7 @@ import bpy
 from .addon import register, unregister
 from .utils import centre, lerp
 from .collection import create_collection
+from .array import AttributeArray
 from .attribute import (
     named_attribute,
     store_named_attribute,

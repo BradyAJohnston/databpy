@@ -1,7 +1,6 @@
 import databpy as db
 import bpy
 import numpy as np
-import pytest
 
 np.random.seed(11)
 

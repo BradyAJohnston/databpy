@@ -5,6 +5,7 @@ import numpy as np
 from bpy.types import Object
 from mathutils import Matrix
 from numpy import typing as npt
+from .array import AttributeArray
 
 from . import attribute as attr
 from .addon import register
@@ -293,7 +294,7 @@ class BlenderObject:
         data: np.ndarray,
         name: str,
         atype: str | AttributeTypes | None = None,
-        domain: str | AttributeDomain = AttributeDomains.POINT,
+        domain: str | AttributeDomain | AttributeDomains = AttributeDomains.POINT,
     ) -> None:
         """
         Store a named attribute on the Blender object.
@@ -478,16 +479,27 @@ class BlenderObject:
         return self.named_attribute(".select_vert")
 
     @property
-    def position(self) -> np.ndarray:
+    def position(self) -> AttributeArray:
         """
         Get the position of the vertices of the Blender object.
 
         Returns
         -------
-        np.ndarray
-            The position of the vertices of the Blender object.
+        PositionArray
+            A numpy array subclass that automatically syncs changes back to Blender.
+
+        Examples
+        --------
+        ```
+        # Regular array operations
+        pos = bob.position
+        pos[0] = [1, 2, 3]  # Set position of first vertex
+
+        # Column operations will be intercepted automatically
+        pos[:, 2] = 5.0  # Set all Z coordinates to 5.0
+        ```
         """
-        return self.named_attribute("position")
+        return AttributeArray(self.object, "position")
 
     @position.setter
     def position(self, value: np.ndarray) -> None:
