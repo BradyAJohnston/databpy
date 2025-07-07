@@ -74,7 +74,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-afce86f435cb6832de528ed0528b154e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-aa9238ba561dfc496d5ec7026d47e64d.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -307,7 +307,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Values are retrieved from the Blender object as a numpy array, the operation is applied and the result is store back on the Blender object. This allows for operations like <code>pos[:, 2] += 1.0</code> to work seamlessly.</p>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples:</h2>
-<div id="69ef7a9c" class="cell" data-execution_count="1">
+<div id="ac7ca895" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -315,19 +315,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>db.AttributeArray(obj, <span class="st">"position"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>AttributeArray(name='position', object='test_bob', mesh='test_bob', domain=POINT, type=FLOAT_VECTOR, shape=(10, 3), dtype=float64)
-array([[0.29203162, 0.31714809, 0.34324712],
-       [0.37308386, 0.54361033, 0.44725364],
-       [0.26997793, 0.8939231 , 0.35390806],
-       [0.4186478 , 0.05907517, 0.44522715],
-       [0.6477055 , 0.38722485, 0.60644263],
-       [0.26390332, 0.49744251, 0.85437679],
-       [0.47857657, 0.19787669, 0.5423615 ],
-       [0.93142331, 0.13817523, 0.67322946],
-       [0.2535319 , 0.89441735, 0.07065749],
-       [0.68786436, 0.86252987, 0.25374731]])</code></pre>
+array([[0.64091545, 0.44782972, 0.81959772],
+       [0.22137521, 0.16064917, 0.92393446],
+       [0.26948923, 0.52997029, 0.45591283],
+       [0.32352361, 0.41072556, 0.7118448 ],
+       [0.11090254, 0.5636518 , 0.17452671],
+       [0.07996668, 0.49642995, 0.30674854],
+       [0.78981096, 0.41784802, 0.65805042],
+       [0.85974705, 0.83330321, 0.43886268],
+       [0.12398449, 0.45248616, 0.40463427],
+       [0.16263422, 0.14308837, 0.31882259]])</code></pre>
 </div>
 </div>
-<div id="5a49a1c5" class="cell" data-execution_count="2">
+<div id="612b6fa8" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -343,39 +343,39 @@ array([[0.29203162, 0.31714809, 0.34324712],
 <div class="cell-output cell-output-stdout">
 <pre><code>Initial position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float64)
-[[0.68635207 0.85544086 0.57478786]
- [0.81262243 0.12610544 0.75471652]
- [0.69195884 0.29659563 0.29057339]
- [0.86796206 0.05321372 0.88841563]
- [0.00319141 0.46194443 0.91802454]
- [0.46316972 0.62929899 0.56575382]
- [0.24597153 0.31757557 0.71642125]
- [0.53175598 0.16209516 0.44344288]
- [0.98900276 0.81705719 0.81710774]
- [0.86415625 0.71724814 0.24610405]]
+[[0.14564152 0.8097285  0.93077779]
+ [0.95653433 0.65809447 0.83875215]
+ [0.64700848 0.28900838 0.95526195]
+ [0.17595421 0.81876838 0.93200707]
+ [0.45774677 0.40561107 0.0081829 ]
+ [0.70798177 0.26304793 0.37011978]
+ [0.75835162 0.70280206 0.85191053]
+ [0.21910419 0.83379138 0.91560745]
+ [0.77902144 0.36610261 0.08924789]
+ [0.47549346 0.67922348 0.88056523]]
 Updated position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float64)
-[[0.68635207 0.85544086 1.57478786]
- [0.81262243 0.12610544 1.75471652]
- [0.69195884 0.29659563 1.29057336]
- [0.86796206 0.05321372 1.88841558]
- [0.00319141 0.46194443 1.91802454]
- [0.46316972 0.62929899 1.56575382]
- [0.24597153 0.31757557 1.71642125]
- [0.53175598 0.16209516 1.44344282]
- [0.98900276 0.81705719 1.81710768]
- [0.86415625 0.71724814 1.246104  ]]
+[[0.14564152 0.8097285  1.93077779]
+ [0.95653433 0.65809447 1.83875215]
+ [0.64700848 0.28900838 1.95526195]
+ [0.17595421 0.81876838 1.93200707]
+ [0.45774677 0.40561107 1.00818288]
+ [0.70798177 0.26304793 1.37011981]
+ [0.75835162 0.70280206 1.85191059]
+ [0.21910419 0.83379138 1.91560745]
+ [0.77902144 0.36610261 1.08924794]
+ [0.47549346 0.67922348 1.88056517]]
 As Array:
-[[0.68635207 0.85544086 1.57478786]
- [0.81262243 0.12610544 1.75471652]
- [0.69195884 0.29659563 1.29057336]
- [0.86796206 0.05321372 1.88841558]
- [0.00319141 0.46194443 1.91802454]
- [0.46316972 0.62929899 1.56575382]
- [0.24597153 0.31757557 1.71642125]
- [0.53175598 0.16209516 1.44344282]
- [0.98900276 0.81705719 1.81710768]
- [0.86415625 0.71724814 1.246104  ]]</code></pre>
+[[0.14564152 0.8097285  1.93077779]
+ [0.95653433 0.65809447 1.83875215]
+ [0.64700848 0.28900838 1.95526195]
+ [0.17595421 0.81876838 1.93200707]
+ [0.45774677 0.40561107 1.00818288]
+ [0.70798177 0.26304793 1.37011981]
+ [0.75835162 0.70280206 1.85191059]
+ [0.21910419 0.83379138 1.91560745]
+ [0.77902144 0.36610261 1.08924794]
+ [0.47549346 0.67922348 1.88056517]]</code></pre>
 </div>
 </div>
 
