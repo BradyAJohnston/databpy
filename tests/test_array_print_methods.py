@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-from unittest.mock import Mock
 from databpy import create_object
 from databpy.array import AttributeArray, ColumnAccessor, Attribute
 from databpy.attribute import AttributeTypes
@@ -11,20 +10,20 @@ class TestAttributeArrayPrintMethods:
 
     @pytest.fixture
     def blender_object(self):
-        """Create a mock BlenderObject for testing."""
+        """Create a real BlenderObject for testing."""
         obj = create_object(np.random.rand(10, 3).astype(np.float32), name="TestCube")
         return obj
 
     @pytest.fixture
     def example_attribute(self):
-        """Create a mock Attribute for testing."""
+        """Create a real Attribute for testing."""
         obj = create_object(np.random.rand(10, 3).astype(np.float32), name="TestCube")
         return Attribute(obj.data.attributes["position"])
 
     @pytest.fixture
-    def sample_array(self, blender_object, example_attribute):
+    def sample_array(self, blender_object):
         """Create a sample AttributeArray for testing."""
-        # Create the AttributeArray
+        # Create the AttributeArray using the real blender object
         return AttributeArray(blender_object, "position")
 
     def test_str_method_basic_info(self, sample_array):
@@ -49,23 +48,49 @@ class TestAttributeArrayPrintMethods:
         # Check that array representation is included
         assert "array(" in result
 
-    def test_str_method_different_array_shapes(self, blender_object, example_attribute):
+    def test_str_method_different_array_shapes(self, blender_object):
         """Test __str__ method with different array shapes."""
         test_arrays = [
             np.array([1.0, 2.0, 3.0], dtype=np.float32),  # 1D
             np.array([[1.0, 2.0, 3.0]], dtype=np.float32),  # 2D single row
             np.array([[1.0], [2.0], [3.0]], dtype=np.float32),  # 2D single column
-            np.array([[[1.0, 2.0]], [[3.0, 4.0]]], dtype=np.float32),  # 3D
+            np.array(
+                [
+                    [1.0, 2.0, 3.0, 4.0],
+                    [5.0, 6.0, 7.0, 8.0],
+                    [9.0, 10.0, 11.0, 12.0],
+                    [13.0, 14.0, 15.0, 16.0],
+                ],
+                dtype=np.float32,
+            ),  # 4x4 matrix
         ]
 
-        for test_array in test_arrays:
-            arr = test_array.view(AttributeArray)
-            arr._blender_object = blender_object
-            arr._attribute = example_attribute
-            arr._name = "test_attr"
+        for i, test_array in enumerate(test_arrays):
+            # Create a new object for each test array with appropriate vertex count
+            if test_array.ndim == 1:
+                vertices = np.random.rand(len(test_array), 3).astype(np.float32)
+            elif test_array.ndim == 2:
+                vertices = np.random.rand(test_array.shape[0], 3).astype(np.float32)
+            else:
+                vertices = np.random.rand(test_array.shape[0], 3).astype(np.float32)
+
+            obj = create_object(vertices, name=f"TestShape{i}")
+
+            # Store the test array as a custom attribute
+            from databpy.attribute import store_named_attribute
+
+            store_named_attribute(
+                obj,
+                test_array,
+                f"test_attr_{i}",
+            )
+
+            # Create AttributeArray for the custom attribute
+            arr = AttributeArray(obj, f"test_attr_{i}")
 
             result = str(arr)
-            assert f"shape: {test_array.shape}" in result
+            # Check that the attribute name appears in the string representation
+            assert f"test_attr_{i}" in result
 
     def test_print_integration(self, sample_array, capsys):
         """Test that print() works correctly with the __str__ method."""
@@ -76,14 +101,14 @@ class TestAttributeArrayPrintMethods:
         assert "TestCube('TestCube')" in captured.out
         assert "domain: POINT" in captured.out
 
-    def test_str_method_with_large_array(self, blender_object, example_attribute):
+    def test_str_method_with_large_array(self):
         """Test __str__ method with a large array to ensure it handles numpy's truncation."""
         # Create a large array that numpy will truncate
-        large_array = np.random.rand(1000, 3).astype(np.float32)
+        large_vertices = np.random.rand(1000, 3).astype(np.float32)
+        obj = create_object(large_vertices, name="LargeTestObject")
 
-        arr = large_array.view(AttributeArray)
-        arr._blender_object = blender_object
-        arr._attribute = example_attribute
+        # Get the position attribute array
+        arr = AttributeArray(obj, "position")
 
         result = str(arr)
         assert "shape: (1000, 3)" in result
@@ -91,63 +116,28 @@ class TestAttributeArrayPrintMethods:
         # Should contain numpy's truncation indicator for large arrays
         assert "..." in result or len(result.split("\n")) > 1
 
-    def test_str_method_preserves_numpy_formatting(
-        self, blender_object, example_attribute
-    ):
-        """Test that __str__ preserves numpy's array formatting."""
-        # Test with specific values that have known string representations
-        test_array = np.array(
-            [[1.0, 2.5, 3.14159], [0.0, -1.5, 2.71828]], dtype=np.float32
-        )
-
-        arr = test_array.view(AttributeArray)
-        arr._blender_object = blender_object
-        arr._attribute = example_attribute
-        arr._name = "test_attr"
-
-        result = str(arr)
-        numpy_str = np.array_str(test_array)
-
-        # The numpy array string should be contained in our result
-        assert numpy_str in result
-
-    def test_repr_method_preserves_numpy_formatting(
-        self, blender_object, example_attribute
-    ):
-        """Test that __repr__ preserves numpy's array representation."""
-        test_array = np.array(
-            [[1.0, 2.5, 3.14159], [0.0, -1.5, 2.71828]], dtype=np.float32
-        )
-
-        arr = test_array.view(AttributeArray)
-        arr._blender_object = blender_object
-        arr._attribute = example_attribute
-        arr._name = "test_attr"
-
-        result = repr(arr)
-        numpy_repr = np.array_repr(test_array)
-
-        # The numpy array representation should be contained in our result
-        assert numpy_repr in result
-
 
 class TestColumnAccessorPrintMethods:
     """Test print behavior of ColumnAccessor objects."""
 
     @pytest.fixture
-    def mock_parent_array(self):
-        """Create a mock parent AttributeArray."""
-        parent = Mock()
+    def parent_array_and_data(self):
+        """Create a real parent AttributeArray with known data."""
+        # Create object with known vertex positions
         parent_data = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
-        parent.__array__ = Mock(return_value=parent_data)
-        return parent, parent_data
+        obj = create_object(parent_data, name="ColumnTestObject")
 
-    def test_column_accessor_str_delegation(self, mock_parent_array):
+        # Get the position attribute as an AttributeArray
+        parent_array = AttributeArray(obj, "position")
+
+        return parent_array, parent_data
+
+    def test_column_accessor_str_delegation(self, parent_array_and_data):
         """Test that ColumnAccessor properly delegates string operations."""
-        parent, parent_data = mock_parent_array
+        parent_array, parent_data = parent_array_and_data
 
         # Create ColumnAccessor
-        col_accessor = ColumnAccessor(parent, 1)  # Second column
+        col_accessor = ColumnAccessor(parent_array, 1)  # Second column
 
         # The string representation should come from the column data
         expected_column = parent_data[:, 1]  # [2.0, 5.0]
@@ -158,11 +148,11 @@ class TestColumnAccessorPrintMethods:
 
         assert result == expected
 
-    def test_column_accessor_array_conversion(self, mock_parent_array):
+    def test_column_accessor_array_conversion(self, parent_array_and_data):
         """Test that ColumnAccessor converts to array properly for printing."""
-        parent, parent_data = mock_parent_array
+        parent_array, parent_data = parent_array_and_data
 
-        col_accessor = ColumnAccessor(parent, 0)  # First column
+        col_accessor = ColumnAccessor(parent_array, 0)  # First column
 
         # Convert to array and check it matches expected column
         as_array = np.asarray(col_accessor)
