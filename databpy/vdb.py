@@ -23,7 +23,7 @@ def import_vdb(
     -------
     bpy.types.Object
         A Blender object containing the imported volume data.
-    
+
     Raises
     ------
     RuntimeError
@@ -33,15 +33,15 @@ def import_vdb(
     file_path = Path(file)
     if not file_path.exists():
         raise RuntimeError(f"VDB file not found: {file_path}")
-    
+
     with ObjectTracker() as tracker:
         bpy.ops.object.volume_import(filepath=str(file))
         new_objects = tracker.new_objects()
-        
+
         # Check if any objects were created
         if not new_objects:
             raise RuntimeError(f"Failed to import VDB file: {file_path}")
-        
+
         volume_obj = new_objects[-1]
 
     if collection is not None:

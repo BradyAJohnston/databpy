@@ -25,21 +25,21 @@ def create_simple_vdb(filepath: Path) -> None:
     # This approach is more likely to work with Blender's volume importer
     grid = vdb.FloatGrid()
     grid.name = "density"
-    
+
     # Create a simple 3D density field
     accessor = grid.getAccessor()
-    
+
     # Fill a small region with density values
     for i in range(-10, 11):
         for j in range(-10, 11):
             for k in range(-10, 11):
                 # Create a simple spherical density falloff
-                distance = (i*i + j*j + k*k) ** 0.5
+                distance = (i * i + j * j + k * k) ** 0.5
                 if distance <= 10.0:
                     density = max(0.0, 1.0 - distance / 10.0)
                     if density > 0.01:  # Only set non-negligible values
                         accessor.setValueOn((i, j, k), density)
-    
+
     # Write the grid to file
     vdb.write(str(filepath), [grid])
 
@@ -160,15 +160,15 @@ class TestVDBImport:
         # Check volume data properties
         volume_data = volume_obj.data
         assert hasattr(volume_data, "grids")
-        
+
         # Check that the volume data has the expected filepath
         assert volume_data.filepath == str(temp_vdb_file)
-        
+
         # Check that volume data has expected attributes
         assert hasattr(volume_data, "display")
         assert hasattr(volume_data, "render")
         assert hasattr(volume_data, "materials")
-        
+
         # Note: Due to Blender/OpenVDB version compatibility issues,
         # the grids may not always be loaded correctly in all environments.
         # This test focuses on verifying the volume object structure rather than
