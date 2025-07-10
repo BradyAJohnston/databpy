@@ -307,7 +307,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Values are retrieved from the Blender object as a numpy array, the operation is applied and the result is store back on the Blender object. This allows for operations like <code>pos[:, 2] += 1.0</code> to work seamlessly.</p>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples:</h2>
-<div id="b1f28b83" class="cell" data-execution_count="1">
+<div id="78dc906d" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -315,19 +315,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>db.AttributeArray(obj, <span class="st">"position"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>AttributeArray(name='position', object='test_bob', mesh='test_bob', domain=POINT, type=FLOAT_VECTOR, shape=(10, 3), dtype=float64)
-array([[0.533678  , 0.9822523 , 0.33569425],
-       [0.67660719, 0.46358788, 0.68608338],
-       [0.68110085, 0.70564741, 0.55756575],
-       [0.47548768, 0.4434717 , 0.38223219],
-       [0.04735427, 0.02746247, 0.02369857],
-       [0.68720037, 0.71930367, 0.16731638],
-       [0.25308308, 0.22557357, 0.4766787 ],
-       [0.50220168, 0.65032983, 0.82817167],
-       [0.71349591, 0.2576718 , 0.83762819],
-       [0.41268891, 0.57582062, 0.96350503]])</code></pre>
+array([[0.29273656, 0.2486189 , 0.92043811],
+       [0.30645201, 0.39858037, 0.17243655],
+       [0.1308134 , 0.23970762, 0.64714193],
+       [0.21237954, 0.69209051, 0.01560279],
+       [0.41706821, 0.6513716 , 0.15884233],
+       [0.27421165, 0.56571281, 0.36248401],
+       [0.32551548, 0.0648804 , 0.87251461],
+       [0.79467106, 0.64651859, 0.50480241],
+       [0.36938834, 0.97011971, 0.26783848],
+       [0.16380477, 0.1735796 , 0.8200137 ]])</code></pre>
 </div>
 </div>
-<div id="45cc3a6e" class="cell" data-execution_count="2">
+<div id="3439e633" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -343,39 +343,39 @@ array([[0.533678  , 0.9822523 , 0.33569425],
 <div class="cell-output cell-output-stdout">
 <pre><code>Initial position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float64)
-[[0.45641941 0.28054902 0.28031126]
- [0.04449401 0.27754527 0.3180235 ]
- [0.72475868 0.43026447 0.24829021]
- [0.25045314 0.84961188 0.54676145]
- [0.22335155 0.27298391 0.12601043]
- [0.23707642 0.47271964 0.65810281]
- [0.12878631 0.81270838 0.1611404 ]
- [0.91309005 0.26197419 0.47329599]
- [0.50111103 0.29116568 0.61228228]
- [0.36118886 0.38845965 0.74010992]]
+[[0.92547095 0.05409683 0.61654371]
+ [0.80674052 0.83764297 0.32498705]
+ [0.50371599 0.35769898 0.82767296]
+ [0.88338977 0.50544983 0.83587354]
+ [0.28232691 0.44815311 0.95636582]
+ [0.25341326 0.60662222 0.32618484]
+ [0.1831945  0.33381099 0.08810319]
+ [0.03467529 0.82001722 0.80145049]
+ [0.45070672 0.39499247 0.51130462]
+ [0.66235209 0.3139213  0.77212363]]
 Updated position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float64)
-[[0.45641941 0.28054902 1.28031123]
- [0.04449401 0.27754527 1.31802344]
- [0.72475868 0.43026447 1.24829018]
- [0.25045314 0.84961188 1.54676151]
- [0.22335155 0.27298391 1.12601042]
- [0.23707642 0.47271964 1.65810275]
- [0.12878631 0.81270838 1.16114044]
- [0.91309005 0.26197419 1.47329593]
- [0.50111103 0.29116568 1.61228228]
- [0.36118886 0.38845965 1.74010992]]
+[[0.92547095 0.05409683 1.61654377]
+ [0.80674052 0.83764297 1.32498705]
+ [0.50371599 0.35769898 1.82767296]
+ [0.88338977 0.50544983 1.8358736 ]
+ [0.28232691 0.44815311 1.95636582]
+ [0.25341326 0.60662222 1.32618487]
+ [0.1831945  0.33381099 1.08810318]
+ [0.03467529 0.82001722 1.80145049]
+ [0.45070672 0.39499247 1.51130462]
+ [0.66235209 0.3139213  1.77212358]]
 As Array:
-[[0.45641941 0.28054902 1.28031123]
- [0.04449401 0.27754527 1.31802344]
- [0.72475868 0.43026447 1.24829018]
- [0.25045314 0.84961188 1.54676151]
- [0.22335155 0.27298391 1.12601042]
- [0.23707642 0.47271964 1.65810275]
- [0.12878631 0.81270838 1.16114044]
- [0.91309005 0.26197419 1.47329593]
- [0.50111103 0.29116568 1.61228228]
- [0.36118886 0.38845965 1.74010992]]</code></pre>
+[[0.92547095 0.05409683 1.61654377]
+ [0.80674052 0.83764297 1.32498705]
+ [0.50371599 0.35769898 1.82767296]
+ [0.88338977 0.50544983 1.8358736 ]
+ [0.28232691 0.44815311 1.95636582]
+ [0.25341326 0.60662222 1.32618487]
+ [0.1831945  0.33381099 1.08810318]
+ [0.03467529 0.82001722 1.80145049]
+ [0.45070672 0.39499247 1.51130462]
+ [0.66235209 0.3139213  1.77212358]]</code></pre>
 </div>
 </div>
 
