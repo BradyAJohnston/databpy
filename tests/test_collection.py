@@ -59,7 +59,7 @@ def test_get_collection_new():
     new_coll = db.collection._get_collection("TestNew")
     assert new_coll.name == "TestNew"
     assert "TestNew" in bpy.data.collections
-    assert new_coll.name in bpy.context.scene.collection.children
+    assert new_coll.name in bpy.context.scene.collection.childreng
 
 
 def test_create_collection_default_name():
