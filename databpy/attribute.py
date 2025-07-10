@@ -25,7 +25,7 @@ def _check_obj_attributes(obj: Object) -> None:
 
 def _check_is_mesh(obj: Object) -> None:
     if not isinstance(obj.data, bpy.types.Mesh):
-        raise TypeError(f"Object must be a mesh to evaluate the modifiers")
+        raise TypeError("Object must be a mesh to evaluate the modifiers")
 
 
 def list_attributes(

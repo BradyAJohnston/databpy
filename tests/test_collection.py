@@ -16,7 +16,7 @@ def test_collection_spam():
     for _ in range(10):
         coll = db.collection.create_collection("Collection")
         assert coll.name == "Collection"
-        bob = db.create_bob()
+        db.create_bob()
     assert n_coll == len(list(bpy.data.collections.keys()))
 
 

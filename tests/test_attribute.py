@@ -21,7 +21,7 @@ def test_errores():
     # Create test object with known vertices
     verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
     obj = db.create_object(verts, name="TestObject")
-    att = db.Attribute(obj.data.attributes["position"])
+    db.Attribute(obj.data.attributes["position"])
     with pytest.raises(ValueError):
         db.store_named_attribute(
             obj, np.random.rand(3, 3), "test_attr", domain="FAKE_DOMAIN"
@@ -158,7 +158,7 @@ def test_check_obj():
 
 def test_guess_attribute_type():
     # Create test object
-    verts = np.array([[0, 0, 0], [1, 1, 1]])
+    np.array([[0, 0, 0], [1, 1, 1]])
     assert pytest.raises(
         ValueError,
         db.attribute.guess_atype_from_array,
