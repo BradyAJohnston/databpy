@@ -67,7 +67,7 @@ class TestAttributeArray(unittest.TestCase):
     def test_indexed_assignment(self):
         """Test that indexed assignment works and syncs to Blender."""
         pos = self.bob.position
-        original_z = pos[0, 2]
+        pos[0, 2]
 
         # Modify a single element
         pos[0, 2] = 5.0
@@ -224,7 +224,7 @@ class TestAttributeArray(unittest.TestCase):
         pos = self.bob.position
 
         # Operations that might trigger __array_finalize__
-        sliced = pos[:3]
+        pos[:3]
 
         # The slice might not be a PositionArray, but the original should still work
         pos[0, 0] = 999.0
@@ -444,7 +444,7 @@ class TestAttributeArray(unittest.TestCase):
         column = pos[:, 0]
         # Use pytest for all assertions for consistency
         with pytest.raises((TypeError, ValueError)):
-            result = column + "string"  # Incompatible type for operation
+            column + "string"  # Incompatible type for operation
 
     def test_mixed_type_operations(self):
         """Test operations with mixed data types on AttributeArray and ColumnAccessor."""
@@ -546,7 +546,7 @@ def test_position_array_integration():
     from databpy.object import ObjectTracker
 
     with ObjectTracker() as tracker:
-        new_bob = create_bob(vertices=np.random.rand(5, 3), name="TrackedObject")
+        create_bob(vertices=np.random.rand(5, 3), name="TrackedObject")
 
     tracked_objects = tracker.new_objects()
     assert len(tracked_objects) == 1

@@ -2,7 +2,6 @@ import pytest
 import numpy as np
 from databpy import create_object
 from databpy.array import AttributeArray, ColumnAccessor, Attribute
-from databpy.attribute import AttributeTypes
 
 
 class TestAttributeArrayPrintMethods:
