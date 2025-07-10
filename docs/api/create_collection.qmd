@@ -21,6 +21,7 @@ Create a new Blender collection or retrieve an existing one.
 
 ## Raises {.doc-section .doc-section-raises}
 
-| Name   | Type     | Description                                                                    |
-|--------|----------|--------------------------------------------------------------------------------|
-|        | KeyError | If the parent collection name provided does not exist in bpy.data.collections. |
+| Name   | Type      | Description                                                                    |
+|--------|-----------|--------------------------------------------------------------------------------|
+|        | TypeError | If the parent parameter is not a Collection, string or None.                   |
+|        | KeyError  | If the parent collection name provided does not exist in bpy.data.collections. |
