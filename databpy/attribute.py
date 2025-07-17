@@ -208,11 +208,11 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
 
     # for 1D arrays we we use the float, int of boolean attribute types
     if shape == (n_row, 1) or shape == (n_row,):
-        if np.issubdtype(dtype, np.int_):
+        if np.issubdtype(dtype, np.int32):
             return AttributeTypes.INT
-        elif np.issubdtype(dtype, np.float_):
+        elif np.issubdtype(dtype, np.float64):
             return AttributeTypes.FLOAT
-        elif np.issubdtype(dtype, np.bool_):
+        elif np.issubdtype(dtype, np.bool):
             return AttributeTypes.BOOLEAN
 
     # for 2D arrays we use the float_vector, float_color, float4x4 attribute types
