@@ -13,6 +13,7 @@ from .attribute import (
     AttributeDomain,
     AttributeDomains,
     AttributeTypes,
+    list_attributes,
     _check_obj_attributes,
     evaluate_object,
 )
@@ -556,19 +557,7 @@ class BlenderObject:
         list[str] | None
             A list of attribute names if the molecule object exists, None otherwise.
         """
-        if evaluate:
-            strings = list(self.evaluate().data.attributes.keys())
-        else:
-            strings = list(self.object.data.attributes.keys())
-
-        # return a sorted list of attribute names because there is inconsistency
-        # between blender versions for the order of attributes being iterated over
-        strings.sort()
-
-        if not drop_hidden:
-            return strings
-        else:
-            return [x for x in strings if not x.startswith(".")]
+        return list_attributes(self.object, evaluate=evaluate, drop_hidden=drop_hidden)
 
     def __len__(self) -> int:
         """

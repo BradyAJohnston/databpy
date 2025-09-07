@@ -31,8 +31,19 @@ def _check_is_mesh(obj: Object) -> None:
 def list_attributes(
     obj: Object, evaluate: bool = False, drop_hidden: bool = False
 ) -> list[str]:
-    _check_obj_attributes(obj)
-    return list([name for name in obj.data.attributes.keys()])
+    if evaluate:
+        strings = list(evaluate_object(obj).data.attributes.keys())
+    else:
+        strings = list(obj.data.attributes.keys())
+
+    # return a sorted list of attribute names because there is inconsistency
+    # between blender versions for the order of attributes being iterated over
+    strings.sort()
+
+    if not drop_hidden:
+        return strings
+
+    return [x for x in strings if not x.startswith(".")]
 
 
 @dataclass
