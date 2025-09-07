@@ -240,9 +240,11 @@ def test_list_attributes(snapshot, evaluate, drop_hidden):
         data = np.random.rand(len(obj.data.vertices), 3)
         db.store_named_attribute(obj, data, name, domain="POINT", atype="FLOAT_VECTOR")
 
-    assert snapshot == db.list_attributes(
-        obj, evaluate=evaluate, drop_hidden=drop_hidden
+    attributes = db.list_attributes(obj, evaluate=evaluate, drop_hidden=drop_hidden)
+    assert attributes == db.BlenderObject(obj).list_attributes(
+        evaluate=evaluate, drop_hidden=drop_hidden
     )
+    assert snapshot == attributes
 
     if evaluate:
         assert "testing" in db.list_attributes(obj, evaluate=True)
