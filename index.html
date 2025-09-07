@@ -198,7 +198,7 @@ Not Stable
 <p>See the enums in the API documentation for the different <a href="./api/AttributeTypes.html">Attribute Types</a> and <a href="./api/AttributeDomains.html">Attribute Domains</a>.</p>
 <section id="regular-bpy-api" class="level3">
 <h3 class="anchored" data-anchor-id="regular-bpy-api">Regular <code>bpy</code> API</h3>
-<div id="d274f22c" class="cell" data-execution_count="1">
+<div id="3399e123" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -231,7 +231,7 @@ Not Stable
 <section id="databpy-api" class="level3">
 <h3 class="anchored" data-anchor-id="databpy-api"><code>databpy</code> API</h3>
 <p>We can get and set values with single function calls. Data types are inferred from the numpy array data types, but can be manually specified. The point domain is the default domain, but domain can also be specified. See the <a href="./api/AttributeDomains.html">AttributeDomains</a> for more which domains can be chosen.</p>
-<div id="e7e78412" class="cell" data-execution_count="2">
+<div id="eb30152d" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>db.store_named_attribute(obj, new_float_values, <span class="st">"example_values"</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>db.named_attribute(obj, <span class="st">"example_values"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -252,7 +252,7 @@ Not Stable
 <h2 class="anchored" data-anchor-id="a-more-friendly-blender-object-bob">A more friendly Blender Object (bob)</h2>
 <p>Doing some common data-oriented operations on objects in Blender can be a bit of a pain, so <code>databpy</code> provides a <code>BlenderObject</code> class that wraps mesh objects and provides some convenience functions.</p>
 <p>The most useful are the <code>store_named_attribute</code> and <code>named_attribute</code> functions that just work on the mesh object, so you can quickly get and set attributes with bob.</p>
-<div id="f5c136f6" class="cell" data-execution_count="3">
+<div id="ffb3f4b9" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bob <span class="op">=</span> db.BlenderObject(bpy.data.objects[<span class="st">"Cube"</span>])</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>bob.store_named_attribute(new_float_values, <span class="st">"example_values"</span>)</span>
