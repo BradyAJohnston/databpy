@@ -4,6 +4,7 @@ from typing import Type
 import bpy
 from bpy.types import Object
 import numpy as np
+import warnings
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curve, bpy.types.PointCloud]
 
@@ -454,9 +455,24 @@ def store_named_attribute(
     if atype is None:
         atype = guess_atype_from_array(data)
 
+    if name == "":
+        raise NamedAttributeError("Attribute name cannot be an empty string.")
+
     attribute = obj.data.attributes.get(name)  # type: ignore
     if not attribute or not overwrite:
+        current_names = obj.data.attributes.keys()
         attribute = obj.data.attributes.new(name, atype.value.type_name, domain.name)
+
+        if attribute is None:
+            [
+                obj.data.attributes.remove(obj.data.attributes[name])
+                for name in obj.data.attributes.keys()
+                if name not in current_names
+            ]  # type: ignore
+            raise NamedAttributeError(
+                f"Could not create attribute `{name}` of type `{atype.value.type_name}` on domain `{domain.name}`. "
+                "Potentially the attribute name is too long or there is no geometry on the object for the given domain."
+            )
 
     target_atype = AttributeTypes[attribute.data_type]
     if len(data) != len(attribute.data):

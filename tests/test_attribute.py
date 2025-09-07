@@ -186,3 +186,43 @@ def test_raise_error():
 
     with pytest.raises(db.attribute.NamedAttributeError):
         db.remove_named_attribute(bpy.data.objects["Cube"], "testing")
+
+
+def test_named_attribute_name(snapshot):
+    obj = bpy.data.objects["Cube"]
+    for i in range(150):
+        name = "a" * i
+        print(f"{i} letters, name: '{name}'")
+        data = np.random.rand(len(obj.data.vertices), 3)
+        if i >= 68 or i == 0:
+            with pytest.raises(db.attribute.NamedAttributeError):
+                db.store_named_attribute(obj, data, name)
+        else:
+            db.store_named_attribute(obj, data, name)
+            assert name in db.list_attributes(obj)
+
+    assert snapshot == db.list_attributes(obj)
+
+
+def test_list_attributes(snapshot):
+    obj = bpy.data.objects["Cube"]
+    attrs = db.list_attributes(obj)
+    assert snapshot == attrs
+
+    # 10 different random string names with different lengths
+    names = [
+        "attr1",
+        "longer_attribute_name",
+        "a",
+        "short",
+        "medium_length",
+        "x" * 50,
+        "attr_with_special_chars!@#$%^&*()",
+        "数字属性",
+    ]
+
+    for name in names:
+        data = np.random.rand(len(obj.data.vertices), 3)
+        db.store_named_attribute(obj, data, name, domain="POINT", atype="FLOAT_VECTOR")
+
+    assert snapshot == db.list_attributes(obj)
