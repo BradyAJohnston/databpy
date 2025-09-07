@@ -4,7 +4,6 @@ from typing import Type
 import bpy
 from bpy.types import Object
 import numpy as np
-import warnings
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curve, bpy.types.PointCloud]
 
