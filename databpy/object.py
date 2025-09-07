@@ -561,6 +561,10 @@ class BlenderObject:
         else:
             strings = list(self.object.data.attributes.keys())
 
+        # return a sorted list of attribute names because there is inconsistency
+        # between blender versions for the order of attributes being iterated over
+        strings.sort()
+
         if not drop_hidden:
             return strings
         else:
