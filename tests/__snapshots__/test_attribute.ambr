@@ -1,5 +1,5 @@
 # serializer version: 1
-# name: test_list_attributes
+# name: test_list_attributes[False-False]
   list([
     '.corner_edge',
     '.corner_vert',
@@ -12,7 +12,7 @@
     'sharp_face',
   ])
 # ---
-# name: test_list_attributes.1
+# name: test_list_attributes[False-False].1
   list([
     '.corner_edge',
     '.corner_vert',
@@ -29,6 +29,86 @@
     'position',
     'sharp_face',
     'short',
+    'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    '数字属性',
+  ])
+# ---
+# name: test_list_attributes[False-True]
+  list([
+    'UVMap',
+    'position',
+    'sharp_face',
+  ])
+# ---
+# name: test_list_attributes[False-True].1
+  list([
+    'UVMap',
+    'a',
+    'attr1',
+    'attr_with_special_chars!@#$%^&*()',
+    'longer_attribute_name',
+    'medium_length',
+    'position',
+    'sharp_face',
+    'short',
+    'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    '数字属性',
+  ])
+# ---
+# name: test_list_attributes[True-False]
+  list([
+    '.corner_edge',
+    '.corner_vert',
+    '.edge_verts',
+    '.select_edge',
+    '.select_poly',
+    '.select_vert',
+    'UVMap',
+    'position',
+    'sharp_face',
+  ])
+# ---
+# name: test_list_attributes[True-False].1
+  list([
+    '.corner_edge',
+    '.corner_vert',
+    '.edge_verts',
+    '.select_edge',
+    '.select_poly',
+    '.select_vert',
+    'UVMap',
+    'a',
+    'attr1',
+    'attr_with_special_chars!@#$%^&*()',
+    'longer_attribute_name',
+    'medium_length',
+    'position',
+    'sharp_face',
+    'short',
+    'testing',
+    'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    '数字属性',
+  ])
+# ---
+# name: test_list_attributes[True-True]
+  list([
+    'UVMap',
+    'position',
+    'sharp_face',
+  ])
+# ---
+# name: test_list_attributes[True-True].1
+  list([
+    'UVMap',
+    'a',
+    'attr1',
+    'attr_with_special_chars!@#$%^&*()',
+    'longer_attribute_name',
+    'medium_length',
+    'position',
+    'sharp_face',
+    'short',
+    'testing',
     'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     '数字属性',
   ])
