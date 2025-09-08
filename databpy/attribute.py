@@ -31,8 +31,19 @@ def _check_is_mesh(obj: Object) -> None:
 def list_attributes(
     obj: Object, evaluate: bool = False, drop_hidden: bool = False
 ) -> list[str]:
-    _check_obj_attributes(obj)
-    return list([name for name in obj.data.attributes.keys()])
+    if evaluate:
+        strings = list(evaluate_object(obj).data.attributes.keys())
+    else:
+        strings = list(obj.data.attributes.keys())
+
+    # return a sorted list of attribute names because there is inconsistency
+    # between blender versions for the order of attributes being iterated over
+    strings.sort()
+
+    if not drop_hidden:
+        return strings
+
+    return [x for x in strings if not x.startswith(".")]
 
 
 @dataclass
@@ -454,9 +465,24 @@ def store_named_attribute(
     if atype is None:
         atype = guess_atype_from_array(data)
 
+    if name == "":
+        raise NamedAttributeError("Attribute name cannot be an empty string.")
+
     attribute = obj.data.attributes.get(name)  # type: ignore
     if not attribute or not overwrite:
+        current_names = obj.data.attributes.keys()
         attribute = obj.data.attributes.new(name, atype.value.type_name, domain.name)
+
+        if attribute is None:
+            [
+                obj.data.attributes.remove(obj.data.attributes[name])
+                for name in obj.data.attributes.keys()
+                if name not in current_names
+            ]  # type: ignore
+            raise NamedAttributeError(
+                f"Could not create attribute `{name}` of type `{atype.value.type_name}` on domain `{domain.name}`. "
+                "Potentially the attribute name is too long or there is no geometry on the object for the given domain."
+            )
 
     target_atype = AttributeTypes[attribute.data_type]
     if len(data) != len(attribute.data):

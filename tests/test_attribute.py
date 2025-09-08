@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 import bpy
 import databpy as db
+import itertools
 
 
 def test_attribute_properties():
@@ -186,3 +187,66 @@ def test_raise_error():
 
     with pytest.raises(db.attribute.NamedAttributeError):
         db.remove_named_attribute(bpy.data.objects["Cube"], "testing")
+
+
+def test_named_attribute_name(snapshot):
+    obj = bpy.data.objects["Cube"]
+    for i in range(150):
+        name = "a" * i
+        print(f"{i} letters, name: '{name}'")
+        data = np.random.rand(len(obj.data.vertices), 3)
+        if i >= 68 or i == 0:
+            with pytest.raises(db.attribute.NamedAttributeError):
+                db.store_named_attribute(obj, data, name)
+        else:
+            db.store_named_attribute(obj, data, name)
+            assert name in db.list_attributes(obj)
+
+    assert snapshot == db.list_attributes(obj)
+
+
+@pytest.mark.parametrize(
+    "evaluate, drop_hidden", itertools.product([True, False], repeat=2)
+)
+def test_list_attributes(snapshot, evaluate, drop_hidden):
+    obj = bpy.data.objects["Cube"]
+    attrs = db.list_attributes(obj, evaluate=evaluate, drop_hidden=drop_hidden)
+    assert snapshot == attrs
+
+    # 10 different random string names with different lengths
+    names = [
+        "attr1",
+        "longer_attribute_name",
+        "a",
+        "short",
+        "medium_length",
+        "x" * 50,
+        "attr_with_special_chars!@#$%^&*()",
+        "数字属性",
+    ]
+
+    # store a named attribute via geometry nodes as this should only show up
+    # when evaluate=True
+    tree = db.nodes.new_tree()
+    n = tree.nodes.new("GeometryNodeStoreNamedAttribute")
+    n.inputs["Name"].default_value = "testing"
+    n.inputs["Value"].default_value = 0.5
+    tree.links.new(tree.nodes["Group Input"].outputs["Geometry"], n.inputs["Geometry"])
+    tree.links.new(n.outputs["Geometry"], tree.nodes["Group Output"].inputs["Geometry"])
+    mod = obj.modifiers.new("db_nodes", "NODES")
+    mod.node_group = tree
+
+    for name in names:
+        data = np.random.rand(len(obj.data.vertices), 3)
+        db.store_named_attribute(obj, data, name, domain="POINT", atype="FLOAT_VECTOR")
+
+    attributes = db.list_attributes(obj, evaluate=evaluate, drop_hidden=drop_hidden)
+    assert attributes == db.BlenderObject(obj).list_attributes(
+        evaluate=evaluate, drop_hidden=drop_hidden
+    )
+    assert snapshot == attributes
+
+    if evaluate:
+        assert "testing" in db.list_attributes(obj, evaluate=True)
+    else:
+        assert "testing" not in db.list_attributes(obj, evaluate=False)
