@@ -10,7 +10,6 @@ from .array import AttributeArray
 from . import attribute as attr
 from .addon import register
 from .attribute import (
-    AttributeDomain,
     AttributeDomains,
     AttributeTypes,
     list_attributes,
