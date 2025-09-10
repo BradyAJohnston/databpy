@@ -295,7 +295,7 @@ class BlenderObject:
         data: np.ndarray,
         name: str,
         atype: str | AttributeTypes | None = None,
-        domain: str | AttributeDomain | AttributeDomains = AttributeDomains.POINT,
+        domain: str | AttributeDomains = AttributeDomains.POINT,
     ) -> None:
         """
         Store a named attribute on the Blender object.
@@ -321,7 +321,6 @@ class BlenderObject:
         attr.store_named_attribute(
             self.object, data=data, name=name, atype=atype, domain=domain
         )
-        return self
 
     def remove_named_attribute(self, name: str) -> None:
         """

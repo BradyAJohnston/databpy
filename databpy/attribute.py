@@ -5,7 +5,7 @@ import bpy
 from bpy.types import Object
 import numpy as np
 
-COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curve, bpy.types.PointCloud]
+COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
 
 
 class NamedAttributeError(AttributeError):
@@ -76,29 +76,29 @@ class AttributeDomains(Enum):
 
     Attributes
     ----------
-    POINT : AttributeDomain
+    POINT : str
         The point domain of geometry data which includes vertices, point cloud and control points of curves.
-    EDGE : AttributeDomain
+    EDGE : str
         The edges of meshes, defined as pairs of vertices.
-    FACE : AttributeDomain
+    FACE : str
         The face domain of meshes, defined as groups of edges.
-    CORNER : AttributeDomain
+    CORNER : str
         The face domain of meshes, defined as pairs of edges that share a vertex.
-    CURVE : AttributeDomain
+    CURVE : str
         The Spline domain, which includes the individual splines that each contain at least one control point.
-    INSTANCE : AttributeDomain
+    INSTANCE : str
         The Instance domain, which can include sets of other geometry to be treated as a single group.
-    LAYER : AttributeDomain
+    LAYER : str
         The domain of single Grease Pencil layers.
     """
 
-    POINT = AttributeDomain(name="POINT")
-    EDGE = AttributeDomain(name="EDGE")
-    FACE = AttributeDomain(name="FACE")
-    CORNER = AttributeDomain(name="CORNER")
-    CURVE = AttributeDomain(name="CURVE")
-    INSTANCE = AttributeDomain(name="INSTNANCE")
-    LAYER = AttributeDomain(name="LAYER")
+    POINT = "POINT"
+    EDGE = "EDGE"
+    FACE = "FACE"
+    CORNER = "CORNER"
+    CURVE = "CURVE"
+    INSTANCE = "INSTANCE"
+    LAYER = "LAYER"
 
 
 @dataclass
@@ -331,21 +331,6 @@ class Attribute:
     def n_values(self) -> int:
         return np.prod(self.shape, dtype=int)
 
-    @classmethod
-    def from_object(
-        cls,
-        obj: bpy.types.Object,
-        name: str,
-        atype: AttributeType,
-        domain: AttributeDomain,
-    ):
-        att = obj.data.get(name)
-        if att is None:
-            att = obj.data.attributes.new(
-                name=name, type=atype.value.type_name, domain=domain.value.name
-            )
-        return Attribute(att)
-
     def from_array(self, array: np.ndarray) -> None:
         """
         Set the attribute data from a numpy array.
@@ -394,12 +379,45 @@ class Attribute:
         )
 
 
+def _match_atype(
+    atype: str | AttributeTypes | None, data: np.ndarray
+) -> AttributeTypes:
+    if isinstance(atype, str):
+        try:
+            atype = AttributeTypes[atype]
+        except KeyError:
+            raise ValueError(
+                f"Given data type {atype=} does not match any of the possible attribute types: {list(AttributeTypes)=}"
+            )
+    if atype is None:
+        atype = guess_atype_from_array(data)
+    return atype
+
+
+def _match_domain(
+    domain: str | AttributeDomains | None,
+) -> str:
+    if isinstance(domain, str):
+        try:
+            AttributeDomains[domain]  # Validate the string is a valid domain
+            return domain
+        except KeyError:
+            raise ValueError(
+                f"Given domain {domain=} does not match any of the possible attribute domains: {list(AttributeDomains)=}"
+            )
+    if domain is None:
+        return AttributeDomains.POINT.value
+    if isinstance(domain, AttributeDomains):
+        return domain.value
+    return domain
+
+
 def store_named_attribute(
     obj: bpy.types.Object,
     data: np.ndarray,
     name: str,
     atype: str | AttributeTypes | None = None,
-    domain: str | AttributeDomain | AttributeDomains = AttributeDomains.POINT,
+    domain: str | AttributeDomains = AttributeDomains.POINT,
     overwrite: bool = True,
 ) -> bpy.types.Attribute:
     """
@@ -415,7 +433,7 @@ def store_named_attribute(
         The name of the attribute.
     atype : str or AttributeTypes or None, optional
         The attribute type to store the data as. If None, type is inferred from data.
-    domain : str or AttributeDomain, optional
+    domain : str or AttributeDomains, optional
         The domain of the attribute, by default 'POINT'.
     overwrite : bool, optional
         Whether to overwrite existing attribute, by default True.
@@ -446,41 +464,37 @@ def store_named_attribute(
     ```
     """
 
-    if isinstance(atype, str):
-        try:
-            atype = AttributeTypes[atype]
-        except KeyError:
-            raise ValueError(
-                f"Given data type {atype=} does not match any of the possible attribute types: {list(AttributeTypes)=}"
-            )
+    atype = _match_atype(atype, data)
+    domain = _match_domain(domain)
 
-    if isinstance(domain, str):
-        try:
-            domain = AttributeDomains[domain].value
-        except KeyError:
-            raise ValueError(
-                f"Given domain {domain=} does not match any of the possible attribute domains: {list(AttributeDomains)=}"
-            )
+    if isinstance(obj, bpy.types.Object):
+        obj_data = obj.data
+    else:
+        obj_data = obj.data
 
-    if atype is None:
-        atype = guess_atype_from_array(data)
+    if not isinstance(
+        obj_data, (bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud)
+    ):
+        raise NamedAttributeError(
+            f"Object must be a mesh, curve or point cloud to store attributes, not {type(obj_data)}"
+        )
 
     if name == "":
         raise NamedAttributeError("Attribute name cannot be an empty string.")
 
-    attribute = obj.data.attributes.get(name)  # type: ignore
+    attribute = obj_data.attributes.get(name)  # type: ignore
     if not attribute or not overwrite:
-        current_names = obj.data.attributes.keys()
-        attribute = obj.data.attributes.new(name, atype.value.type_name, domain.name)
+        current_names = obj_data.attributes.keys()
+        attribute = obj_data.attributes.new(name, atype.value.type_name, domain)
 
         if attribute is None:
             [
-                obj.data.attributes.remove(obj.data.attributes[name])
-                for name in obj.data.attributes.keys()
+                obj_data.attributes.remove(obj_data.attributes[name])
+                for name in obj_data.attributes.keys()
                 if name not in current_names
             ]  # type: ignore
             raise NamedAttributeError(
-                f"Could not create attribute `{name}` of type `{atype.value.type_name}` on domain `{domain.name}`. "
+                f"Could not create attribute `{name}` of type `{atype.value.type_name}` on domain `{domain}`. "
                 "Potentially the attribute name is too long or there is no geometry on the object for the given domain."
             )
 
