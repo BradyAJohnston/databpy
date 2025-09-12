@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.34">
+<meta name="generator" content="quarto-1.8.24">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -67,14 +67,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <meta name="quarto:offset" content="../">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-c8ad9e5dbd60b7b70b38521ab19b7da4.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dc55a5b9e770e841cd82e46aadbfb9b0.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-0cf930f9f1c62ec9edbad7b77a763bb7.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-1a9ec17c3750237cc335a9373320045c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -113,6 +114,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">databpy</span>
     </a>
@@ -124,11 +127,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="../index.html"> 
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="../api/index.html" aria-current="page"> 
+    <a class="nav-link" href="../api/index.html"> 
 <span class="menu-text">API</span></a>
   </li>  
 </ul>
@@ -153,6 +156,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
@@ -302,33 +309,33 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>AttributeArray()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>AttributeArray()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>A numpy array subclass that automatically syncs changes back to the Blender object.</p>
 <p>Values are retrieved from the Blender object as a numpy array, the operation is applied and the result is store back on the Blender object. This allows for operations like <code>pos[:, 2] += 1.0</code> to work seamlessly.</p>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples:</h2>
-<div id="351ad219" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
+<div id="f8a3f5c9" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>obj <span class="op">=</span> db.create_object(np.random.rand(<span class="dv">10</span>, <span class="dv">3</span>), name<span class="op">=</span><span class="st">"test_bob"</span>)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>db.AttributeArray(obj, <span class="st">"position"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>db.AttributeArray(obj, <span class="st">"position"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>AttributeArray(name='position', object='test_bob', mesh='test_bob', domain=POINT, type=FLOAT_VECTOR, shape=(10, 3), dtype=float64)
-array([[0.59180427, 0.87611407, 0.93117428],
-       [0.19598396, 0.02564281, 0.26006085],
-       [0.5095734 , 0.37641582, 0.24926931],
-       [0.89662516, 0.77524275, 0.91919816],
-       [0.57871342, 0.30767402, 0.41806039],
-       [0.53268433, 0.91417933, 0.72247368],
-       [0.38519359, 0.0669556 , 0.54974908],
-       [0.03277357, 0.03058366, 0.14813894],
-       [0.13068616, 0.8616367 , 0.54080361],
-       [0.77593482, 0.85568839, 0.18523055]])</code></pre>
+array([[0.18538845, 0.32998148, 0.78691703],
+       [0.06992562, 0.01423895, 0.62926966],
+       [0.40798098, 0.6085673 , 0.31942993],
+       [0.98102164, 0.87401307, 0.95535338],
+       [0.85553384, 0.22408436, 0.80300879],
+       [0.43129525, 0.04789065, 0.90220064],
+       [0.18808749, 0.95513111, 0.27028292],
+       [0.94933259, 0.59816468, 0.50895989],
+       [0.03284439, 0.55167389, 0.58898777],
+       [0.72439969, 0.15441746, 0.89700282]])</code></pre>
 </div>
 </div>
-<div id="d5028d79" class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
+<div id="53c73718" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>bob <span class="op">=</span> db.create_bob(np.random.rand(<span class="dv">10</span>, <span class="dv">3</span>), name<span class="op">=</span><span class="st">"test_bob"</span>)</span>
@@ -339,43 +346,43 @@ array([[0.59180427, 0.87611407, 0.93117428],
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(bob.position)</span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'As Array:'</span>)</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(np.asarray(bob.position))  <span class="co"># Convert to a regular numpy array</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(np.asarray(bob.position))  <span class="co"># Convert to a regular numpy array</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Initial position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float64)
-[[0.17991012 0.15356064 0.19330615]
- [0.34331408 0.85981727 0.9626596 ]
- [0.81010354 0.25767905 0.72840142]
- [0.22934909 0.8112359  0.87598509]
- [0.63985646 0.66004008 0.61265767]
- [0.17032954 0.11575727 0.82940352]
- [0.703668   0.68856907 0.09434314]
- [0.24028595 0.10684793 0.29292601]
- [0.46715143 0.09933574 0.57009596]
- [0.94068915 0.7545954  0.38732955]]
+[[0.90712947 0.39321342 0.83473235]
+ [0.719473   0.08116334 0.13560037]
+ [0.12605868 0.66012508 0.23006733]
+ [0.37946793 0.0704333  0.361545  ]
+ [0.94562203 0.6758433  0.96276933]
+ [0.05952766 0.61214566 0.69529617]
+ [0.86718887 0.42993206 0.58178866]
+ [0.84191364 0.55102789 0.82987934]
+ [0.6370973  0.88182664 0.23927127]
+ [0.58573323 0.64149743 0.14457491]]
 Updated position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float64)
-[[0.17991012 0.15356064 1.19330621]
- [0.34331408 0.85981727 1.9626596 ]
- [0.81010354 0.25767905 1.72840142]
- [0.22934909 0.8112359  1.87598515]
- [0.63985646 0.66004008 1.61265767]
- [0.17032954 0.11575727 1.82940352]
- [0.703668   0.68856907 1.09434319]
- [0.24028595 0.10684793 1.29292607]
- [0.46715143 0.09933574 1.57009602]
- [0.94068915 0.7545954  1.38732958]]
+[[0.90712947 0.39321342 1.83473229]
+ [0.719473   0.08116334 1.13560033]
+ [0.12605868 0.66012508 1.23006737]
+ [0.37946793 0.0704333  1.36154497]
+ [0.94562203 0.6758433  1.96276927]
+ [0.05952766 0.61214566 1.69529617]
+ [0.86718887 0.42993206 1.58178866]
+ [0.84191364 0.55102789 1.82987928]
+ [0.6370973  0.88182664 1.23927128]
+ [0.58573323 0.64149743 1.14457488]]
 As Array:
-[[0.17991012 0.15356064 1.19330621]
- [0.34331408 0.85981727 1.9626596 ]
- [0.81010354 0.25767905 1.72840142]
- [0.22934909 0.8112359  1.87598515]
- [0.63985646 0.66004008 1.61265767]
- [0.17032954 0.11575727 1.82940352]
- [0.703668   0.68856907 1.09434319]
- [0.24028595 0.10684793 1.29292607]
- [0.46715143 0.09933574 1.57009602]
- [0.94068915 0.7545954  1.38732958]]</code></pre>
+[[0.90712947 0.39321342 1.83473229]
+ [0.719473   0.08116334 1.13560033]
+ [0.12605868 0.66012508 1.23006737]
+ [0.37946793 0.0704333  1.36154497]
+ [0.94562203 0.6758433  1.96276927]
+ [0.05952766 0.61214566 1.69529617]
+ [0.86718887 0.42993206 1.58178866]
+ [0.84191364 0.55102789 1.82987928]
+ [0.6370973  0.88182664 1.23927128]
+ [0.58573323 0.64149743 1.14457488]]</code></pre>
 </div>
 </div>
 
@@ -434,13 +441,14 @@ As Array:
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy
