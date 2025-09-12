@@ -179,6 +179,18 @@ class BlenderObject:
         elif obj is None:
             self._object_name = ""
 
+    def _ipython_key_completions_(self) -> list[str]:
+        """Return possible named attirbutes"""
+        return self.list_attributes()
+
+    def __getitem__(self, name: str) -> AttributeArray:
+        if not isinstance(name, str):
+            raise ValueError("Attribute name must be a string")
+        return AttributeArray(self.object, name)
+
+    def __setitem__(self, name: str, data: np.ndarray) -> None:
+        self.store_named_attribute(data=data, name=name)
+
     def _check_obj(self) -> None:
         _check_obj_attributes(self.object)
 
