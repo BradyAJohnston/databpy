@@ -15,6 +15,7 @@ from .attribute import (
     list_attributes,
     _check_obj_attributes,
     evaluate_object,
+    Attribute,
 )
 from .collection import create_collection
 
@@ -177,6 +178,23 @@ class BlenderObject:
             self.object = obj
         elif obj is None:
             self._object_name = ""
+
+    def _ipython_key_completions_(self) -> list[str]:
+        """Return possible named attirbutes"""
+        return self.list_attributes()
+
+    def __getitem__(self, name: str) -> AttributeArray:
+        if not isinstance(name, str):
+            raise ValueError("Attribute name must be a string")
+        return AttributeArray(self.object, name)
+
+    def __setitem__(self, name: str, data: np.ndarray) -> None:
+        if name in self.list_attributes():
+            att = Attribute(self.attributes()[name])
+            self.store_named_attribute(
+                data=data, name=name, domain=att.domain, atype=att.atype
+            )
+        self.store_named_attribute(data=data, name=name)
 
     def _check_obj(self) -> None:
         _check_obj_attributes(self.object)
