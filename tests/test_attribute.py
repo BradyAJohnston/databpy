@@ -250,3 +250,23 @@ def test_list_attributes(snapshot, evaluate, drop_hidden):
         assert "testing" in db.list_attributes(obj, evaluate=True)
     else:
         assert "testing" not in db.list_attributes(obj, evaluate=False)
+
+
+def test_str_access_attribute():
+    # Create test object with known vertices
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    bob = db.create_bob(verts)
+
+    bob.store_named_attribute(np.array(range(9)).reshape((3, 3)), "test_name")
+    assert isinstance(bob["test_name"], db.array.AttributeArray)
+    assert bob["test_name"][0][0] == 0.0
+    bob["test_name"][0] = 1
+    assert bob["test_name"][0][0] == 1
+
+    values = np.zeros(3, dtype=int)
+
+    bob["another_name"] = values
+    np.testing.assert_array_equal(bob["another_name"], values)
+
+    bob["another_name"] = values + 10
+    assert np.array_equal(bob["another_name"], values + 10)

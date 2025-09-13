@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from databpy import create_object
-from databpy.array import AttributeArray, ColumnAccessor, Attribute
+from databpy.array import AttributeArray, Attribute
 
 
 class TestAttributeArrayPrintMethods:
@@ -116,8 +116,8 @@ class TestAttributeArrayPrintMethods:
         assert "..." in result or len(result.split("\n")) > 1
 
 
-class TestColumnAccessorPrintMethods:
-    """Test print behavior of ColumnAccessor objects."""
+class TestColumnSlicePrintMethods:
+    """Test print behavior of column slice views."""
 
     @pytest.fixture
     def parent_array_and_data(self):
@@ -131,30 +131,30 @@ class TestColumnAccessorPrintMethods:
 
         return parent_array, parent_data
 
-    def test_column_accessor_str_delegation(self, parent_array_and_data):
-        """Test that ColumnAccessor properly delegates string operations."""
+    def test_column_slice_str_delegation(self, parent_array_and_data):
+        """Test that a column slice delegates to numpy string formatting."""
         parent_array, parent_data = parent_array_and_data
 
-        # Create ColumnAccessor
-        col_accessor = ColumnAccessor(parent_array, 1)  # Second column
+        # Create column view
+        col_view = parent_array[:, 1]  # Second column
 
         # The string representation should come from the column data
         expected_column = parent_data[:, 1]  # [2.0, 5.0]
 
         # Test that we can convert to string (should use numpy's default)
-        result = str(np.asarray(col_accessor))
+        result = str(np.asarray(col_view))
         expected = str(expected_column)
 
         assert result == expected
 
-    def test_column_accessor_array_conversion(self, parent_array_and_data):
-        """Test that ColumnAccessor converts to array properly for printing."""
+    def test_column_slice_array_conversion(self, parent_array_and_data):
+        """Test that a column slice converts to array properly for printing."""
         parent_array, parent_data = parent_array_and_data
 
-        col_accessor = ColumnAccessor(parent_array, 0)  # First column
+        col_view = parent_array[:, 0]  # First column
 
         # Convert to array and check it matches expected column
-        as_array = np.asarray(col_accessor)
+        as_array = np.asarray(col_view)
         expected_column = parent_data[:, 0]  # [1.0, 4.0]
 
         np.testing.assert_array_equal(as_array, expected_column)
