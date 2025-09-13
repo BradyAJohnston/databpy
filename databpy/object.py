@@ -3,7 +3,6 @@ from uuid import uuid1
 import bpy
 import numpy as np
 from bpy.types import Object
-from mathutils import Matrix
 from numpy import typing as npt
 from .array import AttributeArray
 
