@@ -267,3 +267,6 @@ def test_str_access_attribute():
 
     bob["another_name"] = values
     np.testing.assert_array_equal(bob["another_name"], values)
+
+    bob["another_name"] = values + 10
+    assert np.array_equal(bob["another_name"], values + 10)

@@ -16,6 +16,7 @@ from .attribute import (
     list_attributes,
     _check_obj_attributes,
     evaluate_object,
+    Attribute,
 )
 from .collection import create_collection
 
@@ -189,6 +190,11 @@ class BlenderObject:
         return AttributeArray(self.object, name)
 
     def __setitem__(self, name: str, data: np.ndarray) -> None:
+        if name in self.list_attributes():
+            att = Attribute(self.attributes()[name])
+            self.store_named_attribute(
+                data=data, name=name, domain=att.domain, atype=att.atype
+            )
         self.store_named_attribute(data=data, name=name)
 
     def _check_obj(self) -> None:
