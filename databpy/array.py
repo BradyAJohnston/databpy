@@ -59,34 +59,6 @@ class AttributeArray(np.ndarray):
         # Preserve reference to the root array for syncing
         self._root = getattr(obj, "_root", self)
 
-    # def __eq__(self, other):
-    #     """Handle equality comparison for array objects."""
-    #     self_arr = np.asarray(self).view(np.ndarray)
-
-    #     if isinstance(other, AttributeArray):
-    #         other_arr = np.asarray(other).view(np.ndarray)
-    #         return np.array_equal(self_arr, other_arr)
-
-    #     if hasattr(other, "__array__"):
-    #         other_arr = np.asarray(other)
-    #         return np.array_equal(self_arr, other_arr)
-
-    #     return self_arr != other
-
-    # def __eq__(self, other):
-    #     """Handle equality comparison for array objects."""
-    #     self_arr = np.asarray(self).view(np.ndarray)
-
-    #     if isinstance(other, AttributeArray):
-    #         other_arr = np.asarray(other).view(np.ndarray)
-    #         return np.array_equal(self_arr, other_arr)
-
-    #     if hasattr(other, "__array__"):
-    #         other_arr = np.asarray(other)
-    #         return np.array_equal(self_arr, other_arr)
-
-    #     return self_arr == other
-
     def __setitem__(self, key, value):
         """Set item and sync changes back to Blender."""
         super().__setitem__(key, value)
