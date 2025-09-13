@@ -3,14 +3,12 @@ from uuid import uuid1
 import bpy
 import numpy as np
 from bpy.types import Object
-from mathutils import Matrix
 from numpy import typing as npt
 from .array import AttributeArray
 
 from . import attribute as attr
 from .addon import register
 from .attribute import (
-    AttributeDomain,
     AttributeDomains,
     AttributeTypes,
     list_attributes,
@@ -313,7 +311,7 @@ class BlenderObject:
         data: np.ndarray,
         name: str,
         atype: str | AttributeTypes | None = None,
-        domain: str | AttributeDomain | AttributeDomains = AttributeDomains.POINT,
+        domain: str | AttributeDomains = AttributeDomains.POINT,
     ) -> None:
         """
         Store a named attribute on the Blender object.
@@ -339,7 +337,6 @@ class BlenderObject:
         attr.store_named_attribute(
             self.object, data=data, name=name, atype=atype, domain=domain
         )
-        return self
 
     def remove_named_attribute(self, name: str) -> None:
         """
@@ -372,19 +369,6 @@ class BlenderObject:
         """
         self._check_obj()
         return attr.named_attribute(self.object, name=name, evaluate=evaluate)
-
-    def set_boolean(self, array: np.ndarray, name: str) -> None:
-        """
-        Store a boolean attribute on the Blender object.
-
-        Parameters
-        ----------
-        array : np.ndarray
-            The boolean data to be stored as an attribute.
-        name : str
-            The name for the attribute.
-        """
-        self.store_named_attribute(array, name=name, atype=AttributeTypes.BOOLEAN)
 
     def evaluate(self) -> Object:
         """
@@ -463,40 +447,6 @@ class BlenderObject:
         """
         return self.object.data.edges
 
-    def transform_origin(self, matrix: Matrix) -> None:
-        """
-        Transform the origin of the Blender object.
-
-        Parameters
-        ----------
-        matrix : Matrix
-            The transformation matrix to apply to the origin.
-        """
-        self.object.matrix_local = matrix * self.object.matrix_world
-
-    def transform_points(self, matrix: Matrix) -> None:
-        """
-        Transform the points of the Blender object.
-
-        Parameters
-        ----------
-        matrix : Matrix
-            The transformation matrix to apply to the points.
-        """
-        self.position = self.position * matrix
-
-    @property
-    def selected(self) -> np.ndarray:
-        """
-        Get the selected vertices of the Blender object.
-
-        Returns
-        -------
-        np.ndarray
-            The selected vertices of the Blender object.
-        """
-        return self.named_attribute(".select_vert")
-
     @property
     def position(self) -> AttributeArray:
         """
@@ -536,25 +486,6 @@ class BlenderObject:
             atype=AttributeTypes.FLOAT_VECTOR,
             domain=AttributeDomains.POINT,
         )
-
-    def selected_positions(self, mask: np.ndarray | None = None) -> np.ndarray:
-        """
-        Get the positions of the selected vertices, optionally filtered by a mask.
-
-        Parameters
-        ----------
-        mask : np.ndarray | None, optional
-            The mask to filter the selected vertices. Defaults to None.
-
-        Returns
-        -------
-        np.ndarray
-            The positions of the selected vertices.
-        """
-        if mask is not None:
-            return self.position[np.logical_and(self.selected, mask)]
-
-        return self.position[self.selected]
 
     def list_attributes(
         self, evaluate: bool = False, drop_hidden: bool = False
