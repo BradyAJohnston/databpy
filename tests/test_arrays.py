@@ -237,15 +237,15 @@ class TestAttributeArray(unittest.TestCase):
         updated_pos = self.bob.named_attribute("position")
         assert updated_pos[0, 0] == 999.0
 
-    def test_column_accessor_array_operations(self):
-        """Test that ColumnAccessor supports array operations and wrapping."""
+    def test_column_slice_array_operations(self):
+        """Test that column slices support array operations with syncing."""
         pos = self.bob.position
 
         # Set initial test values
         initial_values = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
         pos[:, 2] = initial_values
 
-        # Get column accessor for z coordinates
+        # Get column view for z coordinates
         z_column = pos[:, 2]
 
         # Test basic array operations that are known to work
@@ -253,7 +253,7 @@ class TestAttributeArray(unittest.TestCase):
 
         # Check that the operation applied correctly
         expected = initial_values + 2.0
-        np.testing.assert_array_almost_equal(z_column.column_data, expected)
+        np.testing.assert_array_almost_equal(np.asarray(z_column), expected)
 
         # Check that it synced back to Blender
         updated_pos = self.bob.named_attribute("position")
@@ -264,20 +264,20 @@ class TestAttributeArray(unittest.TestCase):
 
         # Check the new result
         expected = (initial_values + 2.0) * 3.0
-        np.testing.assert_array_almost_equal(z_column.column_data, expected)
+        np.testing.assert_array_almost_equal(np.asarray(z_column), expected)
 
         # Verify sync again
         updated_pos = self.bob.named_attribute("position")
         np.testing.assert_array_almost_equal(updated_pos[:, 2], expected)
 
-    def test_column_accessor_attribute_delegation(self):
-        """Test that ColumnAccessor delegates attribute access to the column data."""
+    def test_column_slice_attribute_delegation(self):
+        """Test that column views support numpy methods and attribute access."""
         pos = self.bob.position
 
         # Set initial values
         pos[:, 1] = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
-        # Get column accessor
+        # Get a column view
         y_column = pos[:, 1]
 
         # Test attribute delegation
@@ -293,14 +293,14 @@ class TestAttributeArray(unittest.TestCase):
         except AttributeError:
             pass
 
-    def test_column_accessor_array_conversion(self):
-        """Test that ColumnAccessor correctly converts to array with optional dtype."""
+    def test_column_slice_array_conversion(self):
+        """Test that column slices convert to arrays with optional dtype."""
         pos = self.bob.position
 
         # Set test values
         pos[:, 0] = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
-        # Get column accessor
+        # Get a column view
         x_column = pos[:, 0]
 
         # Convert to array with default dtype
@@ -314,8 +314,8 @@ class TestAttributeArray(unittest.TestCase):
         assert arr2.dtype == np.int32
 
         # Test equality comparison
-        assert x_column == np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-        assert x_column != np.array([5.0, 4.0, 3.0, 2.0, 1.0])
+        assert np.array_equal(x_column, np.array([1.0, 2.0, 3.0, 4.0, 5.0]))
+        assert not np.array_equal(x_column, np.array([5.0, 4.0, 3.0, 2.0, 1.0]))
 
     def test_float_color_attribute_handling(self):
         """Test handling of FLOAT_COLOR attributes (4 components)."""
@@ -359,7 +359,7 @@ class TestAttributeArray(unittest.TestCase):
         pos[:] = test_data
 
         # Compare with numpy array using __eq__ method
-        assert pos == test_data
+        assert np.array_equal(pos, test_data)
 
         # For inequality, use np.array_equal with a not operator
         modified_data = test_data + 1.0
@@ -367,12 +367,12 @@ class TestAttributeArray(unittest.TestCase):
 
         # Compare with a column
         column_data = np.array([1.0, 4.0, 7.0, 10.0, 13.0])
-        assert pos[:, 0] == column_data
+        assert np.array_equal(pos[:, 0], column_data)
 
         # Compare with another AttributeArray
         other_bob = create_bob(vertices=test_data, name="OtherTest")
         other_pos = other_bob.position
-        assert pos == other_pos
+        assert np.array_equal(pos, other_pos)
 
         # Test that non-equality works correctly
         other_bob2 = create_bob(vertices=test_data + 2.0, name="DifferentTest")
@@ -384,14 +384,14 @@ class TestAttributeArray(unittest.TestCase):
         # This should match the 3rd column (index 2)
         assert np.array_equal(pos[:, 2], column_data)
 
-    def test_column_accessor_array_wrapping_and_ufuncs(self):
-        """Test ColumnAccessor handling of numpy ufuncs and array wrapping."""
+    def test_column_slice_array_wrapping_and_ufuncs(self):
+        """Test column slice handling of numpy ops and array wrapping."""
         pos = self.bob.position
 
         # Set initial values
         pos[:, 0] = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
-        # Get column accessor
+        # Get a column view (1D AttributeArray)
         x_column = pos[:, 0]
 
         # Test standard operations instead of direct ufuncs
@@ -421,7 +421,7 @@ class TestAttributeArray(unittest.TestCase):
         np.testing.assert_array_almost_equal(pos[:, 0], original)
 
     def test_error_handling_for_invalid_operations(self):
-        """Test error handling for invalid operations on AttributeArray and ColumnAccessor."""
+        """Test error handling for invalid operations on AttributeArray and column slices."""
         pos = self.bob.position
 
         # Test incompatible shape for assignment
@@ -440,14 +440,14 @@ class TestAttributeArray(unittest.TestCase):
         with pytest.raises(IndexError):
             pos[10, 0] = 1.0  # Row index out of bounds
 
-        # Test invalid operation on column accessor
+        # Test invalid operation on column view
         column = pos[:, 0]
         # Use pytest for all assertions for consistency
         with pytest.raises((TypeError, ValueError)):
             column + "string"  # Incompatible type for operation
 
     def test_mixed_type_operations(self):
-        """Test operations with mixed data types on AttributeArray and ColumnAccessor."""
+        """Test operations with mixed data types on AttributeArray and column slices."""
         pos = self.bob.position
 
         # Initialize with float values
