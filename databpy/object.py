@@ -217,7 +217,7 @@ class BlenderObject:
             obj = bpy.data.objects[self._object_name]
             if obj.uuid != self.uuid:
                 obj = get_from_uuid(self.uuid)
-        except KeyError:
+        except (KeyError, MemoryError):
             obj = get_from_uuid(self.uuid)
             self._object_name = obj.name
 
