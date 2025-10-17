@@ -170,17 +170,17 @@ class AttributeTypes(Enum):
     )
     # TODO unsure about this, int values are stored but float values are returned
     BYTE_COLOR = AttributeType(
-        type_name="BYTE_COLOR", value_name="color", dtype=int, dimensions=(4,)
+        type_name="BYTE_COLOR", value_name="color", dtype=np.int8, dimensions=(4,)
     )
     QUATERNION = AttributeType(
         type_name="QUATERNION", value_name="value", dtype=float, dimensions=(4,)
     )
-    INT = AttributeType(type_name="INT", value_name="value", dtype=int, dimensions=(1,))
+    INT = AttributeType(type_name="INT", value_name="value", dtype=np.int32, dimensions=(1,))
     INT8 = AttributeType(
-        type_name="INT8", value_name="value", dtype=int, dimensions=(1,)
+        type_name="INT8", value_name="value", dtype=np.int8, dimensions=(1,)
     )
     INT32_2D = AttributeType(
-        type_name="INT32_2D", value_name="value", dtype=int, dimensions=(2,)
+        type_name="INT32_2D", value_name="value", dtype=np.int32, dimensions=(2,)
     )
     FLOAT4X4 = AttributeType(
         type_name="FLOAT4X4", value_name="value", dtype=float, dimensions=(4, 4)

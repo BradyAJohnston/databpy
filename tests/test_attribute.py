@@ -270,3 +270,66 @@ def test_str_access_attribute():
 
     bob["another_name"] = values + 10
     assert np.array_equal(bob["another_name"], values + 10)
+
+
+def test_int32_dtype():
+    """Test that INT attributes return int32 dtype, not int64."""
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    obj = db.create_object(verts, name="TestIntDtype")
+
+    # Store an INT attribute
+    int_data = np.array([1, 2, 3], dtype=np.int32)
+    db.store_named_attribute(obj, int_data, "test_int", atype="INT")
+
+    # Retrieve and verify it's int32, not int64
+    result = db.named_attribute(obj, "test_int")
+    assert result.dtype == np.int32, f"Expected int32, got {result.dtype}"
+    np.testing.assert_array_equal(result, int_data)
+
+
+def test_int32_2d_dtype():
+    """Test that INT32_2D attributes return int32 dtype."""
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    obj = db.create_object(verts, name="TestInt2DDtype")
+
+    # Store an INT32_2D attribute
+    int_data = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
+    db.store_named_attribute(obj, int_data, "test_int2d", atype="INT32_2D")
+
+    # Retrieve and verify it's int32
+    result = db.named_attribute(obj, "test_int2d")
+    assert result.dtype == np.int32, f"Expected int32, got {result.dtype}"
+    np.testing.assert_array_equal(result, int_data)
+
+
+def test_int8_dtype():
+    """Test that INT8 attributes return int8 dtype."""
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    obj = db.create_object(verts, name="TestInt8Dtype")
+
+    # Store an INT8 attribute
+    int_data = np.array([1, 2, 3], dtype=np.int8)
+    db.store_named_attribute(obj, int_data, "test_int8", atype="INT8")
+
+    # Retrieve and verify it's int8
+    result = db.named_attribute(obj, "test_int8")
+    assert result.dtype == np.int8, f"Expected int8, got {result.dtype}"
+    np.testing.assert_array_equal(result, int_data)
+
+
+def test_byte_color_dtype():
+    """Test that BYTE_COLOR attributes return int8 dtype."""
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    obj = db.create_object(verts, name="TestByteColorDtype")
+
+    # Store a BYTE_COLOR attribute (RGBA values as int8)
+    # Note: Blender may normalize these values, so we just verify the dtype
+    color_data = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]], dtype=np.int8
+    )
+    db.store_named_attribute(obj, color_data, "test_byte_color", atype="BYTE_COLOR")
+
+    # Retrieve and verify it's int8
+    result = db.named_attribute(obj, "test_byte_color")
+    assert result.dtype == np.int8, f"Expected int8, got {result.dtype}"
+    assert result.shape == (3, 4), f"Expected shape (3, 4), got {result.shape}"
