@@ -175,7 +175,9 @@ class AttributeTypes(Enum):
     QUATERNION = AttributeType(
         type_name="QUATERNION", value_name="value", dtype=float, dimensions=(4,)
     )
-    INT = AttributeType(type_name="INT", value_name="value", dtype=np.int32, dimensions=(1,))
+    INT = AttributeType(
+        type_name="INT", value_name="value", dtype=np.int32, dimensions=(1,)
+    )
     INT8 = AttributeType(
         type_name="INT8", value_name="value", dtype=np.int8, dimensions=(1,)
     )

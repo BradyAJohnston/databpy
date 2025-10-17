@@ -324,9 +324,7 @@ def test_byte_color_dtype():
 
     # Store a BYTE_COLOR attribute (RGBA values as int8)
     # Note: Blender may normalize these values, so we just verify the dtype
-    color_data = np.array(
-        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]], dtype=np.int8
-    )
+    color_data = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]], dtype=np.int8)
     db.store_named_attribute(obj, color_data, "test_byte_color", atype="BYTE_COLOR")
 
     # Retrieve and verify it's int8
