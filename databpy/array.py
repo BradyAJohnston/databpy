@@ -180,10 +180,11 @@ class AttributeArray(np.ndarray):
         # Get array representation with explicit dtype for cross-platform consistency
         # np.array_repr() can omit dtype on Windows when it's the platform default
         arr = np.asarray(self).view(np.ndarray)
-        # Use repr() which always includes dtype parameter for non-default types
-        # Then ensure dtype is always shown for consistency
-        array_str = np.array_str(arr)
-        array_repr = f"array({array_str}, dtype={arr.dtype})"
+        # Use np.array_repr() but then ensure dtype is always appended
+        array_repr = np.array_repr(arr)
+        # If dtype isn't already in the repr, add it before the closing parenthesis
+        if f"dtype={arr.dtype}" not in array_repr:
+            array_repr = array_repr.rstrip(")") + f", dtype={arr.dtype})"
 
         return (
             f"AttributeArray(name='{attr_name}', object='{obj_name}', mesh='{obj_type}', "
