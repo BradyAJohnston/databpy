@@ -134,7 +134,9 @@ class TestAttributeArrayPrintMethods:
 
         int_repr = repr(int_arr)
         # Should contain 'dtype=int32' or 'dtype=int32)' somewhere in output
-        assert "dtype=int32" in int_repr, f"int32 dtype not explicitly shown in repr: {int_repr}"
+        assert "dtype=int32" in int_repr, (
+            f"int32 dtype not explicitly shown in repr: {int_repr}"
+        )
 
         # Test with float32 as well
         float_data = np.ones(num_points, dtype=np.float32)
@@ -142,7 +144,9 @@ class TestAttributeArrayPrintMethods:
         float_arr = AttributeArray(blender_object, "test_float32")
 
         float_repr = repr(float_arr)
-        assert "dtype=float32" in float_repr, f"float32 dtype not explicitly shown in repr: {float_repr}"
+        assert "dtype=float32" in float_repr, (
+            f"float32 dtype not explicitly shown in repr: {float_repr}"
+        )
 
 
 class TestColumnSlicePrintMethods:
