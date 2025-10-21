@@ -168,14 +168,57 @@ def test_guess_attribute_type():
 
 
 def test_guess_atype():
-    assert (
-        db.attribute.AttributeTypes.FLOAT_COLOR
-        == db.attribute.guess_atype_from_array(np.zeros((10, 4)))
+    """Test attribute type guessing from array shape and dtype."""
+    # Test float-based types
+    assert db.attribute.AttributeTypes.FLOAT == db.attribute.guess_atype_from_array(
+        np.zeros(10, dtype=np.float32)
+    )
+    assert db.attribute.AttributeTypes.FLOAT == db.attribute.guess_atype_from_array(
+        np.zeros(10, dtype=np.float64)
+    )
+    assert db.attribute.AttributeTypes.FLOAT2 == db.attribute.guess_atype_from_array(
+        np.zeros((10, 2), dtype=np.float32)
     )
     assert (
         db.attribute.AttributeTypes.FLOAT_VECTOR
         == db.attribute.guess_atype_from_array(np.zeros((10, 3)))
     )
+    assert (
+        db.attribute.AttributeTypes.FLOAT_COLOR
+        == db.attribute.guess_atype_from_array(np.zeros((10, 4)))
+    )
+    assert db.attribute.AttributeTypes.FLOAT4X4 == db.attribute.guess_atype_from_array(
+        np.zeros((10, 4, 4))
+    )
+
+    # Test integer-based types
+    assert db.attribute.AttributeTypes.INT == db.attribute.guess_atype_from_array(
+        np.zeros(10, dtype=np.int32)
+    )
+    assert db.attribute.AttributeTypes.INT == db.attribute.guess_atype_from_array(
+        np.zeros(10, dtype=np.int64)
+    )
+    assert db.attribute.AttributeTypes.INT8 == db.attribute.guess_atype_from_array(
+        np.zeros(10, dtype=np.int8)
+    )
+    assert db.attribute.AttributeTypes.INT8 == db.attribute.guess_atype_from_array(
+        np.zeros(10, dtype=np.uint8)
+    )
+    assert db.attribute.AttributeTypes.INT32_2D == db.attribute.guess_atype_from_array(
+        np.zeros((10, 2), dtype=np.int32)
+    )
+
+    # Test color types - distinguishes byte vs float based on dtype
+    assert (
+        db.attribute.AttributeTypes.BYTE_COLOR
+        == db.attribute.guess_atype_from_array(np.zeros((10, 4), dtype=np.uint8))
+    )
+    assert (
+        db.attribute.AttributeTypes.FLOAT_COLOR
+        == db.attribute.guess_atype_from_array(np.zeros((10, 4), dtype=np.float32))
+    )
+
+    # Test boolean
     assert db.attribute.AttributeTypes.BOOLEAN == db.attribute.guess_atype_from_array(
         np.zeros(10, dtype=bool)
     )

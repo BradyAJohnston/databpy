@@ -116,42 +116,51 @@ class AttributeTypes(Enum):
     """
     Enumeration of attribute types in Blender.
 
-    Each attribute type has a specific data type and dimensionality.
+    Each attribute type has a specific data type and dimensionality that corresponds
+    to Blender's internal CustomData types. The dtype values use explicit NumPy types
+    (e.g., np.float32, np.uint8) that match Blender's internal storage precision.
+
+    Notes
+    -----
+    All float types use np.float32 (not Python's float or np.float64) as this matches
+    Blender's internal 32-bit float storage. BYTE_COLOR uses np.uint8 (unsigned) as it
+    corresponds to Blender's MLoopCol struct which stores color components as unsigned
+    char values (0-255 range).
 
     Attributes
     ----------
     FLOAT : AttributeType
-        Single float value with dimensions (1,)
+        Single float value with dimensions (1,). Dtype: np.float32
         [More Info](https://docs.blender.org/api/current/bpy.types.FloatAttribute.html#bpy.types.FloatAttribute)
     FLOAT_VECTOR : AttributeType
-        3D vector of floats with dimensions (3,)
+        3D vector of floats with dimensions (3,). Dtype: np.float32
         [More Info](https://docs.blender.org/api/current/bpy.types.FloatVectorAttribute.html#bpy.types.FloatVectorAttribute)
     FLOAT2 : AttributeType
-        2D vector of floats with dimensions (2,)
+        2D vector of floats with dimensions (2,). Dtype: np.float32
         [More Info](https://docs.blender.org/api/current/bpy.types.Float2Attribute.html#bpy.types.Float2Attribute)
     FLOAT_COLOR : AttributeType
-        RGBA color values as floats with dimensions (4,)
+        RGBA color values as floats with dimensions (4,). Dtype: np.float32
         [More Info](https://docs.blender.org/api/current/bpy.types.FloatColorAttributeValue.html#bpy.types.FloatColorAttributeValue)
     BYTE_COLOR : AttributeType
-        RGBA color values as integers with dimensions (4,)
+        RGBA color values as unsigned 8-bit integers with dimensions (4,). Dtype: np.uint8
         [More Info](https://docs.blender.org/api/current/bpy.types.ByteColorAttribute.html#bpy.types.ByteColorAttribute)
     QUATERNION : AttributeType
-        Quaternion rotation (w, x, y, z) as floats with dimensions (4,)
+        Quaternion rotation (w, x, y, z) as floats with dimensions (4,). Dtype: np.float32
         [More Info](https://docs.blender.org/api/current/bpy.types.QuaternionAttribute.html#bpy.types.QuaternionAttribute)
     INT : AttributeType
-        Single integer value with dimensions (1,)
+        Single 32-bit integer value with dimensions (1,). Dtype: np.int32
         [More Info](https://docs.blender.org/api/current/bpy.types.IntAttribute.html#bpy.types.IntAttribute)
     INT8 : AttributeType
-        8-bit integer value with dimensions (1,)
+        8-bit signed integer value with dimensions (1,). Dtype: np.int8
         [More Info](https://docs.blender.org/api/current/bpy.types.ByteIntAttributeValue.html#bpy.types.ByteIntAttributeValue)
     INT32_2D : AttributeType
-        2D vector of 32-bit integers with dimensions (2,)
+        2D vector of 32-bit integers with dimensions (2,). Dtype: np.int32
         [More Info](https://docs.blender.org/api/current/bpy.types.Int2Attribute.html#bpy.types.Int2Attribute)
     FLOAT4X4 : AttributeType
-        4x4 transformation matrix of floats with dimensions (4, 4)
+        4x4 transformation matrix of floats with dimensions (4, 4). Dtype: np.float32
         [More Info](https://docs.blender.org/api/current/bpy.types.Float4x4Attribute.html#bpy.types.Float4x4Attribute)
     BOOLEAN : AttributeType
-        Single boolean value with dimensions (1,)
+        Single boolean value with dimensions (1,). Dtype: bool
         [More Info](https://docs.blender.org/api/current/bpy.types.BoolAttribute.html#bpy.types.BoolAttribute)
     """
 
@@ -206,6 +215,13 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
     """
     Determine the appropriate AttributeType based on array shape and dtype.
 
+    This function matches arrays broadly to Blender attribute types while ensuring
+    they are categorized correctly based on both shape and dtype. It handles:
+    - Integer types: distinguishes int8, int32, and int32_2d based on dtype and shape
+    - Float types: all floating point arrays map to float32-based attributes
+    - Color types: distinguishes BYTE_COLOR (uint8) from FLOAT_COLOR (float32)
+    - Boolean types: maps bool arrays to BOOLEAN attributes
+
     Parameters
     ----------
     array : np.ndarray
@@ -220,6 +236,15 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
     ------
     ValueError
         If input is not a numpy array.
+
+    Examples
+    --------
+    >>> guess_atype_from_array(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    AttributeTypes.FLOAT
+    >>> guess_atype_from_array(np.array([[1, 2], [3, 4]], dtype=np.int32))
+    AttributeTypes.INT32_2D
+    >>> guess_atype_from_array(np.array([[255, 0, 0, 255]], dtype=np.uint8))
+    AttributeTypes.BYTE_COLOR
     """
 
     if not isinstance(array, np.ndarray):
@@ -229,24 +254,48 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
     shape = array.shape
     n_row = shape[0]
 
-    # for 1D arrays we we use the float, int of boolean attribute types
+    # Handle 1D arrays (single values per element)
     if shape == (n_row, 1) or shape == (n_row,):
-        if np.issubdtype(dtype, np.int_):
-            return AttributeTypes.INT
-        elif np.issubdtype(dtype, np.float_):
-            return AttributeTypes.FLOAT
-        elif np.issubdtype(dtype, np.bool_):
+        # Boolean arrays
+        if np.issubdtype(dtype, np.bool_):
             return AttributeTypes.BOOLEAN
+        # Integer arrays - check for int8 vs int32
+        elif np.issubdtype(dtype, np.integer):
+            # Check if it's int8 or uint8 (but not for colors)
+            if dtype in (np.int8, np.uint8):
+                return AttributeTypes.INT8
+            else:
+                # All other integer types default to INT (int32)
+                return AttributeTypes.INT
+        # Float arrays
+        elif np.issubdtype(dtype, np.floating):
+            return AttributeTypes.FLOAT
 
-    # for 2D arrays we use the float_vector, float_color, float4x4 attribute types
+    # Handle 2D arrays (vectors, colors, matrices)
+    elif shape == (n_row, 2):
+        # 2D vectors - check dtype to determine int32_2d vs float2
+        if np.issubdtype(dtype, np.integer):
+            return AttributeTypes.INT32_2D
+        elif np.issubdtype(dtype, np.floating):
+            return AttributeTypes.FLOAT2
+
+    elif shape == (n_row, 3):
+        # 3D vectors (FLOAT_VECTOR expects float32)
+        return AttributeTypes.FLOAT_VECTOR
+
+    elif shape == (n_row, 4):
+        # 4D data - distinguish between BYTE_COLOR and FLOAT_COLOR based on dtype
+        if dtype == np.uint8:
+            return AttributeTypes.BYTE_COLOR
+        else:
+            # All other types (float32, float64, int, etc.) default to FLOAT_COLOR
+            return AttributeTypes.FLOAT_COLOR
+
+    # Handle 3D arrays (matrices)
     elif shape == (n_row, 4, 4):
         return AttributeTypes.FLOAT4X4
-    elif shape == (n_row, 3):
-        return AttributeTypes.FLOAT_VECTOR
-    elif shape == (n_row, 4):
-        return AttributeTypes.FLOAT_COLOR
 
-    # if we didn't match against anything return float
+    # Default fallback
     return AttributeTypes.FLOAT
 
 
