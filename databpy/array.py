@@ -177,8 +177,13 @@ class AttributeArray(np.ndarray):
             obj_name = getattr(self._blender_object, "name", "Unknown")
             obj_type = getattr(self._blender_object.data, "name", "Unknown")
 
-        # Get array representation
-        array_repr = np.array_repr(np.asarray(self).view(np.ndarray))
+        # Get array representation with explicit dtype for cross-platform consistency
+        # np.array_repr() can omit dtype on Windows when it's the platform default
+        arr = np.asarray(self).view(np.ndarray)
+        # Use repr() which always includes dtype parameter for non-default types
+        # Then ensure dtype is always shown for consistency
+        array_str = np.array_str(arr)
+        array_repr = f"array({array_str}, dtype={arr.dtype})"
 
         return (
             f"AttributeArray(name='{attr_name}', object='{obj_name}', mesh='{obj_type}', "
