@@ -285,6 +285,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#databpy.AttributeTypes" id="toc-databpy.AttributeTypes" class="nav-link active" data-scroll-target="#databpy.AttributeTypes">AttributeTypes</a>
   <ul class="collapse">
+  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
   <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a></li>
   </ul></li>
   </ul>
@@ -300,7 +301,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>AttributeTypes</h1>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>AttributeTypes()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Enumeration of attribute types in Blender.</p>
-<p>Each attribute type has a specific data type and dimensionality.</p>
+<p>Each attribute type has a specific data type and dimensionality that corresponds to Blender’s internal CustomData types. The dtype values use explicit NumPy types (e.g., np.float32, np.uint8) that match Blender’s internal storage precision.</p>
+<section id="notes" class="level2 doc-section doc-section-notes">
+<h2 class="doc-section doc-section-notes anchored" data-anchor-id="notes">Notes</h2>
+<p>All float types use np.float32 (not Python’s float or np.float64) as this matches Blender’s internal 32-bit float storage. BYTE_COLOR uses np.uint8 (unsigned) as it corresponds to Blender’s MLoopCol struct which stores color components as unsigned char values (0-255 range).</p>
+</section>
 <section id="attributes" class="level2 doc-section doc-section-attributes">
 <h2 class="doc-section doc-section-attributes anchored" data-anchor-id="attributes">Attributes</h2>
 <table class="caption-top table">
@@ -315,57 +320,57 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>FLOAT</td>
 <td>AttributeType</td>
-<td>Single float value with dimensions (1,) <a href="https://docs.blender.org/api/current/bpy.types.FloatAttribute.html#bpy.types.FloatAttribute">More Info</a></td>
+<td>Single float value with dimensions (1,). Dtype: np.float32 <a href="https://docs.blender.org/api/current/bpy.types.FloatAttribute.html#bpy.types.FloatAttribute">More Info</a></td>
 </tr>
 <tr class="even">
 <td>FLOAT_VECTOR</td>
 <td>AttributeType</td>
-<td>3D vector of floats with dimensions (3,) <a href="https://docs.blender.org/api/current/bpy.types.FloatVectorAttribute.html#bpy.types.FloatVectorAttribute">More Info</a></td>
+<td>3D vector of floats with dimensions (3,). Dtype: np.float32 <a href="https://docs.blender.org/api/current/bpy.types.FloatVectorAttribute.html#bpy.types.FloatVectorAttribute">More Info</a></td>
 </tr>
 <tr class="odd">
 <td>FLOAT2</td>
 <td>AttributeType</td>
-<td>2D vector of floats with dimensions (2,) <a href="https://docs.blender.org/api/current/bpy.types.Float2Attribute.html#bpy.types.Float2Attribute">More Info</a></td>
+<td>2D vector of floats with dimensions (2,). Dtype: np.float32 <a href="https://docs.blender.org/api/current/bpy.types.Float2Attribute.html#bpy.types.Float2Attribute">More Info</a></td>
 </tr>
 <tr class="even">
 <td>FLOAT_COLOR</td>
 <td>AttributeType</td>
-<td>RGBA color values as floats with dimensions (4,) <a href="https://docs.blender.org/api/current/bpy.types.FloatColorAttributeValue.html#bpy.types.FloatColorAttributeValue">More Info</a></td>
+<td>RGBA color values as floats with dimensions (4,). Dtype: np.float32 <a href="https://docs.blender.org/api/current/bpy.types.FloatColorAttributeValue.html#bpy.types.FloatColorAttributeValue">More Info</a></td>
 </tr>
 <tr class="odd">
 <td>BYTE_COLOR</td>
 <td>AttributeType</td>
-<td>RGBA color values as integers with dimensions (4,) <a href="https://docs.blender.org/api/current/bpy.types.ByteColorAttribute.html#bpy.types.ByteColorAttribute">More Info</a></td>
+<td>RGBA color values as unsigned 8-bit integers with dimensions (4,). Dtype: np.uint8 <a href="https://docs.blender.org/api/current/bpy.types.ByteColorAttribute.html#bpy.types.ByteColorAttribute">More Info</a></td>
 </tr>
 <tr class="even">
 <td>QUATERNION</td>
 <td>AttributeType</td>
-<td>Quaternion rotation (w, x, y, z) as floats with dimensions (4,) <a href="https://docs.blender.org/api/current/bpy.types.QuaternionAttribute.html#bpy.types.QuaternionAttribute">More Info</a></td>
+<td>Quaternion rotation (w, x, y, z) as floats with dimensions (4,). Dtype: np.float32 <a href="https://docs.blender.org/api/current/bpy.types.QuaternionAttribute.html#bpy.types.QuaternionAttribute">More Info</a></td>
 </tr>
 <tr class="odd">
 <td>INT</td>
 <td>AttributeType</td>
-<td>Single integer value with dimensions (1,) <a href="https://docs.blender.org/api/current/bpy.types.IntAttribute.html#bpy.types.IntAttribute">More Info</a></td>
+<td>Single 32-bit integer value with dimensions (1,). Dtype: np.int32 <a href="https://docs.blender.org/api/current/bpy.types.IntAttribute.html#bpy.types.IntAttribute">More Info</a></td>
 </tr>
 <tr class="even">
 <td>INT8</td>
 <td>AttributeType</td>
-<td>8-bit integer value with dimensions (1,) <a href="https://docs.blender.org/api/current/bpy.types.ByteIntAttributeValue.html#bpy.types.ByteIntAttributeValue">More Info</a></td>
+<td>8-bit signed integer value with dimensions (1,). Dtype: np.int8 <a href="https://docs.blender.org/api/current/bpy.types.ByteIntAttributeValue.html#bpy.types.ByteIntAttributeValue">More Info</a></td>
 </tr>
 <tr class="odd">
 <td>INT32_2D</td>
 <td>AttributeType</td>
-<td>2D vector of 32-bit integers with dimensions (2,) <a href="https://docs.blender.org/api/current/bpy.types.Int2Attribute.html#bpy.types.Int2Attribute">More Info</a></td>
+<td>2D vector of 32-bit integers with dimensions (2,). Dtype: np.int32 <a href="https://docs.blender.org/api/current/bpy.types.Int2Attribute.html#bpy.types.Int2Attribute">More Info</a></td>
 </tr>
 <tr class="even">
 <td>FLOAT4X4</td>
 <td>AttributeType</td>
-<td>4x4 transformation matrix of floats with dimensions (4, 4) <a href="https://docs.blender.org/api/current/bpy.types.Float4x4Attribute.html#bpy.types.Float4x4Attribute">More Info</a></td>
+<td>4x4 transformation matrix of floats with dimensions (4, 4). Dtype: np.float32 <a href="https://docs.blender.org/api/current/bpy.types.Float4x4Attribute.html#bpy.types.Float4x4Attribute">More Info</a></td>
 </tr>
 <tr class="odd">
 <td>BOOLEAN</td>
 <td>AttributeType</td>
-<td>Single boolean value with dimensions (1,) <a href="https://docs.blender.org/api/current/bpy.types.BoolAttribute.html#bpy.types.BoolAttribute">More Info</a></td>
+<td>Single boolean value with dimensions (1,). Dtype: bool <a href="https://docs.blender.org/api/current/bpy.types.BoolAttribute.html#bpy.types.BoolAttribute">More Info</a></td>
 </tr>
 </tbody>
 </table>
