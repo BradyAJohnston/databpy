@@ -115,6 +115,39 @@ class TestAttributeArrayPrintMethods:
         # Should contain numpy's truncation indicator for large arrays
         assert "..." in result or len(result.split("\n")) > 1
 
+    def test_repr_always_shows_dtype(self, blender_object):
+        """Test that __repr__ always explicitly shows dtype for cross-platform consistency.
+
+        This is important for snapshot testing across platforms. On Windows, np.array_repr()
+        may omit dtype when it's the platform default (e.g., int32), while on macOS/Linux
+        it's always shown. We ensure dtype is always explicit in our repr output.
+        """
+        from databpy.attribute import store_named_attribute
+
+        # Get the number of points on the blender object
+        num_points = len(blender_object.data.vertices)
+
+        # Test with int32 (the type that causes platform-dependent repr on Windows)
+        int_data = np.ones(num_points, dtype=np.int32)
+        store_named_attribute(blender_object, int_data, "test_int32")
+        int_arr = AttributeArray(blender_object, "test_int32")
+
+        int_repr = repr(int_arr)
+        # Should contain 'dtype=int32' or 'dtype=int32)' somewhere in output
+        assert "dtype=int32" in int_repr, (
+            f"int32 dtype not explicitly shown in repr: {int_repr}"
+        )
+
+        # Test with float32 as well
+        float_data = np.ones(num_points, dtype=np.float32)
+        store_named_attribute(blender_object, float_data, "test_float32")
+        float_arr = AttributeArray(blender_object, "test_float32")
+
+        float_repr = repr(float_arr)
+        assert "dtype=float32" in float_repr, (
+            f"float32 dtype not explicitly shown in repr: {float_repr}"
+        )
+
 
 class TestColumnSlicePrintMethods:
     """Test print behavior of column slice views."""
