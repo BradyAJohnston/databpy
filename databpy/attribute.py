@@ -155,38 +155,48 @@ class AttributeTypes(Enum):
         [More Info](https://docs.blender.org/api/current/bpy.types.BoolAttribute.html#bpy.types.BoolAttribute)
     """
 
+    # CD_PROP_FLOAT (10): stored as float (MFloatProperty.f)
     FLOAT = AttributeType(
-        type_name="FLOAT", value_name="value", dtype=float, dimensions=(1,)
+        type_name="FLOAT", value_name="value", dtype=np.float32, dimensions=(1,)
     )
+    # CD_PROP_FLOAT3 (48): stored as float[3] (blender::float3)
     FLOAT_VECTOR = AttributeType(
-        type_name="FLOAT_VECTOR", value_name="vector", dtype=float, dimensions=(3,)
+        type_name="FLOAT_VECTOR", value_name="vector", dtype=np.float32, dimensions=(3,)
     )
+    # CD_PROP_FLOAT2 (49): stored as float[2] (blender::float2)
     FLOAT2 = AttributeType(
-        type_name="FLOAT2", value_name="vector", dtype=float, dimensions=(2,)
+        type_name="FLOAT2", value_name="vector", dtype=np.float32, dimensions=(2,)
     )
+    # CD_PROP_COLOR (47): stored as float[4] (MPropCol.color, ColorGeometry4f = ColorSceneLinear4f<Premultiplied>)
     # alternatively use color_srgb to get the color info in sRGB color space, otherwise linear color space
     FLOAT_COLOR = AttributeType(
-        type_name="FLOAT_COLOR", value_name="color", dtype=float, dimensions=(4,)
+        type_name="FLOAT_COLOR", value_name="color", dtype=np.float32, dimensions=(4,)
     )
-    # TODO unsure about this, int values are stored but float values are returned
+    # CD_PROP_BYTE_COLOR (17): stored as unsigned char r,g,b,a (MLoopCol, ColorGeometry4b = ColorSceneLinearByteEncoded4b<Premultiplied>)
     BYTE_COLOR = AttributeType(
-        type_name="BYTE_COLOR", value_name="color", dtype=np.int8, dimensions=(4,)
+        type_name="BYTE_COLOR", value_name="color", dtype=np.uint8, dimensions=(4,)
     )
+    # CD_PROP_QUATERNION (52): stored as float[4] (blender::float4, blender::Quaternion)
     QUATERNION = AttributeType(
-        type_name="QUATERNION", value_name="value", dtype=float, dimensions=(4,)
+        type_name="QUATERNION", value_name="value", dtype=np.float32, dimensions=(4,)
     )
+    # CD_PROP_INT32 (11): stored as int (MIntProperty.i)
     INT = AttributeType(
         type_name="INT", value_name="value", dtype=np.int32, dimensions=(1,)
     )
+    # CD_PROP_INT8 (45): stored as int8_t (MInt8Property.i)
     INT8 = AttributeType(
         type_name="INT8", value_name="value", dtype=np.int8, dimensions=(1,)
     )
+    # CD_PROP_INT32_2D (46): stored as int32_t[2] (blender::int2 = VecBase<int32_t, 2>)
     INT32_2D = AttributeType(
         type_name="INT32_2D", value_name="value", dtype=np.int32, dimensions=(2,)
     )
+    # CD_PROP_FLOAT4X4 (20): stored as float[4][4] (blender::float4x4 = MatBase<float, 4, 4>)
     FLOAT4X4 = AttributeType(
-        type_name="FLOAT4X4", value_name="value", dtype=float, dimensions=(4, 4)
+        type_name="FLOAT4X4", value_name="value", dtype=np.float32, dimensions=(4, 4)
     )
+    # CD_PROP_BOOL (50): stored as bool (MBoolProperty.b as uint8_t)
     BOOLEAN = AttributeType(
         type_name="BOOLEAN", value_name="value", dtype=bool, dimensions=(1,)
     )
@@ -352,7 +362,7 @@ class Attribute:
                 f"Array shape {array.shape} does not match attribute shape {self.shape}"
             )
 
-        self.attribute.data.foreach_set(self.value_name, array.reshape(-1))
+        self.attribute.data.foreach_set(self.value_name, np.ravel(array))
 
     def as_array(self) -> np.ndarray:
         """
@@ -512,7 +522,7 @@ def store_named_attribute(
 
     # the 'foreach_set' requires a 1D array, regardless of the shape of the attribute
     # so we have to flatten it first
-    attribute.data.foreach_set(atype.value.value_name, data.reshape(-1))
+    attribute.data.foreach_set(atype.value.value_name, np.ravel(data))
 
     # The updating of data doesn't work 100% of the time (see:
     # https://projects.blender.org/blender/blender/issues/118507) so this resetting of a

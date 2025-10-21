@@ -318,16 +318,16 @@ def test_int8_dtype():
 
 
 def test_byte_color_dtype():
-    """Test that BYTE_COLOR attributes return int8 dtype."""
+    """Test that BYTE_COLOR attributes return uint8 dtype."""
     verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
     obj = db.create_object(verts, name="TestByteColorDtype")
 
-    # Store a BYTE_COLOR attribute (RGBA values as int8)
-    # Note: Blender may normalize these values, so we just verify the dtype
-    color_data = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]], dtype=np.int8)
+    # Store a BYTE_COLOR attribute (RGBA values as uint8)
+    # BYTE_COLOR is stored as unsigned char in Blender (MLoopCol)
+    color_data = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]], dtype=np.uint8)
     db.store_named_attribute(obj, color_data, "test_byte_color", atype="BYTE_COLOR")
 
-    # Retrieve and verify it's int8
+    # Retrieve and verify it's uint8
     result = db.named_attribute(obj, "test_byte_color")
-    assert result.dtype == np.int8, f"Expected int8, got {result.dtype}"
+    assert result.dtype == np.uint8, f"Expected uint8, got {result.dtype}"
     assert result.shape == (3, 4), f"Expected shape (3, 4), got {result.shape}"
