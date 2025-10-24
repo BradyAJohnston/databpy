@@ -492,7 +492,7 @@ Understanding the relationship between the classes helps you choose the right to
 ```
 ┌─────────────────────────────────────────────────────┐
 │ BlenderObject (bob)                                 │
-│ - High-level convenience wrapper                   │
+│ - High-level convenience wrapper                    │
 │ - Dictionary access: bob["attr"]                    │
 │ - Property access: bob.position                     │
 │ - Returns: AttributeArray                           │

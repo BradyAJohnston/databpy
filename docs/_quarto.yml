@@ -11,8 +11,8 @@ website:
     left:
     - href: index.qmd
       text: Home
-    - href: attribute-guide.qmd
-      text: Attribute Guide
+    - href: attributes.qmd
+      text: Attributes
     - href: api/index.qmd
       text: API
     tools:
