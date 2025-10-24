@@ -8,9 +8,8 @@
 
 A set of data-oriented wrappers around the python API of Blender.
 
-![CleanShot 2025-04-13 at 13 17 32@2x](https://github.com/user-attachments/assets/bceb48e3-ba56-4893-be5f-5a5c2e71b19f)
-
-
+![CleanShot 2025-04-13 at 13 17
+32@2x](https://github.com/user-attachments/assets/bceb48e3-ba56-4893-be5f-5a5c2e71b19f.png)
 
 This was originally used internally inside of [Molecular
 Nodes](https://github.com/BradyAJohnston/MolecularNodes) but was broken
@@ -56,8 +55,9 @@ db.store_named_attribute() # store a named attribute on a mesh object
 db.named_attribute()       # retrieve a named attribute from a mesh object
 ```
 
-Here's an example on how to store an attribute:
-```python
+Here’s an example on how to store an attribute:
+
+``` python
 import numpy as np
 import databpy as db
 
@@ -71,9 +71,11 @@ coords = np.array([
 obj = db.create_object(coords, name="Box")
 db.store_named_attribute(obj, np.array([10, 20, 31, 42]), "vals")
 ```
-![image](https://github.com/user-attachments/assets/2af6046a-8d73-4881-af63-8ed175fe2136)
 
-This module is mainly used to create mesh objects and work with their attributes. It is built to store and retrieve data using NumPy arrays:
+![image](https://github.com/user-attachments/assets/2af6046a-8d73-4881-af63-8ed175fe2136.png)
+
+This module is mainly used to create mesh objects and work with their
+attributes. It is built to store and retrieve data using NumPy arrays:
 
 ``` python
 import numpy as np
@@ -96,16 +98,16 @@ Access attributes from the object’s mesh.
 db.named_attribute(obj, 'position')
 ```
 
-    array([[0.89286017, 0.33197981, 0.8212291 ],
+    array([[0.8928602 , 0.3319798 , 0.8212291 ],
            [0.04169663, 0.10765668, 0.59505206],
            [0.52981734, 0.41880742, 0.33540785],
            [0.62251943, 0.43814144, 0.7358821 ],
-           [0.51803643, 0.57885861, 0.64535511],
-           [0.99022424, 0.81985819, 0.41320094],
-           [0.87626767, 0.82375944, 0.05447451],
-           [0.71863723, 0.80217057, 0.73640662],
-           [0.70913178, 0.54093683, 0.12482417],
-           [0.95764732, 0.4032563 , 0.21695116]])
+           [0.5180364 , 0.5788586 , 0.6453551 ],
+           [0.99022424, 0.8198582 , 0.41320094],
+           [0.8762677 , 0.82375944, 0.05447451],
+           [0.7186372 , 0.8021706 , 0.7364066 ],
+           [0.7091318 , 0.5409368 , 0.12482417],
+           [0.9576473 , 0.4032563 , 0.21695116]], dtype=float32)
 
 ### `BlenderObject` class (bob)
 
@@ -126,16 +128,17 @@ bob.named_attribute('position')
 bob.position
 ```
 
-    array([[0.89286017, 0.33197981, 0.8212291 ],
+    AttributeArray(name='position', object='NewObject', mesh='NewObject', domain=POINT, type=FLOAT_VECTOR, shape=(10, 3), dtype=float32)
+    array([[0.8928602 , 0.3319798 , 0.8212291 ],
            [0.04169663, 0.10765668, 0.59505206],
            [0.52981734, 0.41880742, 0.33540785],
            [0.62251943, 0.43814144, 0.7358821 ],
-           [0.51803643, 0.57885861, 0.64535511],
-           [0.99022424, 0.81985819, 0.41320094],
-           [0.87626767, 0.82375944, 0.05447451],
-           [0.71863723, 0.80217057, 0.73640662],
-           [0.70913178, 0.54093683, 0.12482417],
-           [0.95764732, 0.4032563 , 0.21695116]])
+           [0.5180364 , 0.5788586 , 0.6453551 ],
+           [0.99022424, 0.8198582 , 0.41320094],
+           [0.8762677 , 0.82375944, 0.05447451],
+           [0.7186372 , 0.8021706 , 0.7364066 ],
+           [0.7091318 , 0.5409368 , 0.12482417],
+           [0.9576473 , 0.4032563 , 0.21695116]], dtype=float32)
 
 We can clear all of the data from the object and initialise a new mesh
 underneath:
@@ -145,11 +148,12 @@ bob.new_from_pydata(np.random.randn(5, 3))
 bob.position
 ```
 
-    array([[ 0.82465386, -1.17643154,  1.5644896 ],
-           [ 0.71270508, -0.1810066 ,  0.53419954],
-           [-0.58661294, -1.48185325,  0.85724759],
+    AttributeArray(name='position', object='NewObject', mesh='NewObject', domain=POINT, type=FLOAT_VECTOR, shape=(5, 3), dtype=float32)
+    array([[ 0.82465386, -1.1764315 ,  1.5644896 ],
+           [ 0.7127051 , -0.1810066 ,  0.53419954],
+           [-0.58661294, -1.4818532 ,  0.8572476 ],
            [ 0.94309896,  0.11444143, -0.02195668],
-           [-2.12714458, -0.83440745, -0.46550831]])
+           [-2.1271446 , -0.83440745, -0.4655083 ]], dtype=float32)
 
 ## Example with Polars data
 
@@ -185,12 +189,12 @@ for col in df.columns:
 bob.named_attribute("Dino")
 ```
 
-    array([[55.38460159, 97.17949677,  0.        ],
-           [51.53850174, 96.02559662,  0.        ]])
+    array([[55.3846, 97.1795,  0.    ],
+           [51.5385, 96.0256,  0.    ]], dtype=float32)
 
 ``` python
 bob.named_attribute("Star")
 ```
 
-    array([[58.21360016, 91.88189697,  0.        ],
-           [58.19609833, 92.21499634,  0.        ]])
+    array([[58.2136, 91.8819,  0.    ],
+           [58.1961, 92.215 ,  0.    ]], dtype=float32)
