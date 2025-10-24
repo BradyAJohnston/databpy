@@ -468,6 +468,11 @@ class Attribute:
         """Returns the total number of scalar values in the attribute."""
         return np.prod(self.shape, dtype=int)
 
+    @property
+    def size(self) -> int:
+        """Returns the total number of scalar values in the attribute."""
+        return np.prod(self.shape, dtype=int)
+
     def from_array(self, array: np.ndarray) -> None:
         """
         Set the attribute data from a numpy array.
@@ -487,21 +492,11 @@ class Attribute:
             If array cannot be reshaped to match attribute shape.
         """
         # Check if shapes match exactly
-        if array.shape != self.shape:
-            # Check if total number of elements matches
-            if array.size != np.prod(self.shape):
-                raise AttributeMismatchError(
-                    f"Array size {array.size} does not match attribute size {np.prod(self.shape)}. "
-                    f"Array shape {array.shape} cannot be reshaped to attribute shape {self.shape}"
-                )
-
-            # Try to reshape the array
-            try:
-                array = array.reshape(self.shape)
-            except ValueError as e:
-                raise AttributeMismatchError(
-                    f"Array shape {array.shape} cannot be reshaped to attribute shape {self.shape}: {e}"
-                )
+        if array.size != self.size:
+            raise AttributeMismatchError(
+                f"Array size {array.size} does not match attribute size {np.prod(self.shape)}. "
+                f"Array shape {array.shape} cannot be reshaped to attribute shape {self.shape}"
+            )
 
         self.attribute.data.foreach_set(self.value_name, np.ravel(array))
 
