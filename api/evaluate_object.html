@@ -131,6 +131,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../attribute-guide.html"> 
+<span class="menu-text">Attribute Guide</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../api/index.html"> 
 <span class="menu-text">API</span></a>
   </li>  
@@ -317,12 +321,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 8%">
-<col style="width: 25%">
-<col style="width: 55%">
-<col style="width: 11%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>Name</th>
@@ -334,13 +332,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>obj</td>
-<td>bpy.types.Object</td>
+<td><code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object">Object</a></td>
 <td>The Blender object to evaluate.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td>context</td>
-<td>bpy.types.Context | None</td>
+<td><code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.Context.html#bpy.types.Context">Context</a> | None</td>
 <td>The Blender context to use for evaluation, by default None</td>
 <td><code>None</code></td>
 </tr>
@@ -350,11 +348,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="returns" class="level2 doc-section doc-section-returns">
 <h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 11%">
-<col style="width: 25%">
-<col style="width: 63%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>Name</th>
@@ -365,7 +358,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td></td>
-<td>bpy.types.Object</td>
+<td><code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object">Object</a></td>
 <td>The evaluated object with modifiers applied.</td>
 </tr>
 </tbody>
@@ -377,7 +370,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div id="fe6a2be2" class="cell" data-execution_count="1">
+<div id="b4e6c988" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> databpy <span class="im">import</span> evaluate_object</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>obj <span class="op">=</span> bpy.data.objects[<span class="st">'Cube'</span>]</span>

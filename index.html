@@ -131,6 +131,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="./attribute-guide.html"> 
+<span class="menu-text">Attribute Guide</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="./api/index.html"> 
 <span class="menu-text">API</span></a>
   </li>  
@@ -190,7 +194,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Active development and refinements are still ongoing. The main functions <a href="./api/store_named_attribute.html"><code>store_named_attribute</code></a> and <a href="./api/named_attribute.html"><code>named_attribute</code></a> are stable, but a lot of the other functionality is still in development. They provide the majority of the useful functionality.</p>
+<p>Active development and refinements are still ongoing. The main functions <a href="./api/store_named_attribute.html#databpy.store_named_attribute"><code>store_named_attribute()</code></a> and <a href="./api/named_attribute.html#databpy.named_attribute"><code>named_attribute()</code></a> are stable, but a lot of the other functionality is still in development. They provide the majority of the useful functionality.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>New to databpy?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Check out the <a href="./attribute-guide.html"><strong>Attribute Guide</strong></a> for a comprehensive overview of the attribute system, including performance tips, best practices, and examples for all attribute types.</p>
 </div>
 </div>
 <p><code>databpy</code> originally started as a submodule inside of <a href="https://github.com/BradyAJohnston/MolecularNodes">Molecular Nodes</a> but has been split off into it’s own package for use by other projects. Some internal code is still quite specific to the use case of Molecular Nodes, but the majority is more general.</p>
@@ -198,10 +215,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="hello-world">Hello World</h2>
 <p>The ‘Hello World’ example is storing and retrieving data from a mesh objects inside of Blender.</p>
 <p>While the <code>bpy</code> API is robust, it is a bit too verbose for what we are after, and there are many particulars that you can’t intuit (you have to store the <code>value</code> for floats, <code>vector</code> for 2 &amp; 3 component vectors, but <code>value</code> for a Quaternion which is a 4-component vector).</p>
-<p>See the enums in the API documentation for the different <a href="./api/AttributeTypes.html">Attribute Types</a> and <a href="./api/AttributeDomains.html">Attribute Domains</a>.</p>
+<p>See the enums in the API documentation for the different <a href="./api/AttributeTypes.html#databpy.AttributeTypes"><code>AttributeTypes</code></a> and <a href="./api/AttributeDomains.html#databpy.AttributeDomains"><code>AttributeDomains</code></a>.</p>
 <section id="regular-bpy-api" class="level3">
 <h3 class="anchored" data-anchor-id="regular-bpy-api">Regular <code>bpy</code> API</h3>
-<div id="56ffa727" class="cell" data-execution_count="1">
+<div id="1c96eae0" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -233,8 +250,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="databpy-api" class="level3">
 <h3 class="anchored" data-anchor-id="databpy-api"><code>databpy</code> API</h3>
-<p>We can get and set values with single function calls. Data types are inferred from the numpy array data types, but can be manually specified. The point domain is the default domain, but domain can also be specified. See the <a href="./api/AttributeDomains.html">AttributeDomains</a> for more which domains can be chosen.</p>
-<div id="8e855c58" class="cell" data-execution_count="2">
+<p>We can get and set values with single function calls. Data types are inferred from the numpy array data types, but can be manually specified. The point domain is the default domain, but domain can also be specified. See the <a href="./api/AttributeDomains.html#databpy.AttributeDomains"><code>AttributeDomains</code></a> for more which domains can be chosen.</p>
+<div id="dd9e2149" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>db.store_named_attribute(obj, new_float_values, <span class="st">"example_values"</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>db.named_attribute(obj, <span class="st">"example_values"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -253,9 +270,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="a-more-friendly-blender-object-bob" class="level2">
 <h2 class="anchored" data-anchor-id="a-more-friendly-blender-object-bob">A more friendly Blender Object (bob)</h2>
-<p>Doing some common data-oriented operations on objects in Blender can be a bit of a pain, so <code>databpy</code> provides a <code>BlenderObject</code> class that wraps mesh objects and provides some convenience functions.</p>
-<p>The most useful are the <code>store_named_attribute</code> and <code>named_attribute</code> functions that just work on the mesh object, so you can quickly get and set attributes with bob.</p>
-<div id="65d831d2" class="cell" data-execution_count="3">
+<p>Doing some common data-oriented operations on objects in Blender can be a bit of a pain, so <code>databpy</code> provides a <a href="./api/BlenderObject.html#databpy.BlenderObject"><code>BlenderObject</code></a> class that wraps mesh objects and provides some convenience functions.</p>
+<p>The most useful are the <a href="./api/BlenderObject.html#databpy.BlenderObject.store_named_attribute"><code>store_named_attribute()</code></a> and <a href="./api/BlenderObject.html#databpy.BlenderObject.named_attribute"><code>named_attribute()</code></a> methods that just work on the mesh object, so you can quickly get and set attributes with bob.</p>
+<div id="747fc2b0" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bob <span class="op">=</span> db.BlenderObject(bpy.data.objects[<span class="st">"Cube"</span>])</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>bob.store_named_attribute(new_float_values, <span class="st">"example_values"</span>)</span>

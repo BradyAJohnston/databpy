@@ -131,6 +131,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../attribute-guide.html"> 
+<span class="menu-text">Attribute Guide</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../api/index.html"> 
 <span class="menu-text">API</span></a>
   </li>  
@@ -305,12 +309,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 2%">
-<col style="width: 9%">
-<col style="width: 80%">
-<col style="width: 6%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>Name</th>
@@ -322,13 +320,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>name</td>
-<td>str</td>
+<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
 <td>The name of the collection to create or retrieve. Default is “NewCollection”.</td>
 <td><code>'NewCollection'</code></td>
 </tr>
 <tr class="even">
 <td>parent</td>
-<td>Collection or str or None</td>
+<td><a href="https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection">Collection</a> or <a href="https://docs.python.org/3/library/stdtypes.html#str">str</a> or None</td>
 <td>The parent collection to link the new collection to. If a string is provided, it will be used to find an existing collection by name. If None, the new collection will be linked to the scene’s root collection. Default is None.</td>
 <td><code>None</code></td>
 </tr>
@@ -348,7 +346,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td></td>
-<td>Collection</td>
+<td><a href="https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection">Collection</a></td>
 <td>The created or retrieved Blender collection.</td>
 </tr>
 </tbody>
@@ -357,11 +355,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="raises" class="level2 doc-section doc-section-raises">
 <h2 class="doc-section doc-section-raises anchored" data-anchor-id="raises">Raises</h2>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 8%">
-<col style="width: 11%">
-<col style="width: 80%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>Name</th>
@@ -372,12 +365,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td></td>
-<td>TypeError</td>
+<td><a href="https://docs.python.org/3/library/exceptions.html#TypeError">TypeError</a></td>
 <td>If the parent parameter is not a Collection, string or None.</td>
 </tr>
 <tr class="even">
 <td></td>
-<td>KeyError</td>
+<td><a href="https://docs.python.org/3/library/exceptions.html#KeyError">KeyError</a></td>
 <td>If the parent collection name provided does not exist in bpy.data.collections.</td>
 </tr>
 </tbody>

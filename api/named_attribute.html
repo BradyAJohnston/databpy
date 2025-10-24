@@ -131,6 +131,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../attribute-guide.html"> 
+<span class="menu-text">Attribute Guide</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../api/index.html"> 
 <span class="menu-text">API</span></a>
   </li>  
@@ -317,12 +321,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 9%">
-<col style="width: 16%">
-<col style="width: 60%">
-<col style="width: 13%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>Name</th>
@@ -334,19 +332,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>obj</td>
-<td>bpy.types.Object</td>
+<td><code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object">Object</a></td>
 <td>The Blender object.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td>name</td>
-<td>str</td>
+<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
 <td>The name of the attribute, by default ‘position’.</td>
 <td><code>'position'</code></td>
 </tr>
 <tr class="odd">
 <td>evaluate</td>
-<td>bool</td>
+<td><a href="https://docs.python.org/3/library/functions.html#bool">bool</a></td>
 <td>Whether to evaluate modifiers before reading, by default False.</td>
 <td><code>False</code></td>
 </tr>
@@ -366,7 +364,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td></td>
-<td>np.ndarray</td>
+<td><a href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a></td>
 <td>The attribute data as a numpy array.</td>
 </tr>
 </tbody>
@@ -375,11 +373,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="raises" class="level2 doc-section doc-section-raises">
 <h2 class="doc-section doc-section-raises anchored" data-anchor-id="raises">Raises</h2>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 10%">
-<col style="width: 21%">
-<col style="width: 68%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>Name</th>
@@ -390,7 +383,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td></td>
-<td>AttributeError</td>
+<td><a href="https://docs.python.org/3/library/exceptions.html#AttributeError">AttributeError</a></td>
 <td>If the named attribute does not exist on the mesh.</td>
 </tr>
 </tbody>
@@ -398,16 +391,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
-<div id="ef927abc" class="cell" data-execution_count="1">
+<div id="43bd628e" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> databpy <span class="im">import</span> named_attribute, list_attributes</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>obj <span class="op">=</span> bpy.data.objects[<span class="st">"Cube"</span>]</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>list_attributes(obj)<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>named_attribute(obj, <span class="st">"position"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>list_attributes(obj)<span class="op">=</span><span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>list_attributes(obj)=['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', 'UVMap', 'position', 'sharp_face']</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="1">
+</div>
+<div id="d572f1e6" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>named_attribute(obj, <span class="st">"position"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="2">
 <pre><code>array([[ 1.,  1.,  1.],
        [ 1.,  1., -1.],
        [ 1., -1.,  1.],
