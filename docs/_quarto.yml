@@ -2,12 +2,17 @@ project:
   type: website
   output-dir: _build
 
+filters:
+- interlinks
+
 website:
   title: "databpy"
   navbar:
     left:
     - href: index.qmd
       text: Home
+    - href: attributes.qmd
+      text: Attributes
     - href: api/index.qmd
       text: API
     tools:
@@ -30,6 +35,20 @@ format:
 metadata-files:
 - api/_sidebar.yml
 
+interlinks:
+  fast: true
+  aliases:
+    databpy: null  # Allow shortened internal references
+    numpy: np
+    molecularnodes: mn
+  sources:
+    numpy:
+      url: https://numpy.org/doc/stable/
+    python:
+      url: https://docs.python.org/3/
+    bpy:
+      url: https://docs.blender.org/api/current/
+
 quartodoc:
   # the name used to import the package you want to create reference docs for
   package: databpy
@@ -38,6 +57,9 @@ quartodoc:
   # write sidebar and style data
   sidebar: api/_sidebar.yml
   css: api/_styles-quartodoc.css
+
+  # enable automatic linking of type annotations
+  render_interlinks: true
 
   sections:
   - title: Attribute

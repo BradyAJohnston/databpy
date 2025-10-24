@@ -8,8 +8,13 @@
 This is intended as a cleaner way to work with data and attributes on mesh objects in Blender. The goal is to help make importing and working with tabular datasets from outside of Blender as objects _inside_ of blender a whole lot easier.
 
 ::: {.callout-warning}
-# Not Stable
-Active development and refinements are still ongoing. The main functions [`store_named_attribute`](api/store_named_attribute.qmd) and [`named_attribute`](api/named_attribute.qmd) are stable, but a lot of the other functionality is still in development. They provide the majority of the useful functionality.
+# Stability
+Active development and refinements are still ongoing. We are not yet past the `1.0` milestone and there may be breaking breaking changes before we get there. `databpy` has matured a lot and the primary interfaces of getting and setting attributes should mostly remain stable.
+:::
+
+::: {.callout-tip}
+# New to databpy?
+Check out the [**Attribute Guide**](attribute-guide.qmd) for a comprehensive overview of the attribute system, including performance tips, best practices, and examples for all attribute types.
 :::
 
 `databpy` originally started as a submodule inside of [Molecular Nodes](https://github.com/BradyAJohnston/MolecularNodes) but has been split off into it's own package for use by other projects. Some internal code is still quite specific to the use case of Molecular Nodes, but the majority is more general.
@@ -20,7 +25,7 @@ The 'Hello World' example is storing and retrieving data from a mesh objects ins
 
 While the `bpy` API is robust, it is a bit too verbose for what we are after, and there are many particulars that you can't intuit (you have to store the `value` for floats, `vector` for 2 & 3 component vectors, but `value` for a Quaternion which is a 4-component vector).
 
-See the enums in the API documentation for the different [Attribute Types](api/AttributeTypes.qmd) and [Attribute Domains](api/AttributeDomains.qmd).
+See the enums in the API documentation for the different [`AttributeTypes`](`databpy.AttributeTypes`) and [`AttributeDomains`](`databpy.AttributeDomains`).
 
 ### Regular `bpy` API
 
@@ -46,7 +51,7 @@ empty_vector.reshape((-1, 3))
 
 ### `databpy` API
 
-We can get and set values with single function calls. Data types are inferred from the numpy array data types, but can be manually specified. The point domain is the default domain, but domain can also be specified. See the [AttributeDomains](api/AttributeDomains.qmd) for more which domains can be chosen.
+We can get and set values with single function calls. Data types are inferred from the numpy array data types, but can be manually specified. The point domain is the default domain, but domain can also be specified. See the [`AttributeDomains`](`databpy.AttributeDomains`) for more which domains can be chosen.
 
 ```{python}
 import databpy as db
@@ -57,9 +62,9 @@ db.named_attribute(obj, "example_values")
 
 ## A more friendly Blender Object (bob)
 
-Doing some common data-oriented operations on objects in Blender can be a bit of a pain, so `databpy` provides a `BlenderObject` class that wraps mesh objects and provides some convenience functions. 
+Doing some common data-oriented operations on objects in Blender can be a bit of a pain, so `databpy` provides a [`BlenderObject`](`databpy.BlenderObject`) class that wraps mesh objects and provides some convenience functions.
 
-The most useful are the `store_named_attribute` and `named_attribute` functions that just work on the mesh object, so you can quickly get and set attributes with bob.
+The most useful are the [`store_named_attribute()`](`databpy.BlenderObject.store_named_attribute`) and [`named_attribute()`](`databpy.BlenderObject.named_attribute`) methods that just work on the mesh object, so you can quickly get and set attributes with bob.
 
 ```{python}
 bob = db.BlenderObject(bpy.data.objects["Cube"])

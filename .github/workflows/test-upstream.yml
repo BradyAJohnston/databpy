@@ -14,15 +14,15 @@ jobs:
             max-parallel: 4
             fail-fast: false
             matrix:
-              version: ["4.4"]
+              version: ["latest"]
               os: [ubuntu-latest]
               repo: ["BradyAJohnston/MolecularNodes", "kolibril13/blender_csv_import"]
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v5
               with:
                 repository: ${{ matrix.repo }}
             
-            - uses: BradyAJohnston/setup-blender@v3
+            - uses: BradyAJohnston/setup-blender@v5
               with: 
                 version: ${{ matrix.version }}
             

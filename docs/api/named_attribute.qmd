@@ -33,5 +33,7 @@ import bpy
 from databpy import named_attribute, list_attributes
 obj = bpy.data.objects["Cube"]
 print(f"{list_attributes(obj)=}")
+```
+```{python}
 named_attribute(obj, "position")
 ```

@@ -31,7 +31,7 @@ def test_errores():
         db.store_named_attribute(
             obj, np.random.rand(3, 3), "test_attr", atype="FAKE_TYPE"
         )
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.remove_named_attribute(obj, "nonexistent_attr")
 
 
@@ -59,7 +59,7 @@ def test_named_attribute_custom():
     np.testing.assert_array_equal(result, test_data)
 
     db.remove_named_attribute(obj, "test_attr")
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.named_attribute(obj, "test_attr")
 
 
@@ -79,10 +79,10 @@ def test_attribute_mismatch():
 
     test_data = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]])
 
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.store_named_attribute(obj, test_data, "test_attr")
 
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.store_named_attribute(obj, np.repeat(1, 3), "test_attr")
 
 
@@ -100,11 +100,11 @@ def test_attribute_overwrite():
     assert np.allclose(new_values, db.named_attribute(obj, att.name))
 
     assert db.named_attribute(obj, "test_attr").shape == (2, 3)
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.store_named_attribute(obj, new_values, "test_attr")
 
     db.remove_named_attribute(obj, "test_attr")
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.named_attribute(obj, "test_attr")
     db.store_named_attribute(obj, new_values, "test_attr")
     assert np.allclose(db.named_attribute(obj, "test_attr"), new_values)
@@ -225,10 +225,10 @@ def test_guess_atype():
 
 
 def test_raise_error():
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.store_named_attribute(bpy.data.objects["Cube"], np.zeros((10, 3)), "test")
 
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.remove_named_attribute(bpy.data.objects["Cube"], "testing")
 
 
@@ -239,7 +239,7 @@ def test_named_attribute_name(snapshot):
         print(f"{i} letters, name: '{name}'")
         data = np.random.rand(len(obj.data.vertices), 3)
         if i >= 68 or i == 0:
-            with pytest.raises(db.attribute.NamedAttributeError):
+            with pytest.raises(db.NamedAttributeError):
                 db.store_named_attribute(obj, data, name)
         else:
             db.store_named_attribute(obj, data, name)
@@ -374,3 +374,72 @@ def test_byte_color_dtype():
     result = db.named_attribute(obj, "test_byte_color")
     assert result.dtype == np.uint8, f"Expected uint8, got {result.dtype}"
     assert result.shape == (3, 4), f"Expected shape (3, 4), got {result.shape}"
+
+
+def test_1d_array_reshaping():
+    """Test that 1D arrays can be reshaped to match attribute dimensions."""
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    obj = db.create_object(verts, name="TestReshape")
+
+    # Test with FLOAT_VECTOR (3D) - pass 1D array of 9 elements
+    flat_data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=np.float32)
+    db.store_named_attribute(
+        obj, flat_data, "test_reshape_vector", atype="FLOAT_VECTOR"
+    )
+
+    result = db.named_attribute(obj, "test_reshape_vector")
+    assert result.shape == (3, 3), f"Expected shape (3, 3), got {result.shape}"
+    np.testing.assert_array_equal(result, flat_data.reshape(3, 3))
+
+    # Test with FLOAT2 - pass 1D array of 6 elements
+    flat_data_2d = np.array([1, 2, 3, 4, 5, 6], dtype=np.float32)
+    db.store_named_attribute(obj, flat_data_2d, "test_reshape_float2", atype="FLOAT2")
+
+    result_2d = db.named_attribute(obj, "test_reshape_float2")
+    assert result_2d.shape == (3, 2), f"Expected shape (3, 2), got {result_2d.shape}"
+    np.testing.assert_array_equal(result_2d, flat_data_2d.reshape(3, 2))
+
+    # Test with FLOAT_COLOR (4D) - pass 1D array of 12 elements
+    flat_color = np.random.rand(12).astype(np.float32)
+    db.store_named_attribute(obj, flat_color, "test_reshape_color", atype="FLOAT_COLOR")
+
+    result_color = db.named_attribute(obj, "test_reshape_color")
+    assert result_color.shape == (3, 4), (
+        f"Expected shape (3, 4), got {result_color.shape}"
+    )
+    np.testing.assert_array_almost_equal(result_color, flat_color.reshape(3, 4))
+
+
+def test_1d_array_wrong_size_fails():
+    """Test that 1D arrays with wrong total size raise an error."""
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    obj = db.create_object(verts, name="TestReshapeFail")
+
+    # Try to pass wrong size - should fail
+    wrong_size = np.array([1, 2, 3, 4, 5], dtype=np.float32)  # 5 elements, need 9
+    with pytest.raises(db.NamedAttributeError):
+        db.store_named_attribute(
+            obj, wrong_size, "test_wrong_size", atype="FLOAT_VECTOR"
+        )
+
+
+def test_attribute_from_array_reshaping():
+    """Test that Attribute.from_array() can handle reshaping."""
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    obj = db.create_object(verts, name="TestAttrReshape")
+
+    # Create attribute first
+    initial_data = np.random.rand(3, 3).astype(np.float32)
+    db.store_named_attribute(obj, initial_data, "test_attr_reshape")
+
+    # Get the Attribute wrapper
+    attr = db.Attribute(obj.data.attributes["test_attr_reshape"])
+
+    # Try to set with 1D array
+    flat_data = np.array([10, 11, 12, 13, 14, 15, 16, 17, 18], dtype=np.float32)
+    attr.from_array(flat_data)
+
+    # Verify it was reshaped correctly
+    result = attr.as_array()
+    assert result.shape == (3, 3)
+    np.testing.assert_array_equal(result, flat_data.reshape(3, 3))

@@ -25,6 +25,8 @@ from .attribute import (
     AttributeTypes,
     AttributeDomains,
     AttributeDomain,
+    NamedAttributeError,
+    AttributeMismatchError,
 )
 
 __all__ = [
@@ -54,4 +56,6 @@ __all__ = [
     "AttributeTypes",
     "AttributeDomains",
     "AttributeDomain",
+    "NamedAttributeError",
+    "AttributeMismatchError",
 ]
