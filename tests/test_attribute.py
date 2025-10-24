@@ -383,7 +383,9 @@ def test_1d_array_reshaping():
 
     # Test with FLOAT_VECTOR (3D) - pass 1D array of 9 elements
     flat_data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=np.float32)
-    db.store_named_attribute(obj, flat_data, "test_reshape_vector", atype="FLOAT_VECTOR")
+    db.store_named_attribute(
+        obj, flat_data, "test_reshape_vector", atype="FLOAT_VECTOR"
+    )
 
     result = db.named_attribute(obj, "test_reshape_vector")
     assert result.shape == (3, 3), f"Expected shape (3, 3), got {result.shape}"
@@ -402,7 +404,9 @@ def test_1d_array_reshaping():
     db.store_named_attribute(obj, flat_color, "test_reshape_color", atype="FLOAT_COLOR")
 
     result_color = db.named_attribute(obj, "test_reshape_color")
-    assert result_color.shape == (3, 4), f"Expected shape (3, 4), got {result_color.shape}"
+    assert result_color.shape == (3, 4), (
+        f"Expected shape (3, 4), got {result_color.shape}"
+    )
     np.testing.assert_array_almost_equal(result_color, flat_color.reshape(3, 4))
 
 
@@ -414,7 +418,9 @@ def test_1d_array_wrong_size_fails():
     # Try to pass wrong size - should fail
     wrong_size = np.array([1, 2, 3, 4, 5], dtype=np.float32)  # 5 elements, need 9
     with pytest.raises(db.NamedAttributeError):
-        db.store_named_attribute(obj, wrong_size, "test_wrong_size", atype="FLOAT_VECTOR")
+        db.store_named_attribute(
+            obj, wrong_size, "test_wrong_size", atype="FLOAT_VECTOR"
+        )
 
 
 def test_attribute_from_array_reshaping():
