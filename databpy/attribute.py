@@ -595,8 +595,12 @@ def store_named_attribute(
     from databpy import store_named_attribute, list_attributes, named_attribute
     obj = bpy.data.objects["Cube"]
     print(f"{list_attributes(obj)=}")
+    ```
+    ```{python}
     store_named_attribute(obj, np.arange(8), "test_attribute")
     print(f"{list_attributes(obj)=}")
+    ```
+    ```{python}
     named_attribute(obj, "test_attribute")
     ```
     """
@@ -734,6 +738,8 @@ def named_attribute(
     from databpy import named_attribute, list_attributes
     obj = bpy.data.objects["Cube"]
     print(f"{list_attributes(obj)=}")
+    ```
+    ```{python}
     named_attribute(obj, "position")
     ```
 
@@ -783,6 +789,8 @@ def remove_named_attribute(obj: bpy.types.Object, name: str):
     obj = bpy.data.objects["Cube"]
     store_named_attribute(obj, np.random.rand(8, 3), "random_numbers")
     print(f"{list_attributes(obj)=}")
+    ```
+    ```{python}
     remove_named_attribute(obj, "random_numbers")
     print(f"{list_attributes(obj)=}")
     ```

@@ -36,7 +36,9 @@ metadata-files:
 - api/_sidebar.yml
 
 interlinks:
+  fast: true
   aliases:
+    databpy: null  # Allow shortened internal references
     numpy: np
     molecularnodes: mn
   sources:
@@ -55,6 +57,9 @@ quartodoc:
   # write sidebar and style data
   sidebar: api/_sidebar.yml
   css: api/_styles-quartodoc.css
+
+  # enable automatic linking of type annotations
+  render_interlinks: true
 
   sections:
   - title: Attribute

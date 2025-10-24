@@ -45,7 +45,11 @@ import numpy as np
 from databpy import store_named_attribute, list_attributes, named_attribute
 obj = bpy.data.objects["Cube"]
 print(f"{list_attributes(obj)=}")
+```
+```{python}
 store_named_attribute(obj, np.arange(8), "test_attribute")
 print(f"{list_attributes(obj)=}")
+```
+```{python}
 named_attribute(obj, "test_attribute")
 ```

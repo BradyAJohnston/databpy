@@ -63,10 +63,13 @@ class AttributeArray(np.ndarray):
     bob = db.create_bob(np.random.rand(10, 3), name="test_bob")
     print('Initial position:')
     print(bob.position)  # Returns an AttributeArray
+    ```
+    ```{python}
     bob.position[:, 2] += 1.0
     print('Updated position:')
     print(bob.position)
-
+    ```
+    ```{python}
     # Convert to regular numpy array (no sync)
     print('As Array:')
     print(np.asarray(bob.position))

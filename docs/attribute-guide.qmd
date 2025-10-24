@@ -36,9 +36,9 @@ flowchart TD
     style D fill:#FFE4B5
 ```
 
-### 1. `BlenderObject` - Highest Level (Most Convenient)
+### 1. [`BlenderObject`](`databpy.BlenderObject`) - Highest Level (Most Convenient)
 
-The `BlenderObject` class (nicknamed "bob") provides the most ergonomic interface with dictionary-style access and convenience properties.
+The [`BlenderObject`](`databpy.BlenderObject`) class (nicknamed "bob") provides the most ergonomic interface with dictionary-style access and convenience properties.
 
 ```{python}
 import databpy as db
@@ -60,9 +60,9 @@ bob["my_values"] = np.random.rand(10)
 
 **When to use:** Interactive work, scripting, when you want automatic syncing.
 
-### 2. `AttributeArray` - Mid Level (Auto-Syncing NumPy)
+### 2. [`AttributeArray`](`databpy.AttributeArray`) - Mid Level (Auto-Syncing NumPy)
 
-`AttributeArray` is a NumPy subclass that automatically writes changes back to Blender. It provides natural NumPy operations with automatic bidirectional syncing.
+[`AttributeArray`](`databpy.AttributeArray`) is a [`numpy.ndarray`](`numpy.ndarray`) subclass that automatically writes changes back to Blender. It provides natural NumPy operations with automatic bidirectional syncing.
 
 ```{python}
 import databpy as db
@@ -88,9 +88,9 @@ pos[0] = [0, 0, 0]    # Item assignment
 
 **When to use:** When you need NumPy-like operations with automatic syncing, working with position/color/custom data interactively.
 
-### 3. `Attribute` - Low Level (Manual Control)
+### 3. [`Attribute`](`databpy.Attribute`) - Low Level (Manual Control)
 
-The `Attribute` class provides direct, stateless access with explicit control over when data is read or written.
+The [`Attribute`](`databpy.Attribute`) class provides direct, stateless access with explicit control over when data is read or written.
 
 ```{python}
 import databpy as db
@@ -121,7 +121,7 @@ attr.from_array(positions)
 
 ## Attribute Types
 
-Blender supports various attribute data types. `databpy` works with all of them:
+Blender supports various attribute data types. `databpy` works with all of them through the [`AttributeTypes`](`databpy.AttributeTypes`) enum:
 
 ### Float-Based Types
 
@@ -190,12 +190,12 @@ bob["selected"] = selection
 
 ::: {.callout-tip}
 ## Type Inference
-If you don't specify an `atype`, `databpy` will infer it from your array's dtype and shape using `guess_atype_from_array()`.
+If you don't specify an `atype`, `databpy` will infer it from your array's dtype and shape using [`guess_atype_from_array()`](`databpy.guess_atype_from_array`).
 :::
 
 ## Attribute Domains
 
-Attributes exist on different **domains** of the geometry:
+Attributes exist on different **domains** of the geometry, specified by the [`AttributeDomains`](`databpy.AttributeDomains`) enum:
 
 | Domain | Description | Example Use Cases |
 |--------|-------------|-------------------|
@@ -242,14 +242,14 @@ import bpy
 obj = bpy.data.objects["Cube"]
 
 # Method 1: Simple function call (returns regular numpy array)
-positions = db.named_attribute(obj, "position")
+positions = db.named_attribute(obj, "position")  # see named_attribute()
 
 # Method 2: Via BlenderObject (returns AttributeArray)
-bob = db.BlenderObject(obj)
+bob = db.BlenderObject(obj)  # see BlenderObject
 positions = bob["position"]  # or bob.position
 
 # Method 3: List available attributes
-attrs = db.list_attributes(obj)
+attrs = db.list_attributes(obj)  # see list_attributes()
 print(attrs)
 
 # Method 4: With modifier evaluation
@@ -529,8 +529,28 @@ Understanding the relationship between the classes helps you choose the right to
 
 ## See Also
 
-- [API Reference: Attribute](api/attribute.named_attribute.qmd)
-- [API Reference: AttributeArray](api/AttributeArray.qmd)
-- [API Reference: BlenderObject](api/BlenderObject.qmd)
-- [API Reference: AttributeTypes](api/AttributeTypes.qmd)
-- [API Reference: AttributeDomains](api/AttributeDomains.qmd)
+### Core Classes
+- [`BlenderObject`](`databpy.BlenderObject`) - High-level object wrapper with convenience methods
+- [`AttributeArray`](`databpy.AttributeArray`) - Auto-syncing NumPy array subclass
+- [`Attribute`](`databpy.Attribute`) - Low-level attribute wrapper with manual control
+
+### Functions
+- [`named_attribute()`](`databpy.named_attribute`) - Read attribute data as NumPy array
+- [`store_named_attribute()`](`databpy.store_named_attribute`) - Write attribute data to object
+- [`remove_named_attribute()`](`databpy.remove_named_attribute`) - Delete an attribute
+- [`list_attributes()`](`databpy.list_attributes`) - List all attributes on an object
+- [`create_bob()`](`databpy.create_bob`) - Create a new BlenderObject
+- [`create_object()`](`databpy.create_object`) - Create a new Blender object
+
+### Type Enums
+- [`AttributeTypes`](`databpy.AttributeTypes`) - Enum of all available attribute data types
+- [`AttributeDomains`](`databpy.AttributeDomains`) - Enum of all available geometry domains
+
+### Exceptions
+- [`NamedAttributeError`](`databpy.NamedAttributeError`) - Base exception for attribute operations
+- [`AttributeMismatchError`](`databpy.AttributeMismatchError`) - Exception for data/type mismatches
+
+### External References
+- [`numpy.ndarray`](`numpy.ndarray`) - NumPy array documentation
+- [`bpy.types.Object`](`bpy.types.Object`) - Blender Object documentation
+- [`bpy.types.Attribute`](`bpy.types.Attribute`) - Blender Attribute documentation

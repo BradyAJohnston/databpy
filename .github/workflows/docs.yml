@@ -26,6 +26,11 @@ jobs:
             cd docs
             uv run -m quartodoc build
 
+      - name: Fetch Interlinks
+        run: |
+            cd docs
+            uv run -m quartodoc interlinks
+
       - name: Quarto Render
         run: |
             uv run quarto render docs
