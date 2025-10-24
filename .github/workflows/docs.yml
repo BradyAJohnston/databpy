@@ -35,7 +35,9 @@ jobs:
         run: |
             uv run quarto render docs
 
-      - name: Publish to GitHub Pages (and render)
+      # Only publish to GitHub Pages on push to main, not on PRs
+      - name: Publish to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: quarto-dev/quarto-actions/publish@v2
         with:
             target: gh-pages
