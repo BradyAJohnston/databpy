@@ -4,6 +4,7 @@ from typing import Type
 import bpy
 from bpy.types import Object
 import numpy as np
+import warnings
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
 
@@ -466,7 +467,13 @@ class Attribute:
     @property
     def n_values(self) -> int:
         """Returns the total number of scalar values in the attribute."""
-        return np.prod(self.shape, dtype=int)
+        # TODO: remove in future version
+        # added in 0.4.2
+        warnings.warn(
+            message="`self.n_values` has been deprecated in favor of `self.size` and will be removed in future versions.",
+            category=DeprecationWarning,
+        )
+        return self.size
 
     @property
     def size(self) -> int:
@@ -491,10 +498,9 @@ class Attribute:
         AttributeMismatchError
             If array cannot be reshaped to match attribute shape.
         """
-        # Check if shapes match exactly
         if array.size != self.size:
             raise AttributeMismatchError(
-                f"Array size {array.size} does not match attribute size {np.prod(self.shape)}. "
+                f"Array size {array.size} does not match attribute size {self.size}. "
                 f"Array shape {array.shape} cannot be reshaped to attribute shape {self.shape}"
             )
 
@@ -512,7 +518,7 @@ class Attribute:
 
         # initialize empty 1D array that is needed to then be filled with values
         # from the Blender attribute
-        array = np.zeros(self.n_values, dtype=self.dtype)
+        array = np.zeros(self.size, dtype=self.dtype)
         self.attribute.data.foreach_get(self.value_name, array)
 
         # if the attribute has more than one dimension reshape the array before returning
