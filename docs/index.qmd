@@ -5,6 +5,8 @@
 ![tests](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
 ![deployment](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
 
+![](img/notdavid.png)
+
 This is intended as a cleaner way to work with data and attributes on mesh objects in Blender. The goal is to help make importing and working with tabular datasets from outside of Blender as objects _inside_ of blender a whole lot easier.
 
 ::: {.callout-warning}

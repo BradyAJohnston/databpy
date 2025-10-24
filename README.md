@@ -6,10 +6,9 @@
 ![tests](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
 ![deployment](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
 
-A set of data-oriented wrappers around the python API of Blender.
+![](docs/img/notdavid.png)
 
-![CleanShot 2025-04-13 at 13 17
-32@2x](https://github.com/user-attachments/assets/bceb48e3-ba56-4893-be5f-5a5c2e71b19f.png)
+A set of data-oriented wrappers around the python API of Blender.
 
 This was originally used internally inside of [Molecular
 Nodes](https://github.com/BradyAJohnston/MolecularNodes) but was broken
