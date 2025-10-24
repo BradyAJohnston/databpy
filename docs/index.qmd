@@ -8,8 +8,8 @@
 This is intended as a cleaner way to work with data and attributes on mesh objects in Blender. The goal is to help make importing and working with tabular datasets from outside of Blender as objects _inside_ of blender a whole lot easier.
 
 ::: {.callout-warning}
-# Not Stable
-Active development and refinements are still ongoing. The main functions [`store_named_attribute()`](`databpy.store_named_attribute`) and [`named_attribute()`](`databpy.named_attribute`) are stable, but a lot of the other functionality is still in development. They provide the majority of the useful functionality.
+# Stability
+Active development and refinements are still ongoing. We are not yet past the `1.0` milestone and there may be breaking breaking changes before we get there. `databpy` has matured a lot and the primary interfaces of getting and setting attributes should mostly remain stable.
 :::
 
 ::: {.callout-tip}
