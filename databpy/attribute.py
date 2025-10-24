@@ -472,20 +472,36 @@ class Attribute:
         """
         Set the attribute data from a numpy array.
 
+        If the array is 1D and can be reshaped to match the attribute shape,
+        it will be automatically reshaped.
+
         Parameters
         ----------
         array : np.ndarray
-            Array containing the data to set. Must match the attribute shape.
+            Array containing the data to set. Must have the same total number
+            of elements as the attribute.
 
         Raises
         ------
         AttributeMismatchError
-            If array shape does not match attribute shape.
+            If array cannot be reshaped to match attribute shape.
         """
+        # Check if shapes match exactly
         if array.shape != self.shape:
-            raise AttributeMismatchError(
-                f"Array shape {array.shape} does not match attribute shape {self.shape}"
-            )
+            # Check if total number of elements matches
+            if array.size != np.prod(self.shape):
+                raise AttributeMismatchError(
+                    f"Array size {array.size} does not match attribute size {np.prod(self.shape)}. "
+                    f"Array shape {array.shape} cannot be reshaped to attribute shape {self.shape}"
+                )
+
+            # Try to reshape the array
+            try:
+                array = array.reshape(self.shape)
+            except ValueError as e:
+                raise AttributeMismatchError(
+                    f"Array shape {array.shape} cannot be reshaped to attribute shape {self.shape}: {e}"
+                )
 
         self.attribute.data.foreach_set(self.value_name, np.ravel(array))
 
@@ -640,10 +656,28 @@ def store_named_attribute(
             )
 
     target_atype = AttributeTypes[attribute.data_type]
-    if len(data) != len(attribute.data):
-        raise NamedAttributeError(
-            f"Data length {len(data)}, dimensions {data.shape} does not equal the size of the target `{domain=}`, `{len(attribute.data)=}`, {target_atype.value.dimensions=}`"
-        )
+
+    # Calculate expected shape for the attribute
+    expected_shape = (len(attribute.data), *target_atype.value.dimensions)
+
+    # Check if we need to reshape the data
+    if data.shape != expected_shape:
+        # Check if total number of elements matches
+        expected_size = np.prod(expected_shape)
+        if data.size != expected_size:
+            raise NamedAttributeError(
+                f"Data size {data.size} (shape {data.shape}) does not match the required size {expected_size} "
+                f"for domain `{domain}` with {len(attribute.data)} elements and dimensions {target_atype.value.dimensions}"
+            )
+
+        # Try to reshape the data
+        try:
+            data = data.reshape(expected_shape)
+        except ValueError as e:
+            raise NamedAttributeError(
+                f"Data shape {data.shape} cannot be reshaped to expected shape {expected_shape}: {e}"
+            )
+
     if target_atype != atype:
         raise NamedAttributeError(
             f"Attribute being written to: `{attribute.name}` of type `{target_atype.value.type_name}` does not match the type for the given data: `{atype.value.type_name}`"
