@@ -535,21 +535,21 @@ def create_object(
 
     Parameters
     ----------
-        vertices : np.ndarray, optional
-            The vertices of the vertices as a numpy array. Defaults to None.
-        edges : np.ndarray, optional
-            The edges of the object as a numpy array. Defaults to None.
-        faces : np.ndarray, optional
-            The faces of the object as a numpy array. Defaults to None.
-        name : str, optional
-            The name of the object. Defaults to 'NewObject'.
-        collection : bpy.types.Collection, optional
-            The collection to link the object to. Defaults to None.
+    vertices : np.ndarray, optional
+        The vertices of the vertices as a numpy array. Defaults to None.
+    edges : np.ndarray, optional
+        The edges of the object as a numpy array. Defaults to None.
+    faces : np.ndarray, optional
+        The faces of the object as a numpy array. Defaults to None.
+    name : str, optional
+        The name of the object. Defaults to 'NewObject'.
+    collection : bpy.types.Collection, optional
+        The collection to link the object to. Defaults to None.
 
     Returns
     -------
-        Object
-            The created object.
+    Object
+        The created object.
     """
     if vertices is None:
         vertices = []

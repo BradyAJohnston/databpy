@@ -9,6 +9,14 @@ COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
 
 
 class NamedAttributeError(AttributeError):
+    """
+    Base exception for all attribute-related errors in databpy.
+
+    This exception is raised when operations on Blender named attributes fail,
+    such as when an attribute doesn't exist, has incorrect dimensions, or
+    cannot be created.
+    """
+
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
@@ -61,10 +69,16 @@ class AttributeDomain:
         return self.name
 
 
-class AttributeMismatchError(Exception):
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
+class AttributeMismatchError(NamedAttributeError):
+    """
+    Exception raised when attribute data doesn't match expected dimensions or types.
+
+    This is a specialized NamedAttributeError for situations where an attribute
+    exists but the data being written doesn't match the attribute's expected
+    shape, size, or type.
+    """
+
+    pass
 
 
 class AttributeDomains(Enum):
@@ -301,7 +315,22 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
 
 class Attribute:
     """
-    Wrapper around a Blender attribute to provide a more convenient interface with numpy arrays.
+    Low-level wrapper around a Blender attribute providing manual get/set operations.
+
+    This class provides direct, stateless access to Blender attributes with explicit
+    control over when data is read from or written to Blender. Use this when you need:
+    - Fine-grained control over read/write timing
+    - One-time read or write operations without auto-sync overhead
+    - To work with attribute metadata (type, domain, shape)
+
+    For interactive workflows with automatic syncing, use `AttributeArray` instead,
+    which subclasses numpy.ndarray and automatically writes changes back to Blender.
+
+    Architecture
+    ------------
+    - `Attribute`: Low-level, manual control (this class)
+    - `AttributeArray`: High-level, auto-syncing numpy subclass
+    - `BlenderObject["attr"]`: Convenience accessor returning AttributeArray
 
     Parameters
     ----------
@@ -312,10 +341,51 @@ class Attribute:
     ----------
     attribute : bpy.types.Attribute
         The underlying Blender attribute.
-    n_attr : int
-        Number of attribute elements.
-    atype : AttributeType
-        Type information for the attribute.
+    name : str
+        Name of the attribute.
+    atype : AttributeTypes
+        Enum value representing the attribute's data type.
+    domain : AttributeDomains
+        Enum value representing the attribute's domain (POINT, EDGE, FACE, etc.).
+    shape : tuple
+        Full shape including number of elements and component dimensions.
+    dtype : Type
+        NumPy dtype corresponding to the attribute type.
+
+    Examples
+    --------
+    Manual read/write workflow:
+
+    ```python
+    import databpy as db
+    import numpy as np
+
+    obj = db.create_object(np.random.rand(10, 3))
+    attr = db.Attribute(obj.data.attributes["position"])
+
+    # Read once
+    positions = attr.as_array()
+    positions[:, 2] += 1.0
+
+    # Write once
+    attr.from_array(positions)
+    ```
+
+    Compare with AttributeArray auto-sync:
+
+    ```python
+    import databpy as db
+
+    bob = db.create_bob(np.random.rand(10, 3))
+    # Each operation automatically syncs
+    bob.position[:, 2] += 1.0  # Writes immediately
+    ```
+
+    See Also
+    --------
+    AttributeArray : Auto-syncing numpy subclass for interactive workflows
+    store_named_attribute : Create or update attributes
+    named_attribute : Convenience function to read attribute data
     """
 
     def __init__(self, attribute: bpy.types.Attribute):
@@ -369,27 +439,33 @@ class Attribute:
         return AttributeDomains[self.attribute.domain]
 
     @property
-    def value_name(self):
+    def value_name(self) -> str:
+        """Returns the Blender property name for accessing values (e.g., 'value', 'vector', 'color')."""
         return self.atype.value.value_name
 
     @property
-    def is_1d(self):
+    def is_1d(self) -> bool:
+        """Returns True if the attribute stores single scalar values per element."""
         return self.atype.value.dimensions == (1,)
 
     @property
-    def type_name(self):
+    def type_name(self) -> str:
+        """Returns the Blender attribute type name (e.g., 'FLOAT_VECTOR', 'INT', 'BOOLEAN')."""
         return self.atype.value.type_name
 
     @property
-    def shape(self):
+    def shape(self) -> tuple:
+        """Returns the full shape of the attribute array including element dimensions."""
         return (len(self), *self.atype.value.dimensions)
 
     @property
     def dtype(self) -> Type:
+        """Returns the numpy dtype for this attribute type."""
         return self.atype.value.dtype
 
     @property
     def n_values(self) -> int:
+        """Returns the total number of scalar values in the attribute."""
         return np.prod(self.shape, dtype=int)
 
     def from_array(self, array: np.ndarray) -> None:
@@ -403,11 +479,11 @@ class Attribute:
 
         Raises
         ------
-        ValueError
+        AttributeMismatchError
             If array shape does not match attribute shape.
         """
         if array.shape != self.shape:
-            raise ValueError(
+            raise AttributeMismatchError(
                 f"Array shape {array.shape} does not match attribute shape {self.shape}"
             )
 

@@ -31,7 +31,7 @@ def test_errores():
         db.store_named_attribute(
             obj, np.random.rand(3, 3), "test_attr", atype="FAKE_TYPE"
         )
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.remove_named_attribute(obj, "nonexistent_attr")
 
 
@@ -59,7 +59,7 @@ def test_named_attribute_custom():
     np.testing.assert_array_equal(result, test_data)
 
     db.remove_named_attribute(obj, "test_attr")
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.named_attribute(obj, "test_attr")
 
 
@@ -79,10 +79,10 @@ def test_attribute_mismatch():
 
     test_data = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]])
 
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.store_named_attribute(obj, test_data, "test_attr")
 
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.store_named_attribute(obj, np.repeat(1, 3), "test_attr")
 
 
@@ -100,11 +100,11 @@ def test_attribute_overwrite():
     assert np.allclose(new_values, db.named_attribute(obj, att.name))
 
     assert db.named_attribute(obj, "test_attr").shape == (2, 3)
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.store_named_attribute(obj, new_values, "test_attr")
 
     db.remove_named_attribute(obj, "test_attr")
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.named_attribute(obj, "test_attr")
     db.store_named_attribute(obj, new_values, "test_attr")
     assert np.allclose(db.named_attribute(obj, "test_attr"), new_values)
@@ -225,10 +225,10 @@ def test_guess_atype():
 
 
 def test_raise_error():
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.store_named_attribute(bpy.data.objects["Cube"], np.zeros((10, 3)), "test")
 
-    with pytest.raises(db.attribute.NamedAttributeError):
+    with pytest.raises(db.NamedAttributeError):
         db.remove_named_attribute(bpy.data.objects["Cube"], "testing")
 
 
@@ -239,7 +239,7 @@ def test_named_attribute_name(snapshot):
         print(f"{i} letters, name: '{name}'")
         data = np.random.rand(len(obj.data.vertices), 3)
         if i >= 68 or i == 0:
-            with pytest.raises(db.attribute.NamedAttributeError):
+            with pytest.raises(db.NamedAttributeError):
                 db.store_named_attribute(obj, data, name)
         else:
             db.store_named_attribute(obj, data, name)

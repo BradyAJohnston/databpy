@@ -14,7 +14,6 @@ A convenience class for working with Blender objects
 | [name](#databpy.BlenderObject.name) | Get the name of the Blender object. |
 | [object](#databpy.BlenderObject.object) | Get the Blender object. |
 | [position](#databpy.BlenderObject.position) | Get the position of the vertices of the Blender object. |
-| [selected](#databpy.BlenderObject.selected) | Get the selected vertices of the Blender object. |
 | [vertices](#databpy.BlenderObject.vertices) | Get the vertices of the Blender object. |
 
 ## Methods
@@ -28,11 +27,7 @@ A convenience class for working with Blender objects
 | [named_attribute](#databpy.BlenderObject.named_attribute) | Retrieve a named attribute from the object. |
 | [new_from_pydata](#databpy.BlenderObject.new_from_pydata) | Create a new Blender object from vertex, edge and face data. |
 | [remove_named_attribute](#databpy.BlenderObject.remove_named_attribute) | Remove a named attribute from the object. |
-| [selected_positions](#databpy.BlenderObject.selected_positions) | Get the positions of the selected vertices, optionally filtered by a mask. |
-| [set_boolean](#databpy.BlenderObject.set_boolean) | Store a boolean attribute on the Blender object. |
 | [store_named_attribute](#databpy.BlenderObject.store_named_attribute) | Store a named attribute on the Blender object. |
-| [transform_origin](#databpy.BlenderObject.transform_origin) | Transform the origin of the Blender object. |
-| [transform_points](#databpy.BlenderObject.transform_points) | Transform the points of the Blender object. |
 
 ### attributes { #databpy.BlenderObject.attributes }
 
@@ -162,41 +157,6 @@ Remove a named attribute from the object.
 |--------|--------|--------------------------------------|------------|
 | name   | str    | The name of the attribute to remove. | _required_ |
 
-### selected_positions { #databpy.BlenderObject.selected_positions }
-
-```python
-BlenderObject.selected_positions(mask=None)
-```
-
-Get the positions of the selected vertices, optionally filtered by a mask.
-
-#### Parameters {.doc-section .doc-section-parameters}
-
-| Name   | Type               | Description                                                 | Default   |
-|--------|--------------------|-------------------------------------------------------------|-----------|
-| mask   | np.ndarray \| None | The mask to filter the selected vertices. Defaults to None. | `None`    |
-
-#### Returns {.doc-section .doc-section-returns}
-
-| Name   | Type       | Description                             |
-|--------|------------|-----------------------------------------|
-|        | np.ndarray | The positions of the selected vertices. |
-
-### set_boolean { #databpy.BlenderObject.set_boolean }
-
-```python
-BlenderObject.set_boolean(array, name)
-```
-
-Store a boolean attribute on the Blender object.
-
-#### Parameters {.doc-section .doc-section-parameters}
-
-| Name   | Type       | Description                                    | Default    |
-|--------|------------|------------------------------------------------|------------|
-| array  | np.ndarray | The boolean data to be stored as an attribute. | _required_ |
-| name   | str        | The name for the attribute.                    | _required_ |
-
 ### store_named_attribute { #databpy.BlenderObject.store_named_attribute }
 
 ```python
@@ -224,31 +184,3 @@ Store a named attribute on the Blender object.
 | Name   | Type   | Description   |
 |--------|--------|---------------|
 |        | self   |               |
-
-### transform_origin { #databpy.BlenderObject.transform_origin }
-
-```python
-BlenderObject.transform_origin(matrix)
-```
-
-Transform the origin of the Blender object.
-
-#### Parameters {.doc-section .doc-section-parameters}
-
-| Name   | Type   | Description                                       | Default    |
-|--------|--------|---------------------------------------------------|------------|
-| matrix | Matrix | The transformation matrix to apply to the origin. | _required_ |
-
-### transform_points { #databpy.BlenderObject.transform_points }
-
-```python
-BlenderObject.transform_points(matrix)
-```
-
-Transform the points of the Blender object.
-
-#### Parameters {.doc-section .doc-section-parameters}
-
-| Name   | Type   | Description                                       | Default    |
-|--------|--------|---------------------------------------------------|------------|
-| matrix | Matrix | The transformation matrix to apply to the points. | _required_ |

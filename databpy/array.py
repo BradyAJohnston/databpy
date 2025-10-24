@@ -1,5 +1,5 @@
 import numpy as np
-from .attribute import Attribute, AttributeTypes, store_named_attribute
+from .attribute import Attribute, store_named_attribute
 import bpy
 
 
@@ -7,19 +7,54 @@ class AttributeArray(np.ndarray):
     """
     A numpy array subclass that automatically syncs changes back to the Blender object.
 
-    Values are retrieved from the Blender object as a numpy array, the operation is applied
-    and the result is store back on the Blender object.
-    This allows for operations like `pos[:, 2] += 1.0` to work seamlessly.
+    AttributeArray provides an ergonomic interface for working with Blender attributes
+    using familiar numpy operations. It automatically handles bidirectional syncing:
+    values are retrieved from Blender as a numpy array, operations are applied,
+    and results are immediately stored back to Blender.
 
-    Examples:
+    This is the high-level interface for attribute manipulation. For low-level control,
+    see the `Attribute` class which provides manual get/set operations without auto-sync.
+
+    Performance Characteristics
+    ---------------------------
+    - Every modification syncs the ENTIRE attribute array to Blender, not just changed values
+    - This is due to Blender's foreach_set API requiring the complete array
+    - For large meshes (10K+ elements), consider batching multiple operations
+    - Example: `pos[:, 2] += 1.0` writes all position data, not just Z coordinates
+
+    Supported Types
+    ---------------
+    Works with all Blender attribute types:
+    - Float types: FLOAT, FLOAT2, FLOAT_VECTOR, FLOAT_COLOR, FLOAT4X4, QUATERNION
+    - Integer types: INT (int32), INT8, INT32_2D
+    - Boolean: BOOLEAN
+    - Color: BYTE_COLOR (uint8)
+
+    Attributes
+    ----------
+    _blender_object : bpy.types.Object
+        Reference to the Blender object for syncing changes.
+    _attribute : Attribute
+        The underlying Attribute instance with type information.
+    _attr_name : str
+        Name of the attribute being wrapped.
+    _root : AttributeArray
+        Reference to the root array for handling views/slices correctly.
+
+    Examples
     --------
+    Basic usage:
+
     ```{python}
     import databpy as db
     import numpy as np
 
     obj = db.create_object(np.random.rand(10, 3), name="test_bob")
-    db.AttributeArray(obj, "position")
+    pos = db.AttributeArray(obj, "position")
+    pos[:, 2] += 1.0  # Automatically syncs to Blender
     ```
+
+    Using BlenderObject for convenience:
 
     ```{python}
     import databpy as db
@@ -27,18 +62,54 @@ class AttributeArray(np.ndarray):
 
     bob = db.create_bob(np.random.rand(10, 3), name="test_bob")
     print('Initial position:')
-    print(bob.position)  # Access the position attribute as an AttributeArray
+    print(bob.position)  # Returns an AttributeArray
     bob.position[:, 2] += 1.0
     print('Updated position:')
     print(bob.position)
 
+    # Convert to regular numpy array (no sync)
     print('As Array:')
-    print(np.asarray(bob.position))  # Convert to a regular numpy array
+    print(np.asarray(bob.position))
     ```
+
+    Working with integer attributes:
+
+    ```{python}
+    import databpy as db
+    import numpy as np
+
+    obj = db.create_object(np.random.rand(10, 3))
+    # Store integer attribute
+    ids = np.arange(10, dtype=np.int32)
+    db.store_named_attribute(obj, ids, "id", atype="INT")
+
+    # Access as AttributeArray
+    id_array = db.AttributeArray(obj, "id")
+    id_array += 100  # Automatically syncs as int32
+    ```
+
+    See Also
+    --------
+    Attribute : Low-level attribute interface without auto-sync
+    store_named_attribute : Function to create/update attributes
+    named_attribute : Function to read attribute data as regular arrays
     """
 
     def __new__(cls, obj: bpy.types.Object, name: str) -> "AttributeArray":
-        """Create a new AttributeArray that wraps a Blender attribute."""
+        """Create a new AttributeArray that wraps a Blender attribute.
+
+        Parameters
+        ----------
+        obj : bpy.types.Object
+            The Blender object containing the attribute.
+        name : str
+            The name of the attribute to wrap.
+
+        Returns
+        -------
+        AttributeArray
+            A numpy array subclass that syncs changes back to Blender.
+        """
         attr = Attribute(obj.data.attributes[name])
         arr = np.asarray(attr.as_array()).view(cls)
         arr._blender_object = obj
@@ -65,39 +136,61 @@ class AttributeArray(np.ndarray):
         self._sync_to_blender()
 
     def _get_expected_components(self):
-        """Get the expected number of components for the attribute type."""
-        if self._attribute.atype == AttributeTypes.FLOAT_COLOR:
-            return 4
-        elif self._attribute.atype == AttributeTypes.FLOAT_VECTOR:
-            return 3
-        return None
+        """Get the expected number of components for the attribute type.
+
+        Returns the total number of scalar values per element based on the
+        attribute's dimensions. For example, FLOAT_VECTOR (3,) returns 3,
+        FLOAT4X4 (4, 4) returns 16.
+        """
+        dimensions = self._attribute.atype.value.dimensions
+        return int(np.prod(dimensions))
 
     def _ensure_correct_shape(self, data):
-        """Ensure data has the correct shape for Blender."""
+        """Ensure data has the correct shape for Blender.
+
+        Handles numpy views that may have lost dimension information and
+        reshapes 1D arrays to match the expected attribute dimensions.
+        """
         expected_components = self._get_expected_components()
-        if expected_components is None:
-            return data
+        expected_dims = self._attribute.atype.value.dimensions
 
-        # Reshape 1D to 2D if needed
+        # Reshape 1D to correct dimensionality if needed
         if data.ndim == 1 and len(data) % expected_components == 0:
-            return data.reshape(-1, expected_components)
+            n_elements = len(data) // expected_components
+            if len(expected_dims) == 1:
+                # 1D attribute (FLOAT, INT, BOOLEAN, etc.)
+                return data
+            else:
+                # Multi-dimensional attribute
+                return data.reshape(n_elements, *expected_dims)
 
-        # Handle incorrect column count
-        if (
-            data.ndim == 2
-            and data.shape[1] != expected_components
-            and data.shape[1] == 1
-        ):
-            # Try to get the full array
-            full_array = np.asarray(self).view(np.ndarray).copy()
-            if full_array.shape[1] == expected_components:
+        # Handle views that lost shape information (e.g., column slices)
+        if data.ndim != len(self._attribute.shape):
+            # Try to get the full array from the root
+            full_array = np.asarray(self._root).view(np.ndarray).copy()
+            if full_array.shape == self._attribute.shape:
                 return full_array
 
         return data
 
     def _sync_to_blender(self):
-        """Sync the current array data back to the Blender object."""
+        """Sync the current array data back to the Blender object.
+
+        Note: This syncs the ENTIRE array to Blender on every modification,
+        even for single element changes. This is due to Blender's foreach_set
+        API requiring the full array. For large meshes, consider batching
+        multiple modifications before triggering a sync.
+        """
         if self._blender_object is None:
+            import warnings
+
+            warnings.warn(
+                "AttributeArray has lost its Blender object reference. "
+                "Changes will not be synced back to Blender. This can happen "
+                "if the array was created from a deleted object or copied incorrectly.",
+                RuntimeWarning,
+                stacklevel=3,
+            )
             return
 
         # Always sync using the root array to ensure full shape
@@ -105,9 +198,10 @@ class AttributeArray(np.ndarray):
         data_to_sync = np.asarray(root).view(np.ndarray)
         data_to_sync = self._ensure_correct_shape(data_to_sync)
 
-        # Ensure float32 dtype
-        if data_to_sync.dtype != np.float32:
-            data_to_sync = data_to_sync.astype(np.float32)
+        # Use the attribute's actual dtype instead of hardcoding float32
+        expected_dtype = self._attribute.dtype
+        if data_to_sync.dtype != expected_dtype:
+            data_to_sync = data_to_sync.astype(expected_dtype)
 
         store_named_attribute(
             self._blender_object,

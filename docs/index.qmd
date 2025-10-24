@@ -12,6 +12,11 @@ This is intended as a cleaner way to work with data and attributes on mesh objec
 Active development and refinements are still ongoing. The main functions [`store_named_attribute`](api/store_named_attribute.qmd) and [`named_attribute`](api/named_attribute.qmd) are stable, but a lot of the other functionality is still in development. They provide the majority of the useful functionality.
 :::
 
+::: {.callout-tip}
+# New to databpy?
+Check out the [**Attribute Guide**](attribute-guide.qmd) for a comprehensive overview of the attribute system, including performance tips, best practices, and examples for all attribute types.
+:::
+
 `databpy` originally started as a submodule inside of [Molecular Nodes](https://github.com/BradyAJohnston/MolecularNodes) but has been split off into it's own package for use by other projects. Some internal code is still quite specific to the use case of Molecular Nodes, but the majority is more general.
 
 

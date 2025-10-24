@@ -21,7 +21,7 @@ Adds and sets the values of an attribute on the object.
 | data      | np.ndarray                    | The attribute data as a numpy array.                                          | _required_               |
 | name      | str                           | The name of the attribute.                                                    | _required_               |
 | atype     | str or AttributeTypes or None | The attribute type to store the data as. If None, type is inferred from data. | `None`                   |
-| domain    | str or AttributeDomain        | The domain of the attribute, by default 'POINT'.                              | `AttributeDomains.POINT` |
+| domain    | str or AttributeDomains       | The domain of the attribute, by default 'POINT'.                              | `AttributeDomains.POINT` |
 | overwrite | bool                          | Whether to overwrite existing attribute, by default True.                     | `True`                   |
 
 ## Returns {.doc-section .doc-section-returns}

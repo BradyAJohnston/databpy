@@ -2,12 +2,17 @@ project:
   type: website
   output-dir: _build
 
+filters:
+- interlinks
+
 website:
   title: "databpy"
   navbar:
     left:
     - href: index.qmd
       text: Home
+    - href: attribute-guide.qmd
+      text: Attribute Guide
     - href: api/index.qmd
       text: API
     tools:
@@ -29,6 +34,18 @@ format:
 # tell quarto to read the generated sidebar
 metadata-files:
 - api/_sidebar.yml
+
+interlinks:
+  aliases:
+    numpy: np
+    molecularnodes: mn
+  sources:
+    numpy:
+      url: https://numpy.org/doc/stable/
+    python:
+      url: https://docs.python.org/3/
+    bpy:
+      url: https://docs.blender.org/api/current/
 
 quartodoc:
   # the name used to import the package you want to create reference docs for
