@@ -25,8 +25,11 @@ Working with collections in Blender
 
 | | |
 | --- | --- |
-| [create_object](create_object.qmd#databpy.create_object) | Create a new Blender object and corresponding mesh. |
-| [create_bob](create_bob.qmd#databpy.create_bob) | Create a BlenderObject wrapper around a new Blender object. |
+| [create_object](create_object.qmd#databpy.create_object) | Create a new Blender mesh object. |
+| [create_mesh_object](create_mesh_object.qmd#databpy.create_mesh_object) | Create a new Blender mesh object. |
+| [create_curves_object](create_curves_object.qmd#databpy.create_curves_object) | Create a new Blender curves object (new Curves type, not legacy Curve). |
+| [create_pointcloud_object](create_pointcloud_object.qmd#databpy.create_pointcloud_object) | Create a new Blender point cloud object. |
+| [create_bob](create_bob.qmd#databpy.create_bob) | Create a BlenderObject wrapper around a new Blender mesh object. |
 | [evaluate_object](evaluate_object.qmd#databpy.evaluate_object) | Return an object which has the modifiers evaluated. |
 | [BlenderObject](BlenderObject.qmd#databpy.BlenderObject) | A convenience class for working with Blender objects |
 | [LinkedObjectError](LinkedObjectError.qmd#databpy.LinkedObjectError) | Error raised when a Python object doesn't have a linked object in the 3D scene. |

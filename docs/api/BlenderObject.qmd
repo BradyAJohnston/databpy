@@ -1,7 +1,7 @@
 # BlenderObject { #databpy.BlenderObject }
 
 ```python
-BlenderObject(self, obj=None)
+BlenderObject(obj=None)
 ```
 
 A convenience class for working with Blender objects
@@ -10,11 +10,11 @@ A convenience class for working with Blender objects
 
 | Name | Description |
 | --- | --- |
-| [edges](#databpy.BlenderObject.edges) | Get the edges of the Blender object. |
+| [edges](#databpy.BlenderObject.edges) | Get the edges of the Blender mesh object. |
 | [name](#databpy.BlenderObject.name) | Get the name of the Blender object. |
 | [object](#databpy.BlenderObject.object) | Get the Blender object. |
 | [position](#databpy.BlenderObject.position) | Get the position of the vertices of the Blender object. |
-| [vertices](#databpy.BlenderObject.vertices) | Get the vertices of the Blender object. |
+| [vertices](#databpy.BlenderObject.vertices) | Get the vertices of the Blender mesh object. |
 
 ## Methods
 
@@ -23,6 +23,9 @@ A convenience class for working with Blender objects
 | [attributes](#databpy.BlenderObject.attributes) | Get the attributes of the Blender object. |
 | [centroid](#databpy.BlenderObject.centroid) | Calculate the weighted or unweighted centroid of the object's positions. |
 | [evaluate](#databpy.BlenderObject.evaluate) | Return a version of the object with all modifiers applied. |
+| [from_curves](#databpy.BlenderObject.from_curves) | Create a BlenderObject from curves data. |
+| [from_mesh](#databpy.BlenderObject.from_mesh) | Create a BlenderObject from mesh data. |
+| [from_pointcloud](#databpy.BlenderObject.from_pointcloud) | Create a BlenderObject from point cloud data. |
 | [list_attributes](#databpy.BlenderObject.list_attributes) | Returns a list of attribute names for the object. |
 | [named_attribute](#databpy.BlenderObject.named_attribute) | Retrieve a named attribute from the object. |
 | [new_from_pydata](#databpy.BlenderObject.new_from_pydata) | Create a new Blender object from vertex, edge and face data. |
@@ -39,9 +42,9 @@ Get the attributes of the Blender object.
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type                 | Description                           |
-|--------|----------------------|---------------------------------------|
-|        | bpy.types.Attributes | The attributes of the Blender object. |
+| Name   | Type                                                                   | Description                           |
+|--------|------------------------------------------------------------------------|---------------------------------------|
+|        | [bpy](`bpy`).[types](`bpy.types`).[Attributes](`bpy.types.Attributes`) | The attributes of the Blender object. |
 
 ### centroid { #databpy.BlenderObject.centroid }
 
@@ -53,15 +56,15 @@ Calculate the weighted or unweighted centroid of the object's positions.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name   | Type                      | Description                                                                                                                                                                                                                                                                                    | Default   |
-|--------|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
-| weight | str \| np.ndarray \| None | The weights or indices for calculating the centroid: - If str: Name of attribute to use as weights - If np.ndarray with float dtype: Weights for each position - If np.ndarray with int dtype: Indices of positions to include - If None: Use all positions equally weighted Defaults to None. | `None`    |
+| Name   | Type                                                             | Description                                                                                                                                                                                                                                                                                    | Default   |
+|--------|------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------|
+| weight | [str](`str`) \| [np](`numpy`).[ndarray](`numpy.ndarray`) \| None | The weights or indices for calculating the centroid: - If str: Name of attribute to use as weights - If np.ndarray with float dtype: Weights for each position - If np.ndarray with int dtype: Indices of positions to include - If None: Use all positions equally weighted Defaults to None. | `None`    |
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type       | Description                                     |
-|--------|------------|-------------------------------------------------|
-|        | np.ndarray | A 3D vector representing the centroid position. |
+| Name   | Type                                     | Description                                     |
+|--------|------------------------------------------|-------------------------------------------------|
+|        | [np](`numpy`).[ndarray](`numpy.ndarray`) | A 3D vector representing the centroid position. |
 
 ### evaluate { #databpy.BlenderObject.evaluate }
 
@@ -73,9 +76,128 @@ Return a version of the object with all modifiers applied.
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type   | Description                                              |
-|--------|--------|----------------------------------------------------------|
-|        | Object | A new Object that isn't yet registered with the database |
+| Name   | Type                         | Description                                              |
+|--------|------------------------------|----------------------------------------------------------|
+|        | [Object](`bpy.types.Object`) | A new Object that isn't yet registered with the database |
+
+### from_curves { #databpy.BlenderObject.from_curves }
+
+```python
+BlenderObject.from_curves(
+    positions=None,
+    curve_sizes=None,
+    name='Curves',
+    collection=None,
+)
+```
+
+Create a BlenderObject from curves data.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name        | Type                                                                               | Description                                                 | Default    |
+|-------------|------------------------------------------------------------------------------------|-------------------------------------------------------------|------------|
+| positions   | [ndarray](`ndarray`) or None                                                       | Control point positions with shape (N, 3). Default is None. | `None`     |
+| curve_sizes | [list](`list`)\[[int](`int`)\] \| [np](`numpy`).[ndarray](`numpy.ndarray`) or None | Number of points in each curve. Default is None.            | `None`     |
+| name        | [str](`str`)                                                                       | Name of the created object. Default is "Curves".            | `'Curves'` |
+| collection  | [bpy](`bpy`).[types](`bpy.types`).[Collection](`bpy.types.Collection`) or None     | Blender collection to link the object to. Default is None.  | `None`     |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                            | Description                      |
+|--------|-------------------------------------------------|----------------------------------|
+|        | [BlenderObject](`databpy.object.BlenderObject`) | A wrapped Blender curves object. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+import numpy as np
+import databpy as db
+
+# Create 2 curves with 3 and 4 points
+positions = np.random.random((7, 3))
+bob = db.BlenderObject.from_curves(positions, [3, 4], name="MyCurves")
+print(len(bob))  # 7
+```
+
+### from_mesh { #databpy.BlenderObject.from_mesh }
+
+```python
+BlenderObject.from_mesh(
+    vertices=None,
+    edges=None,
+    faces=None,
+    name='Mesh',
+    collection=None,
+)
+```
+
+Create a BlenderObject from mesh data.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name       | Type                                                                           | Description                                                     | Default   |
+|------------|--------------------------------------------------------------------------------|-----------------------------------------------------------------|-----------|
+| vertices   | [ndarray](`ndarray`) or None                                                   | Array of vertex coordinates with shape (N, 3). Default is None. | `None`    |
+| edges      | [ndarray](`ndarray`) or None                                                   | Array of edge indices. Default is None.                         | `None`    |
+| faces      | [ndarray](`ndarray`) or None                                                   | Array of face indices. Default is None.                         | `None`    |
+| name       | [str](`str`)                                                                   | Name of the created object. Default is "Mesh".                  | `'Mesh'`  |
+| collection | [bpy](`bpy`).[types](`bpy.types`).[Collection](`bpy.types.Collection`) or None | Blender collection to link the object to. Default is None.      | `None`    |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                            | Description                    |
+|--------|-------------------------------------------------|--------------------------------|
+|        | [BlenderObject](`databpy.object.BlenderObject`) | A wrapped Blender mesh object. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+import numpy as np
+import databpy as db
+
+vertices = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])
+bob = db.BlenderObject.from_mesh(vertices=vertices, name="MyMesh")
+print(len(bob))  # 4
+```
+
+### from_pointcloud { #databpy.BlenderObject.from_pointcloud }
+
+```python
+BlenderObject.from_pointcloud(
+    positions=None,
+    name='PointCloud',
+    collection=None,
+)
+```
+
+Create a BlenderObject from point cloud data.
+
+#### Parameters {.doc-section .doc-section-parameters}
+
+| Name       | Type                                                                           | Description                                                | Default        |
+|------------|--------------------------------------------------------------------------------|------------------------------------------------------------|----------------|
+| positions  | [ndarray](`ndarray`) or None                                                   | Point positions with shape (N, 3). Default is None.        | `None`         |
+| name       | [str](`str`)                                                                   | Name of the created object. Default is "PointCloud".       | `'PointCloud'` |
+| collection | [bpy](`bpy`).[types](`bpy.types`).[Collection](`bpy.types.Collection`) or None | Blender collection to link the object to. Default is None. | `None`         |
+
+#### Returns {.doc-section .doc-section-returns}
+
+| Name   | Type                                            | Description                           |
+|--------|-------------------------------------------------|---------------------------------------|
+|        | [BlenderObject](`databpy.object.BlenderObject`) | A wrapped Blender point cloud object. |
+
+#### Examples {.doc-section .doc-section-examples}
+
+```python
+import numpy as np
+import databpy as db
+
+# Create point cloud with 100 random points
+positions = np.random.random((100, 3))
+bob = db.BlenderObject.from_pointcloud(positions, name="MyPointCloud")
+print(len(bob))  # 100
+```
 
 ### list_attributes { #databpy.BlenderObject.list_attributes }
 
@@ -87,16 +209,16 @@ Returns a list of attribute names for the object.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name        | Type   | Description                                                                                    | Default   |
-|-------------|--------|------------------------------------------------------------------------------------------------|-----------|
-| evaluate    | bool   | Whether to first evaluate the modifiers on the object before listing the available attributes. | `False`   |
-| drop_hidden | bool   | Whether to drop hidden attributes (those starting with a dot). Defaults to False.              | `False`   |
+| Name        | Type           | Description                                                                                    | Default   |
+|-------------|----------------|------------------------------------------------------------------------------------------------|-----------|
+| evaluate    | [bool](`bool`) | Whether to first evaluate the modifiers on the object before listing the available attributes. | `False`   |
+| drop_hidden | [bool](`bool`) | Whether to drop hidden attributes (those starting with a dot). Defaults to False.              | `False`   |
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type                | Description                                                              |
-|--------|---------------------|--------------------------------------------------------------------------|
-|        | list\[str\] \| None | A list of attribute names if the molecule object exists, None otherwise. |
+| Name   | Type                                   | Description                                                              |
+|--------|----------------------------------------|--------------------------------------------------------------------------|
+|        | [list](`list`)\[[str](`str`)\] \| None | A list of attribute names if the molecule object exists, None otherwise. |
 
 ### named_attribute { #databpy.BlenderObject.named_attribute }
 
@@ -110,16 +232,16 @@ Optionally, evaluate the object before reading the named attribute
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name     | Type   | Description                                                                     | Default    |
-|----------|--------|---------------------------------------------------------------------------------|------------|
-| name     | str    | Name of the attribute to get.                                                   | _required_ |
-| evaluate | bool   | Whether to evaluate the object before reading the attribute (default is False). | `False`    |
+| Name     | Type           | Description                                                                     | Default    |
+|----------|----------------|---------------------------------------------------------------------------------|------------|
+| name     | [str](`str`)   | Name of the attribute to get.                                                   | _required_ |
+| evaluate | [bool](`bool`) | Whether to evaluate the object before reading the attribute (default is False). | `False`    |
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type       | Description                                        |
-|--------|------------|----------------------------------------------------|
-|        | np.ndarray | The attribute read from the mesh as a numpy array. |
+| Name   | Type                                     | Description                                        |
+|--------|------------------------------------------|----------------------------------------------------|
+|        | [np](`numpy`).[ndarray](`numpy.ndarray`) | The attribute read from the mesh as a numpy array. |
 
 ### new_from_pydata { #databpy.BlenderObject.new_from_pydata }
 
@@ -131,17 +253,17 @@ Create a new Blender object from vertex, edge and face data.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name     | Type       | Description                 | Default   |
-|----------|------------|-----------------------------|-----------|
-| vertices | np.ndarray | The vertices of the object. | `None`    |
-| edges    | np.ndarray | The edges of the object.    | `None`    |
-| faces    | np.ndarray | The faces of the object.    | `None`    |
+| Name     | Type                                     | Description                 | Default   |
+|----------|------------------------------------------|-----------------------------|-----------|
+| vertices | [np](`numpy`).[ndarray](`numpy.ndarray`) | The vertices of the object. | `None`    |
+| edges    | [np](`numpy`).[ndarray](`numpy.ndarray`) | The edges of the object.    | `None`    |
+| faces    | [np](`numpy`).[ndarray](`numpy.ndarray`) | The faces of the object.    | `None`    |
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type   | Description             |
-|--------|--------|-------------------------|
-|        | Object | The new Blender object. |
+| Name   | Type                         | Description             |
+|--------|------------------------------|-------------------------|
+|        | [Object](`bpy.types.Object`) | The new Blender object. |
 
 ### remove_named_attribute { #databpy.BlenderObject.remove_named_attribute }
 
@@ -153,9 +275,9 @@ Remove a named attribute from the object.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name   | Type   | Description                          | Default    |
-|--------|--------|--------------------------------------|------------|
-| name   | str    | The name of the attribute to remove. | _required_ |
+| Name   | Type         | Description                          | Default    |
+|--------|--------------|--------------------------------------|------------|
+| name   | [str](`str`) | The name of the attribute to remove. | _required_ |
 
 ### store_named_attribute { #databpy.BlenderObject.store_named_attribute }
 
@@ -172,15 +294,15 @@ Store a named attribute on the Blender object.
 
 #### Parameters {.doc-section .doc-section-parameters}
 
-| Name   | Type                         | Description                                                                                                                                                           | Default                  |
-|--------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
-| data   | np.ndarray                   | The data to be stored as an attribute.                                                                                                                                | _required_               |
-| name   | str                          | The name for the attribute. Will overwrite an already existing attribute.                                                                                             | _required_               |
-| atype  | str or AttributeType or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array. | `None`                   |
-| domain | str or AttributeDomain       | The domain to store the attribute on. Defaults to Domains.POINT.                                                                                                      | `AttributeDomains.POINT` |
+| Name   | Type                                                                       | Description                                                                                                                                                           | Default                  |
+|--------|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| data   | [np](`numpy`).[ndarray](`numpy.ndarray`)                                   | The data to be stored as an attribute.                                                                                                                                | _required_               |
+| name   | [str](`str`)                                                               | The name for the attribute. Will overwrite an already existing attribute.                                                                                             | _required_               |
+| atype  | [str](`str`) or [AttributeType](`databpy.attribute.AttributeType`) or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array. | `None`                   |
+| domain | [str](`str`) or [AttributeDomain](`databpy.attribute.AttributeDomain`)     | The domain to store the attribute on. Defaults to Domains.POINT.                                                                                                      | `AttributeDomains.POINT` |
 
 #### Returns {.doc-section .doc-section-returns}
 
-| Name   | Type   | Description   |
-|--------|--------|---------------|
-|        | self   |               |
+| Name   | Type           | Description   |
+|--------|----------------|---------------|
+|        | [self](`self`) |               |

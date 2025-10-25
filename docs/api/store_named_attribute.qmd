@@ -15,27 +15,27 @@ Adds and sets the values of an attribute on the object.
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name      | Type                          | Description                                                                   | Default                  |
-|-----------|-------------------------------|-------------------------------------------------------------------------------|--------------------------|
-| obj       | bpy.types.Object              | The Blender object.                                                           | _required_               |
-| data      | np.ndarray                    | The attribute data as a numpy array.                                          | _required_               |
-| name      | str                           | The name of the attribute.                                                    | _required_               |
-| atype     | str or AttributeTypes or None | The attribute type to store the data as. If None, type is inferred from data. | `None`                   |
-| domain    | str or AttributeDomains       | The domain of the attribute, by default 'POINT'.                              | `AttributeDomains.POINT` |
-| overwrite | bool                          | Whether to overwrite existing attribute, by default True.                     | `True`                   |
+| Name      | Type                                                                         | Description                                                                   | Default                  |
+|-----------|------------------------------------------------------------------------------|-------------------------------------------------------------------------------|--------------------------|
+| obj       | [bpy](`bpy`).[types](`bpy.types`).[Object](`bpy.types.Object`)               | The Blender object.                                                           | _required_               |
+| data      | [np](`numpy`).[ndarray](`numpy.ndarray`)                                     | The attribute data as a numpy array.                                          | _required_               |
+| name      | [str](`str`)                                                                 | The name of the attribute.                                                    | _required_               |
+| atype     | [str](`str`) or [AttributeTypes](`databpy.attribute.AttributeTypes`) or None | The attribute type to store the data as. If None, type is inferred from data. | `None`                   |
+| domain    | [str](`str`) or [AttributeDomains](`databpy.attribute.AttributeDomains`)     | The domain of the attribute, by default 'POINT'.                              | `AttributeDomains.POINT` |
+| overwrite | [bool](`bool`)                                                               | Whether to overwrite existing attribute, by default True.                     | `True`                   |
 
 ## Returns {.doc-section .doc-section-returns}
 
-| Name   | Type                | Description                      |
-|--------|---------------------|----------------------------------|
-|        | bpy.types.Attribute | The added or modified attribute. |
+| Name   | Type                                                                 | Description                      |
+|--------|----------------------------------------------------------------------|----------------------------------|
+|        | [bpy](`bpy`).[types](`bpy.types`).[Attribute](`bpy.types.Attribute`) | The added or modified attribute. |
 
 ## Raises {.doc-section .doc-section-raises}
 
-| Name   | Type                   | Description                                    |
-|--------|------------------------|------------------------------------------------|
-|        | ValueError             | If atype string doesn't match available types. |
-|        | AttributeMismatchError | If data length doesn't match domain size.      |
+| Name   | Type                                                                 | Description                                    |
+|--------|----------------------------------------------------------------------|------------------------------------------------|
+|        | [ValueError](`ValueError`)                                           | If atype string doesn't match available types. |
+|        | [AttributeMismatchError](`databpy.attribute.AttributeMismatchError`) | If data length doesn't match domain size.      |
 
 ## Examples {.doc-section .doc-section-examples}
 

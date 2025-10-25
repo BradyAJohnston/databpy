@@ -8,23 +8,23 @@ Get the named attribute data from the object.
 
 ## Parameters {.doc-section .doc-section-parameters}
 
-| Name     | Type             | Description                                                     | Default      |
-|----------|------------------|-----------------------------------------------------------------|--------------|
-| obj      | bpy.types.Object | The Blender object.                                             | _required_   |
-| name     | str              | The name of the attribute, by default 'position'.               | `'position'` |
-| evaluate | bool             | Whether to evaluate modifiers before reading, by default False. | `False`      |
+| Name     | Type                                                           | Description                                                     | Default      |
+|----------|----------------------------------------------------------------|-----------------------------------------------------------------|--------------|
+| obj      | [bpy](`bpy`).[types](`bpy.types`).[Object](`bpy.types.Object`) | The Blender object.                                             | _required_   |
+| name     | [str](`str`)                                                   | The name of the attribute, by default 'position'.               | `'position'` |
+| evaluate | [bool](`bool`)                                                 | Whether to evaluate modifiers before reading, by default False. | `False`      |
 
 ## Returns {.doc-section .doc-section-returns}
 
-| Name   | Type       | Description                          |
-|--------|------------|--------------------------------------|
-|        | np.ndarray | The attribute data as a numpy array. |
+| Name   | Type                                     | Description                          |
+|--------|------------------------------------------|--------------------------------------|
+|        | [np](`numpy`).[ndarray](`numpy.ndarray`) | The attribute data as a numpy array. |
 
 ## Raises {.doc-section .doc-section-raises}
 
-| Name   | Type           | Description                                        |
-|--------|----------------|----------------------------------------------------|
-|        | AttributeError | If the named attribute does not exist on the mesh. |
+| Name   | Type                               | Description                                        |
+|--------|------------------------------------|----------------------------------------------------|
+|        | [AttributeError](`AttributeError`) | If the named attribute does not exist on the mesh. |
 
 ## Examples {.doc-section .doc-section-examples}
 
