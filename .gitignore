@@ -12,3 +12,6 @@
 *.quarto_ipynb
 /docs/api
 /build
+.DS_Store
+/docs/_inv
+docs/objects.txt

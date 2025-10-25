@@ -79,6 +79,9 @@ quartodoc:
     contents:
     # - object.ObjectTracker
     - create_object
+    - create_mesh_object
+    - create_curves_object
+    - create_pointcloud_object
     - create_bob
     - evaluate_object
     - BlenderObject

@@ -695,9 +695,16 @@ def store_named_attribute(
     # is the case For now we will set a single vert to it's own position, which triggers a
     # proper refresh of the object data.
     try:
-        obj.data.vertices[0].co = obj.data.vertices[0].co  # type: ignore
+        obj_data.vertices[0].co = obj.data.vertices[0].co  # type: ignore
     except AttributeError:
-        obj.data.update()  # type: ignore
+        # For non-mesh objects (Curves, PointCloud), try update() if it exists
+        try:
+            obj_data.attributes["position"].data[0].vector = (
+                obj_data.attributes["position"].data[0].vector
+            )
+        except AttributeError:
+            if hasattr(obj.data, "update"):
+                obj_data.update()  # type: ignore
 
     return attribute
 
