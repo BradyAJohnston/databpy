@@ -368,7 +368,7 @@ class TestEdgeCases:
         # Blender requires 3D coordinates, 2D should fail
         vertices = [[0, 0], [1, 0]]
         with pytest.raises(RuntimeError, match="internal error setting the array"):
-            obj = db.create_mesh_object(vertices)
+            db.create_mesh_object(vertices)
 
     def test_pointcloud_from_list_input(self):
         """Test creating point cloud from list instead of numpy array."""
