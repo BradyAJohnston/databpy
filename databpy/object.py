@@ -577,6 +577,9 @@ class BlenderObject:
 
     @property
     def data(self):
+        """
+        Return the self.object.data
+        """
         return self.object.data
 
     @property
