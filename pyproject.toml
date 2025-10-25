@@ -4,7 +4,6 @@ version = "0.5.0"
 description = "A data-oriented wrapper library for the Blender Python API"
 readme = "README.md"
 dependencies = [
-    "bpy>=4.5",
     "numpy>=1.24.0,<2.0",
 ]
 requires-python = "~=3.11.0"
@@ -19,7 +18,7 @@ Repository = "https://github.com/bradyajohnston/databpy"
 Dcumentation = "https://bradyajohnston.github.io/databpy"
 
 [project.optional-dependencies]
-bpy = ["bpy>=4.2"]
+bpy = ["bpy>=4.5"]
 test = ["pytest", "pytest-cov", "syrupy"]
 dev = ["fake-bpy-module", "polars"]
 docs = ["quartodoc", "jupyter", "polars"]
