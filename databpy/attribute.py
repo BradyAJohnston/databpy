@@ -704,7 +704,7 @@ def store_named_attribute(
             )
         except AttributeError:
             if hasattr(obj.data, "update"):
-                obj.data.update()  # type: ignore
+                obj_data.update()  # type: ignore
 
     return attribute
 

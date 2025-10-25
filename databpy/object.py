@@ -723,15 +723,11 @@ class BlenderObject:
         int
             The number of points in the Blender object.
         """
-        # Mesh objects use vertices
         if isinstance(self.object.data, bpy.types.Mesh):
             return len(self.object.data.vertices)
-        # PointCloud objects use points
         elif isinstance(self.object.data, bpy.types.PointCloud):
             return len(self.object.data.points)
-        # New Curves objects use the attribute system
         elif isinstance(self.object.data, bpy.types.Curves):
-            # Curves store their point data in the 'position' attribute
             if "position" in self.object.data.attributes:
                 return len(self.object.data.attributes["position"].data)
             return 0
