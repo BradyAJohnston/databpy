@@ -218,6 +218,24 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/create_mesh_object.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">create_mesh_object</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/create_curves_object.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">create_curves_object</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/create_pointcloud_object.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">create_pointcloud_object</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/create_bob.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">create_bob</span></a>
   </div>
@@ -319,21 +337,33 @@ ul.task-list li input[type="checkbox"] {
 <tbody>
 <tr class="odd">
 <td><a href="../api/create_object.html#databpy.create_object">create_object</a></td>
-<td>Create a new Blender object and corresponding mesh.</td>
+<td>Create a new Blender mesh object.</td>
 </tr>
 <tr class="even">
-<td><a href="../api/create_bob.html#databpy.create_bob">create_bob</a></td>
-<td>Create a BlenderObject wrapper around a new Blender object.</td>
+<td><a href="../api/create_mesh_object.html#databpy.create_mesh_object">create_mesh_object</a></td>
+<td>Create a new Blender mesh object.</td>
 </tr>
 <tr class="odd">
+<td><a href="../api/create_curves_object.html#databpy.create_curves_object">create_curves_object</a></td>
+<td>Create a new Blender curves object (new Curves type, not legacy Curve).</td>
+</tr>
+<tr class="even">
+<td><a href="../api/create_pointcloud_object.html#databpy.create_pointcloud_object">create_pointcloud_object</a></td>
+<td>Create a new Blender point cloud object.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/create_bob.html#databpy.create_bob">create_bob</a></td>
+<td>Create a BlenderObject wrapper around a new Blender mesh object.</td>
+</tr>
+<tr class="even">
 <td><a href="../api/evaluate_object.html#databpy.evaluate_object">evaluate_object</a></td>
 <td>Return an object which has the modifiers evaluated.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><a href="../api/BlenderObject.html#databpy.BlenderObject">BlenderObject</a></td>
 <td>A convenience class for working with Blender objects</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><a href="../api/LinkedObjectError.html#databpy.LinkedObjectError">LinkedObjectError</a></td>
 <td>Error raised when a Python object doesn’t have a linked object in the 3D scene.</td>
 </tr>
