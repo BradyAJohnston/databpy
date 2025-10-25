@@ -1,4 +1,5 @@
 from uuid import uuid1
+import warnings
 
 import bpy
 import numpy as np
@@ -177,6 +178,158 @@ class BlenderObject:
             self.object = obj
         elif obj is None:
             self._object_name = ""
+
+    @classmethod
+    def from_mesh(
+        cls,
+        vertices: np.ndarray | None = None,
+        edges: np.ndarray | None = None,
+        faces: np.ndarray | None = None,
+        name: str = "Mesh",
+        collection: bpy.types.Collection | None = None,
+    ) -> "BlenderObject":
+        """
+        Create a BlenderObject from mesh data.
+
+        Parameters
+        ----------
+        vertices : ndarray or None, optional
+            Array of vertex coordinates with shape (N, 3).
+            Default is None.
+        edges : ndarray or None, optional
+            Array of edge indices.
+            Default is None.
+        faces : ndarray or None, optional
+            Array of face indices.
+            Default is None.
+        name : str, optional
+            Name of the created object.
+            Default is "Mesh".
+        collection : bpy.types.Collection or None, optional
+            Blender collection to link the object to.
+            Default is None.
+
+        Returns
+        -------
+        BlenderObject
+            A wrapped Blender mesh object.
+
+        Examples
+        --------
+        ```python
+        import numpy as np
+        import databpy as db
+
+        vertices = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])
+        bob = db.BlenderObject.from_mesh(vertices=vertices, name="MyMesh")
+        print(len(bob))  # 4
+        ```
+        """
+        obj = create_mesh_object(
+            vertices=vertices,
+            edges=edges,
+            faces=faces,
+            name=name,
+            collection=collection,
+        )
+        return cls(obj)
+
+    @classmethod
+    def from_curves(
+        cls,
+        positions: np.ndarray | None = None,
+        curve_sizes: list[int] | np.ndarray | None = None,
+        name: str = "Curves",
+        collection: bpy.types.Collection | None = None,
+    ) -> "BlenderObject":
+        """
+        Create a BlenderObject from curves data.
+
+        Parameters
+        ----------
+        positions : ndarray or None, optional
+            Control point positions with shape (N, 3).
+            Default is None.
+        curve_sizes : list[int] | np.ndarray or None, optional
+            Number of points in each curve.
+            Default is None.
+        name : str, optional
+            Name of the created object.
+            Default is "Curves".
+        collection : bpy.types.Collection or None, optional
+            Blender collection to link the object to.
+            Default is None.
+
+        Returns
+        -------
+        BlenderObject
+            A wrapped Blender curves object.
+
+        Examples
+        --------
+        ```python
+        import numpy as np
+        import databpy as db
+
+        # Create 2 curves with 3 and 4 points
+        positions = np.random.random((7, 3))
+        bob = db.BlenderObject.from_curves(positions, [3, 4], name="MyCurves")
+        print(len(bob))  # 7
+        ```
+        """
+        obj = create_curves_object(
+            positions=positions,
+            curve_sizes=curve_sizes,
+            name=name,
+            collection=collection,
+        )
+        return cls(obj)
+
+    @classmethod
+    def from_pointcloud(
+        cls,
+        positions: np.ndarray | None = None,
+        name: str = "PointCloud",
+        collection: bpy.types.Collection | None = None,
+    ) -> "BlenderObject":
+        """
+        Create a BlenderObject from point cloud data.
+
+        Parameters
+        ----------
+        positions : ndarray or None, optional
+            Point positions with shape (N, 3).
+            Default is None.
+        name : str, optional
+            Name of the created object.
+            Default is "PointCloud".
+        collection : bpy.types.Collection or None, optional
+            Blender collection to link the object to.
+            Default is None.
+
+        Returns
+        -------
+        BlenderObject
+            A wrapped Blender point cloud object.
+
+        Examples
+        --------
+        ```python
+        import numpy as np
+        import databpy as db
+
+        # Create point cloud with 100 random points
+        positions = np.random.random((100, 3))
+        bob = db.BlenderObject.from_pointcloud(positions, name="MyPointCloud")
+        print(len(bob))  # 100
+        ```
+        """
+        obj = create_pointcloud_object(
+            positions=positions,
+            name=name,
+            collection=collection,
+        )
+        return cls(obj)
 
     def _ipython_key_completions_(self) -> list[str]:
         """Return possible named attirbutes"""
@@ -423,28 +576,74 @@ class BlenderObject:
         return self.object.data.attributes
 
     @property
+    def data(self):
+        return self.object.data
+
+    @property
     def vertices(self):
         """
-        Get the vertices of the Blender object.
+        Get the vertices of the Blender mesh object.
+
+        .. deprecated:: 0.5.0
+            This property is mesh-specific and will be removed in version 1.0.0.
+            Use ``bob.data.vertices`` directly for mesh objects, or use
+            the attribute system (``bob['position']`` or ``bob.named_attribute('position')``)
+            which works across all geometry types.
 
         Returns
         -------
         bpy.types.Vertices
-            The vertices of the Blender object.
-        """
+            The vertices of the mesh object.
 
+        Raises
+        ------
+        AttributeError
+            If the object is not a mesh.
+        """
+        warnings.warn(
+            "BlenderObject.vertices is deprecated and will be removed in version 1.0.0. "
+            "Use bob.data.vertices for mesh objects, or bob['position'] for "
+            "geometry-agnostic attribute access.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if not isinstance(self.object.data, bpy.types.Mesh):
+            raise AttributeError(
+                f"vertices property only works with Mesh objects, "
+                f"not {type(self.object.data).__name__}"
+            )
         return self.object.data.vertices
 
     @property
     def edges(self):
         """
-        Get the edges of the Blender object.
+        Get the edges of the Blender mesh object.
+
+        .. deprecated:: 0.5.0
+            This property is mesh-specific and will be removed in version 1.0.0.
+            Use ``bob.data.edges`` directly for mesh objects.
 
         Returns
         -------
         bpy.types.Edges
-            The edges of the Blender object.
+            The edges of the mesh object.
+
+        Raises
+        ------
+        AttributeError
+            If the object is not a mesh.
         """
+        warnings.warn(
+            "BlenderObject.edges is deprecated and will be removed in version 1.0.0. "
+            "Use bob.data.edges directly for mesh objects.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if not isinstance(self.object.data, bpy.types.Mesh):
+            raise AttributeError(
+                f"edges property only works with Mesh objects, "
+                f"not {type(self.object.data).__name__}"
+            )
         return self.object.data.edges
 
     @property
@@ -510,14 +709,212 @@ class BlenderObject:
 
     def __len__(self) -> int:
         """
-        Get the number of vertices in the Blender object.
+        Get the number of points in the Blender object.
+
+        For meshes, this returns the number of vertices. For point clouds, this
+        returns the number of points. For curves (new Curves type), this returns
+        the number of control points.
+
+        Note: Only supports Mesh, Curves (new), and PointCloud types.
+        Does not support the legacy Curve type.
 
         Returns
         -------
         int
-            The number of vertices in the Blender object.
+            The number of points in the Blender object.
         """
-        return len(self.object.data.vertices)
+        # Mesh objects use vertices
+        if isinstance(self.object.data, bpy.types.Mesh):
+            return len(self.object.data.vertices)
+        # PointCloud objects use points
+        elif isinstance(self.object.data, bpy.types.PointCloud):
+            return len(self.object.data.points)
+        # New Curves objects use the attribute system
+        elif isinstance(self.object.data, bpy.types.Curves):
+            # Curves store their point data in the 'position' attribute
+            if "position" in self.object.data.attributes:
+                return len(self.object.data.attributes["position"].data)
+            return 0
+        else:
+            raise TypeError(
+                f"Object type {type(self.object.data).__name__} is not supported. "
+                f"Supported types: Mesh, Curves, PointCloud"
+            )
+
+
+def create_mesh_object(
+    vertices: npt.ArrayLike | None = None,
+    edges: npt.ArrayLike | None = None,
+    faces: np.ndarray | None = None,
+    name: str = "Mesh",
+    collection: bpy.types.Collection | None = None,
+) -> Object:
+    """
+    Create a new Blender mesh object.
+
+    Parameters
+    ----------
+    vertices : np.ndarray, optional
+        The vertices as a numpy array with shape (N, 3). Defaults to None.
+    edges : np.ndarray, optional
+        The edges as a numpy array. Defaults to None.
+    faces : np.ndarray, optional
+        The faces as a numpy array. Defaults to None.
+    name : str, optional
+        The name of the object. Defaults to 'Mesh'.
+    collection : bpy.types.Collection, optional
+        The collection to link the object to. Defaults to None.
+
+    Returns
+    -------
+    Object
+        The created mesh object.
+    """
+
+    def _array(a):
+        if a is None:
+            return []
+        else:
+            return np.asarray(a)
+
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(
+        vertices=_array(vertices), edges=_array(edges), faces=_array(faces)
+    )
+    obj = bpy.data.objects.new(name, mesh)
+    if collection is None:
+        collection = create_collection("Collection")
+    collection.objects.link(obj)
+    return obj
+
+
+def create_curves_object(
+    positions: np.ndarray | None = None,
+    curve_sizes: list[int] | np.ndarray | None = None,
+    name: str = "Curves",
+    collection: bpy.types.Collection | None = None,
+) -> Object:
+    """
+    Create a new Blender curves object (new Curves type, not legacy Curve).
+
+    Parameters
+    ----------
+    positions : np.ndarray, optional
+        The control point positions as a numpy array with shape (N, 3).
+        If None, creates an empty curves object. Defaults to None.
+    curve_sizes : list[int] | np.ndarray, optional
+        Number of points in each curve. For example, [4, 5, 6] creates
+        3 curves with 4, 5, and 6 control points respectively.
+        Total must equal len(positions). If None, creates an empty curves
+        object. Defaults to None.
+    name : str, optional
+        The name of the object. Defaults to 'Curves'.
+    collection : bpy.types.Collection, optional
+        The collection to link the object to. Defaults to None.
+
+    Returns
+    -------
+    Object
+        The created curves object.
+
+    Raises
+    ------
+    ValueError
+        If positions and curve_sizes lengths don't match.
+
+    Examples
+    --------
+    ```python
+    import numpy as np
+    from databpy import create_curves_object
+
+    # Create 2 curves with 3 and 4 points
+    positions = np.random.random((7, 3))
+    curves_obj = create_curves_object(positions, [3, 4])
+    ```
+    """
+    curves_data = bpy.data.hair_curves.new(name)
+    obj = bpy.data.objects.new(name, curves_data)
+
+    if collection is None:
+        collection = create_collection("Collection")
+    collection.objects.link(obj)
+
+    # If positions and curve_sizes are provided, add the curves
+    if positions is not None and curve_sizes is not None:
+        positions = np.asarray(positions)
+        curve_sizes = np.asarray(curve_sizes, dtype=int)
+
+        total_points = np.sum(curve_sizes)
+        if len(positions) != total_points:
+            raise ValueError(
+                f"Total points in curve_sizes ({total_points}) must equal "
+                f"number of positions ({len(positions)})"
+            )
+
+        curves_data.add_curves(curve_sizes.tolist())
+        attr.store_named_attribute(obj, positions, "position")
+
+    return obj
+
+
+def create_pointcloud_object(
+    positions: np.ndarray | None = None,
+    name: str = "PointCloud",
+    collection: bpy.types.Collection | None = None,
+) -> Object:
+    """
+    Create a new Blender point cloud object.
+
+    This function creates a point cloud by first creating a mesh with vertices
+    at the specified positions, then converting it to a point cloud using
+    Blender's convert operator.
+
+    Parameters
+    ----------
+    positions : np.ndarray, optional
+        The point positions as a numpy array with shape (N, 3).
+        If None, creates an empty point cloud object. Defaults to None.
+    name : str, optional
+        The name of the object. Defaults to 'PointCloud'.
+    collection : bpy.types.Collection, optional
+        The collection to link the object to. Defaults to None.
+
+    Returns
+    -------
+    Object
+        The created point cloud object.
+
+    Examples
+    --------
+    ```python
+    import numpy as np
+    from databpy import create_pointcloud_object
+
+    # Create point cloud with 100 random points
+    positions = np.random.random((100, 3))
+    pc_obj = create_pointcloud_object(positions, name="MyPC")
+    print(len(pc_obj.data.points))  # 100
+    ```
+
+    Notes
+    -----
+    This function works by creating a temporary mesh and converting it to a
+    point cloud using `bpy.ops.object.convert(target='POINTCLOUD')`.
+    """
+
+    obj = create_mesh_object(
+        vertices=positions, edges=None, faces=None, name=name, collection=collection
+    )
+
+    with bpy.context.temp_override(  # type: ignore
+        active_object=obj,
+        selected_objects=[obj],
+        selected_editable_objects=[obj],
+    ):
+        bpy.ops.object.convert(target="POINTCLOUD")
+
+    return obj
 
 
 def create_object(
@@ -528,19 +925,16 @@ def create_object(
     collection: bpy.types.Collection | None = None,
 ) -> Object:
     """
-    Create a new Blender object and corresponding mesh.
-
-    Vertices are created for each row in the vertices array. If edges and / or faces are created then they are also
-    initialized but default to None.
+    Create a new Blender mesh object.
 
     Parameters
     ----------
     vertices : np.ndarray, optional
-        The vertices of the vertices as a numpy array. Defaults to None.
+        The vertices as a numpy array. Defaults to None.
     edges : np.ndarray, optional
-        The edges of the object as a numpy array. Defaults to None.
+        The edges as a numpy array. Defaults to None.
     faces : np.ndarray, optional
-        The faces of the object as a numpy array. Defaults to None.
+        The faces as a numpy array. Defaults to None.
     name : str, optional
         The name of the object. Defaults to 'NewObject'.
     collection : bpy.types.Collection, optional
@@ -549,21 +943,9 @@ def create_object(
     Returns
     -------
     Object
-        The created object.
+        The created mesh object.
     """
-    if vertices is None:
-        vertices = []
-    if edges is None:
-        edges = []
-    if faces is None:
-        faces = []
-    mesh = bpy.data.meshes.new(name)
-    mesh.from_pydata(vertices=vertices, edges=edges, faces=faces)
-    obj = bpy.data.objects.new(name, mesh)
-    if collection is None:
-        collection = create_collection("Collection")
-    collection.objects.link(obj)
-    return obj
+    return create_mesh_object(vertices, edges, faces, name, collection)
 
 
 def create_bob(
@@ -575,18 +957,18 @@ def create_bob(
     uuid: str | None = None,
 ) -> BlenderObject:
     """
-    Create a BlenderObject wrapper around a new Blender object.
+    Create a BlenderObject wrapper around a new Blender mesh object.
 
     Parameters
     ----------
     vertices : ndarray or None, optional
-        Array of vertex coordinates. Each row represents a vertex.
+        Array of vertex coordinates.
         Default is None.
     edges : ndarray or None, optional
-        Array of edge indices. Each row contains indices of vertices forming an edge.
+        Array of edge indices.
         Default is None.
     faces : ndarray or None, optional
-        Array of face indices. Each row contains indices of vertices forming a face.
+        Array of face indices.
         Default is None.
     name : str, optional
         Name of the created object.
@@ -595,39 +977,17 @@ def create_bob(
         Blender collection to link the object to.
         Default is None.
     uuid : str or None, optional
-        Directly set the UUID on the resulting BlenderObject rather than generating one.
+        Directly set the UUID on the resulting BlenderObject.
         Default is None.
 
     Returns
     -------
     BlenderObject
-        A wrapped Blender object with additional functionality.
-
-    See Also
-    --------
-    :func:`create_object` : The underlying function used to create the Blender object.
-
-    Notes
-    -----
-    If uuid is provided, it will be set both on the BlenderObject wrapper
-    and the underlying Blender object.
-
-    Examples
-    --------
-    ```{python}
-    import numpy as np
-    from databpy.object import create_bob
-    vertices = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])
-    bob = create_bob(vertices=vertices, name="MyObject")
-    print(bob.name)
-    print(len(bob))
-    bob.named_attribute("position")
-    ```
-
-
+        A wrapped Blender mesh object.
     """
+
     bob = BlenderObject(
-        create_object(
+        create_mesh_object(
             vertices=vertices,
             edges=edges,
             faces=faces,
@@ -638,5 +998,8 @@ def create_bob(
     if uuid:
         bob._uuid = uuid
         bob.object.uuid = uuid
-
     return bob
+
+
+# Friendly alias for BlenderObject - commonly used variable name
+BOB = BlenderObject

@@ -1,8 +1,12 @@
 from .object import (
     ObjectTracker,
     BlenderObject,
+    BOB,
     create_object,
     create_bob,
+    create_mesh_object,
+    create_curves_object,
+    create_pointcloud_object,
     LinkedObjectError,
     bdo,
 )
@@ -32,8 +36,12 @@ from .attribute import (
 __all__ = [
     "ObjectTracker",
     "BlenderObject",
+    "BOB",
     "create_object",
     "create_bob",
+    "create_mesh_object",
+    "create_curves_object",
+    "create_pointcloud_object",
     "LinkedObjectError",
     "bdo",
     "import_vdb",
