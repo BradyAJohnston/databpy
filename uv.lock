@@ -333,6 +333,7 @@ name = "databpy"
 version = "0.4.2"
 source = { virtual = "." }
 dependencies = [
+    { name = "bpy" },
     { name = "numpy" },
 ]
 
@@ -357,6 +358,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bpy", specifier = ">=4.5" },
     { name = "bpy", marker = "extra == 'bpy'", specifier = ">=4.2" },
     { name = "fake-bpy-module", marker = "extra == 'dev'" },
     { name = "jupyter", marker = "extra == 'docs'" },
