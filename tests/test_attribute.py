@@ -300,7 +300,9 @@ def test_list_attributes(evaluate, drop_hidden):
 
     # Verify all our custom names are present
     for name in names:
-        assert name in attributes, f"Expected attribute '{name}' not found in {attributes}"
+        assert name in attributes, (
+            f"Expected attribute '{name}' not found in {attributes}"
+        )
 
     # Test geometry nodes attribute visibility based on evaluate flag
     if evaluate:
