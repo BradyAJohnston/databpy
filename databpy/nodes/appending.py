@@ -6,16 +6,16 @@ from typing import List
 
 import bpy
 
+from .utils import NODE_DUP_SUFFIX
+
 
 def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
     # Compile the regex pattern for matching a suffix of a dot followed by 3 numbers
-    node_duplicate_pattern = re.compile(r"\.\d{3}$")
+    node_duplicate_pattern = re.compile(NODE_DUP_SUFFIX)
     to_remove: List[bpy.types.GeometryNodeTree] = []
 
     for node_tree in node_trees:
         # Check if the node tree's name matches the duplicate pattern and is not a "NodeGroup"
-        # print(f"{node_tree.name=}")
-
         for node in node_tree.nodes:
             if not hasattr(node, "node_tree"):
                 continue
@@ -32,7 +32,6 @@ def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
             if not replacement:
                 continue
 
-            # print(f"matched {old_name} with {name_sans}")
             node.node_tree = replacement  # type: ignore
             to_remove.append(bpy.data.node_groups[old_name])
 

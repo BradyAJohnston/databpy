@@ -1,21 +1,22 @@
-import bpy
-from typing import Union
 from pathlib import Path
-from .object import ObjectTracker
+
+import bpy
+
 from .collection import create_collection
+from .object import ObjectTracker
 
 
 def import_vdb(
-    file: Union[str, Path], collection: Union[str, bpy.types.Collection, None] = None
+    file: str | Path, collection: str | bpy.types.Collection | None = None
 ) -> bpy.types.Object:
     """
     Imports a VDB file as a Blender volume object.
 
     Parameters
     ----------
-    file : Union[str, Path]
+    file : str | Path
         Path to the VDB file.
-    collection : Union[str, bpy.types.Collection, None], optional
+    collection : str | bpy.types.Collection | None, optional
         Collection to place the imported volume in. Can be either a collection name,
         an existing collection, or None to use the active collection.
 

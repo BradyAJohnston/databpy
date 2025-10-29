@@ -15,7 +15,7 @@ maintainers = [
 [project.urls]
 Homepage = "https://bradyajohnston.github.io/databpy"
 Repository = "https://github.com/bradyajohnston/databpy"
-Dcumentation = "https://bradyajohnston.github.io/databpy"
+Documentation = "https://bradyajohnston.github.io/databpy"
 
 [project.optional-dependencies]
 bpy = ["bpy>=4.5"]
