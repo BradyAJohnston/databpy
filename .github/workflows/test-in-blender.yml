@@ -17,7 +17,7 @@ jobs:
               os: [macos-14, ubuntu-latest, windows-latest]
         steps:
             - uses: actions/checkout@v4
-            - uses: BradyAJohnston/setup-blender@v3
+            - uses: BradyAJohnston/setup-blender@v5
               with:
                 version: ${{ matrix.version }}
             - name: Install and Test
