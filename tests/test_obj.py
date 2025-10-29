@@ -111,7 +111,7 @@ def test_matrix_read_write():
     arr2 = np.random.rand(5, 4, 4)
     bob.store_named_attribute(data=arr2, name="test_matrix2")
     assert (
-        bob.object.data.attributes["test_matrix2"].data_type
+        bob.data.attributes["test_matrix2"].data_type
         == db.AttributeTypes.FLOAT4X4.value.type_name
     )
     assert not np.allclose(bob.named_attribute("test_matrix2"), arr)
