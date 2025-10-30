@@ -2,6 +2,9 @@ version = 1
 revision = 3
 requires-python = "==3.11.*"
 
+[options]
+prerelease-mode = "allow"
+
 [[package]]
 name = "annotated-types"
 version = "0.7.0"
@@ -330,7 +333,7 @@ wheels = [
 
 [[package]]
 name = "databpy"
-version = "0.5.0"
+version = "0.5.1"
 source = { virtual = "." }
 dependencies = [
     { name = "numpy" },
@@ -354,6 +357,11 @@ test = [
     { name = "pytest-cov" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "databpy" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "bpy", marker = "extra == 'bpy'", specifier = ">=4.5" },
@@ -367,6 +375,9 @@ requires-dist = [
     { name = "quartodoc", marker = "extra == 'docs'" },
 ]
 provides-extras = ["bpy", "test", "dev", "docs"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "databpy", virtual = "." }]
 
 [[package]]
 name = "debugpy"
