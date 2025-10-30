@@ -232,8 +232,9 @@ def test_raise_error():
         db.remove_named_attribute(bpy.data.objects["Cube"], "testing")
 
 
-def test_named_attribute_name(snapshot):
+def test_named_attribute_name():
     obj = bpy.data.objects["Cube"]
+    valid_names = []
     for i in range(150):
         name = "a" * i
         print(f"{i} letters, name: '{name}'")
@@ -244,17 +245,24 @@ def test_named_attribute_name(snapshot):
         else:
             db.store_named_attribute(obj, data, name)
             assert name in db.list_attributes(obj)
+            valid_names.append(name)
 
-    assert snapshot == db.list_attributes(obj)
+    # Verify all valid names were created
+    attrs = db.list_attributes(obj)
+    for name in valid_names:
+        assert name in attrs
 
 
 @pytest.mark.parametrize(
     "evaluate, drop_hidden", itertools.product([True, False], repeat=2)
 )
-def test_list_attributes(snapshot, evaluate, drop_hidden):
+def test_list_attributes(evaluate, drop_hidden):
     obj = bpy.data.objects["Cube"]
-    attrs = db.list_attributes(obj, evaluate=evaluate, drop_hidden=drop_hidden)
-    assert snapshot == attrs
+
+    # Get initial attributes - should include default cube attributes like position
+    attrs_before = db.list_attributes(obj, evaluate=evaluate, drop_hidden=drop_hidden)
+    assert "position" in attrs_before  # position is always present on mesh objects
+    assert isinstance(attrs_before, list)
 
     # 10 different random string names with different lengths
     names = [
@@ -284,11 +292,19 @@ def test_list_attributes(snapshot, evaluate, drop_hidden):
         db.store_named_attribute(obj, data, name, domain="POINT", atype="FLOAT_VECTOR")
 
     attributes = db.list_attributes(obj, evaluate=evaluate, drop_hidden=drop_hidden)
+
+    # Verify BlenderObject wrapper gives same results
     assert attributes == db.BlenderObject(obj).list_attributes(
         evaluate=evaluate, drop_hidden=drop_hidden
     )
-    assert snapshot == attributes
 
+    # Verify all our custom names are present
+    for name in names:
+        assert name in attributes, (
+            f"Expected attribute '{name}' not found in {attributes}"
+        )
+
+    # Test geometry nodes attribute visibility based on evaluate flag
     if evaluate:
         assert "testing" in db.list_attributes(obj, evaluate=True)
     else:

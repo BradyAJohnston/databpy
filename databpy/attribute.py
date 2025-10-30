@@ -28,7 +28,7 @@ def _check_obj_attributes(obj: Object) -> None:
         raise TypeError(f"Object must be a bpy.types.Object, not {type(obj)}")
     if not any(isinstance(obj.data, obj_type) for obj_type in COMPATIBLE_TYPES):
         raise TypeError(
-            f"The object is not a a compatible type.\n- Obj: {obj}\n- Compatitble Types: {COMPATIBLE_TYPES}"
+            f"The object is not a compatible type.\n- Obj: {obj}\n- Compatible Types: {COMPATIBLE_TYPES}"
         )
 
 
@@ -793,14 +793,10 @@ def named_attribute(
 
         obj = evaluate_object(obj)
 
-    verbose = False
     try:
         attr = Attribute(obj.data.attributes[name])
     except KeyError:
         message = f"The selected attribute '{name}' does not exist on the mesh."
-        if verbose:
-            message += f"Possible attributes are: {obj.data.attributes.keys()}"
-
         raise NamedAttributeError(message)
 
     return attr.as_array()

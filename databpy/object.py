@@ -332,7 +332,7 @@ class BlenderObject:
         return cls(obj)
 
     def _ipython_key_completions_(self) -> list[str]:
-        """Return possible named attirbutes"""
+        """Return possible named attributes"""
         return self.list_attributes()
 
     def __getitem__(self, name: str) -> AttributeArray:

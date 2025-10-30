@@ -76,7 +76,7 @@ def custom_string_iswitch(
         link(node_input.outputs[socket_in.identifier], node_iswitch.inputs["Index"])
 
         for i, item in enumerate(values):
-            # the node starts with 2 items alread, so we only create new items
+            # the node starts with 2 items already, so we only create new items
             # if they are above that
             if i > 1:
                 node_iswitch.index_switch_items.new()

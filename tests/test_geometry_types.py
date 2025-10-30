@@ -25,7 +25,7 @@ class TestMeshCreation:
         bob = db.BlenderObject.from_mesh(vertices, name="TestMeshBob")
 
         assert isinstance(bob, db.BlenderObject)
-        assert isinstance(bob.object.data, bpy.types.Mesh)
+        assert isinstance(bob.data, bpy.types.Mesh)
         assert len(bob) == 3
         assert bob.name == "TestMeshBob"
 
@@ -67,7 +67,7 @@ class TestCurvesCreation:
         bob = db.BlenderObject.from_curves(positions, curve_sizes, name="TestCurvesBob")
 
         assert isinstance(bob, db.BlenderObject)
-        assert isinstance(bob.object.data, bpy.types.Curves)
+        assert isinstance(bob.data, bpy.types.Curves)
         assert len(bob) == 7
         assert bob.name == "TestCurvesBob"
 
@@ -126,7 +126,7 @@ class TestPointCloudCreation:
         bob = db.BlenderObject.from_pointcloud(positions, name="TestPCBob")
 
         assert isinstance(bob, db.BlenderObject)
-        assert isinstance(bob.object.data, bpy.types.PointCloud)
+        assert isinstance(bob.data, bpy.types.PointCloud)
         assert len(bob) == 100
         assert bob.name == "TestPCBob"
 
@@ -165,7 +165,7 @@ class TestBlenderObjectLen:
         bob = db.BlenderObject.from_mesh(vertices)
 
         assert len(bob) == 4
-        assert len(bob) == len(bob.object.data.vertices)
+        assert len(bob) == len(bob.data.vertices)
 
     def test_len_curves(self):
         """Test __len__ returns point count for curves objects."""
@@ -174,7 +174,7 @@ class TestBlenderObjectLen:
         bob = db.BlenderObject.from_curves(positions, curve_sizes)
 
         assert len(bob) == 12
-        assert len(bob) == len(bob.object.data.points)
+        assert len(bob) == len(bob.data.points)
 
     def test_len_pointcloud(self):
         """Test __len__ returns point count for point cloud objects."""
@@ -182,7 +182,7 @@ class TestBlenderObjectLen:
         bob = db.BlenderObject.from_pointcloud(positions)
 
         assert len(bob) == 75
-        assert len(bob) == len(bob.object.data.points)
+        assert len(bob) == len(bob.data.points)
 
     def test_len_empty_objects(self):
         """Test __len__ returns 0 for empty objects."""
