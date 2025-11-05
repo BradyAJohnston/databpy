@@ -178,7 +178,7 @@ def test_duplicate_prevention():
             group = tree2.nodes.new("GeometryNodeGroup")
             group.node_tree = group1.copy()
 
-    assert len(bpy.data.node_groups) == 5
+    assert len(bpy.data.node_groups) == 4
 
 
 @pytest.mark.parametrize("suffix", ["NodeTree", ""])
