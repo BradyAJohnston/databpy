@@ -10,11 +10,80 @@ from .utils import NODE_DUP_SUFFIX
 
 
 def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
-    """Deduplicate node trees by remapping duplicates to their originals
+    """Deduplicate node trees by remapping duplicates to their originals.
 
-    This implementation uses user_remap() to automatically update all references
-    throughout Blender, then removes the duplicate node trees. It processes in
-    three passes to avoid redundant work and ensure correctness.
+    Identifies node trees with duplicate naming patterns (e.g., "NodeTree.001",
+    "NodeTree.002") and remaps all references to point to the original node tree
+    (e.g., "NodeTree"). Uses Blender's `user_remap()` API to automatically update
+    all references throughout the blend file, then removes the duplicate node trees.
+
+    This implementation processes in three passes to avoid redundant work and
+    ensure correctness:
+
+    1. Identification: Find all duplicates and build a mapping to originals
+    2. Remapping: Use `user_remap()` to update all references in Blender
+    3. Cleanup: Remove the now-unused duplicate node trees
+
+    Parameters
+    ----------
+    node_trees : List[bpy.types.NodeTree]
+        List of node trees to check for duplicates. Typically obtained from
+        `bpy.data.node_groups` or a filtered subset thereof.
+
+    Returns
+    -------
+    None
+        This function modifies the Blender data in-place.
+
+    Notes
+    -----
+    - Duplicate pattern: Matches node trees with names ending in ".###" where
+      ### is a 3-digit number (e.g., ".001", ".042", ".999")
+    - Complexity: O(N) where N is the number of node trees, making it efficient
+      even with large numbers of duplicates
+    - Thread-safe: No, modifies global Blender data structures
+    - The function skips node trees already marked for removal to avoid
+      redundant processing
+    - Uses a set for O(1) lookup performance when checking already-processed trees
+
+    Examples
+    --------
+    Deduplicate all node groups in the current blend file:
+
+    ```{python}
+    import bpy
+    from databpy.nodes import deduplicate_node_trees
+
+    node_trees = list(bpy.data.node_groups)
+    deduplicate_node_trees(node_trees)
+    ```
+
+    Deduplicate only geometry node trees:
+
+    ```{python}
+    geometry_trees = [
+        tree for tree in bpy.data.node_groups
+        if tree.type == 'GEOMETRY'
+    ]
+    deduplicate_node_trees(geometry_trees)
+    ```
+
+    Deduplicate newly imported node trees:
+
+    ```{python}
+    before_import = set(ng.name for ng in bpy.data.node_groups)
+    # ... import operation that may create duplicates ...
+    new_trees = [
+        tree for tree in bpy.data.node_groups
+        if tree.name not in before_import
+    ]
+    deduplicate_node_trees(new_trees)
+    ```
+
+    See Also
+    --------
+    cleanup_duplicates : Higher-level function that handles collection and purging
+    DuplicatePrevention : Context manager for preventing duplicates during import
     """
     node_duplicate_pattern = re.compile(NODE_DUP_SUFFIX)
     to_remove: set[bpy.types.NodeTree] = set()
