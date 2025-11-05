@@ -10,34 +10,42 @@ from .utils import NODE_DUP_SUFFIX
 
 
 def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
-    # Compile the regex pattern for matching a suffix of a dot followed by 3 numbers
+    """Deduplicate node trees by remapping duplicates to their originals
+
+    This implementation uses user_remap() to automatically update all references
+    throughout Blender, then removes the duplicate node trees. It processes in
+    three passes to avoid redundant work and ensure correctness.
+    """
     node_duplicate_pattern = re.compile(NODE_DUP_SUFFIX)
-    to_remove: List[bpy.types.GeometryNodeTree] = []
+    to_remove: set[bpy.types.NodeTree] = set()
+
+    # First pass: identify all duplicates and their replacements
+    remap_pairs = []
 
     for node_tree in node_trees:
-        # Check if the node tree's name matches the duplicate pattern and is not a "NodeGroup"
-        for node in node_tree.nodes:
-            if not hasattr(node, "node_tree"):
-                continue
-            tree = node.node_tree  # type: ignore
-            if tree.name.startswith("NodeGroup"):
-                continue
-            if not node_duplicate_pattern.search(tree.name):
-                continue
+        # Skip if already marked for removal
+        if node_tree in to_remove:
+            continue
 
-            old_name = tree.name
+        old_name = node_tree.name
+
+        if node_duplicate_pattern.search(old_name):
             # Remove the numeric suffix to get the original name
             name_sans = old_name.rsplit(".", 1)[0]
             replacement = bpy.data.node_groups.get(name_sans)
-            if not replacement:
-                continue
 
-            node.node_tree = replacement  # type: ignore
-            to_remove.append(bpy.data.node_groups[old_name])
+            # Only remap if replacement exists and isn't also marked for removal
+            if replacement and replacement not in to_remove:
+                remap_pairs.append((node_tree, replacement))
+                to_remove.add(node_tree)
 
+    # Second pass: perform all remappings
+    for node_tree, replacement in remap_pairs:
+        node_tree.user_remap(replacement)
+
+    # Third pass: remove all duplicates
     for tree in to_remove:
         try:
-            # remove the data from the blend file
             bpy.data.node_groups.remove(tree)
         except ReferenceError:
             pass
