@@ -17,13 +17,6 @@ def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
     (e.g., "NodeTree"). Uses Blender's `user_remap()` API to automatically update
     all references throughout the blend file, then removes the duplicate node trees.
 
-    This implementation processes in three passes to avoid redundant work and
-    ensure correctness:
-
-    1. Identification: Find all duplicates and build a mapping to originals
-    2. Remapping: Use `user_remap()` to update all references in Blender
-    3. Cleanup: Remove the now-unused duplicate node trees
-
     Parameters
     ----------
     node_trees : List[bpy.types.NodeTree]
@@ -39,18 +32,14 @@ def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
     -----
     - Duplicate pattern: Matches node trees with names ending in ".###" where
       ### is a 3-digit number (e.g., ".001", ".042", ".999")
-    - Complexity: O(N) where N is the number of node trees, making it efficient
-      even with large numbers of duplicates
     - Thread-safe: No, modifies global Blender data structures
-    - The function skips node trees already marked for removal to avoid
-      redundant processing
     - Uses a set for O(1) lookup performance when checking already-processed trees
 
     Examples
     --------
     Deduplicate all node groups in the current blend file:
 
-    ```{python}
+    ```python
     import bpy
     from databpy.nodes import deduplicate_node_trees
 
@@ -60,7 +49,7 @@ def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
 
     Deduplicate only geometry node trees:
 
-    ```{python}
+    ```python
     geometry_trees = [
         tree for tree in bpy.data.node_groups
         if tree.type == 'GEOMETRY'
@@ -70,7 +59,7 @@ def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
 
     Deduplicate newly imported node trees:
 
-    ```{python}
+    ```python
     before_import = set(ng.name for ng in bpy.data.node_groups)
     # ... import operation that may create duplicates ...
     new_trees = [
