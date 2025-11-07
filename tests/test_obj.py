@@ -115,3 +115,14 @@ def test_matrix_read_write():
         == db.AttributeTypes.FLOAT4X4.value.type_name
     )
     assert not np.allclose(bob.named_attribute("test_matrix2"), arr)
+
+
+def test_newfrompydata():
+    values = np.random.rand(8, 3)
+    bob = db.BlenderObject()
+    with pytest.raises(LinkedObjectError):
+        bob.new_from_pydata(values)
+
+    bob = db.BlenderObject.from_pointcloud(values)
+    with pytest.raises(TypeError):
+        bob.new_from_pydata(values)

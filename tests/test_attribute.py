@@ -311,6 +311,13 @@ def test_list_attributes(evaluate, drop_hidden):
         assert "testing" not in db.list_attributes(obj, evaluate=False)
 
 
+def test_ipython_list_attirbutes():
+    values = np.random.rand(8, 3)
+    bob = db.BlenderObject.from_mesh(values)
+    bob.store_named_attribute(np.random.randint(0, 128, 8), "test_attribute")
+    assert bob.list_attributes() == bob._ipython_key_completions_()
+
+
 def test_str_access_attribute():
     # Create test object with known vertices
     verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
@@ -321,6 +328,9 @@ def test_str_access_attribute():
     assert bob["test_name"][0][0] == 0.0
     bob["test_name"][0] = 1
     assert bob["test_name"][0][0] == 1
+
+    with pytest.raises(ValueError):
+        bob[0]  # type: ignore
 
     values = np.zeros(3, dtype=int)
 

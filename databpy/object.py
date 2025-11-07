@@ -147,18 +147,37 @@ def get_from_uuid(uuid: str) -> Object:
     )
 
 
-class BlenderObject:
+class BlenderObjectBase:
     """
-    A convenience class for working with Blender objects
+    Minimal base class for Blender objects with attribute access.
+
+    This class provides core functionality for storing and accessing named attributes
+    on Blender objects. It can be inherited by other packages that need attribute
+    management without the full BlenderObject feature set.
+
+    Attributes
+    ----------
+    object : bpy.types.Object
+        The wrapped Blender object.
+    uuid : str
+        Unique identifier for this object instance.
+    name : str
+        Name of the Blender object.
+    position : AttributeArray
+        Position attribute of the object's vertices/points.
+    data : bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
+        The data block associated with this object.
+    attributes
+        Get the attributes collection of the Blender object.
     """
 
     def __init__(self, obj: Object | str | None = None):
         """
-        Initialize the BlenderObject.
+        Initialize the BlenderObjectBase.
 
         Parameters
         ----------
-        obj : Object | None
+        obj : Object | str | None
             The Blender object to wrap.
         """
         self._uuid: str = str(uuid1())
@@ -178,6 +197,343 @@ class BlenderObject:
             self.object = obj
         elif obj is None:
             self._object_name = ""
+
+    def _ipython_key_completions_(self) -> list[str]:
+        """
+        Return possible named attributes for IPython tab completion.
+
+        Returns
+        -------
+        list[str]
+            List of attribute names available on this object.
+        """
+        return self.list_attributes()
+
+    def __getitem__(self, name: str) -> AttributeArray:
+        """
+        Access a named attribute using dictionary-style syntax.
+
+        Parameters
+        ----------
+        name : str
+            The name of the attribute to access.
+
+        Returns
+        -------
+        AttributeArray
+            An AttributeArray that wraps the named attribute data.
+
+        Raises
+        ------
+        ValueError
+            If name is not a string.
+        """
+        if not isinstance(name, str):
+            raise ValueError("Attribute name must be a string")
+        return AttributeArray(self.object, name)
+
+    def __setitem__(self, name: str, data: np.ndarray) -> None:
+        """
+        Set a named attribute using dictionary-style syntax.
+
+        Parameters
+        ----------
+        name : str
+            The name of the attribute to set.
+        data : np.ndarray
+            The data to store in the attribute.
+        """
+        if name in self.list_attributes():
+            att = Attribute(self.attributes[name])
+            self.store_named_attribute(
+                data=data, name=name, domain=att.domain, atype=att.atype
+            )
+        self.store_named_attribute(data=data, name=name)
+
+    def _check_obj(self) -> None:
+        _check_obj_attributes(self.object)
+
+    @property
+    def object(self) -> Object:
+        """
+        Get the Blender object.
+
+        Returns
+        -------
+        Object | None
+            The Blender object, or None if not found.
+        """
+
+        # if we can't match a an object by name in the database, we instead try to match
+        # by the uuid. If we match by name and the uuid doesn't match, we try to find
+        # another object instead with the same uuid
+
+        try:
+            obj = bpy.data.objects[self._object_name]
+            if obj.uuid != self.uuid:
+                obj = get_from_uuid(self.uuid)
+        except (KeyError, MemoryError):
+            obj = get_from_uuid(self.uuid)
+            self._object_name = obj.name
+
+        return obj
+
+    @object.setter
+    def object(self, value: Object) -> None:
+        """
+        Set the Blender object.
+
+        Parameters
+        ----------
+        value : Object
+            The Blender object to set.
+        """
+
+        if not isinstance(value, Object):
+            raise ValueError(f"{value} must be a bpy.types.Object")
+
+        try:
+            value.uuid = self.uuid
+        except AttributeError:
+            register()
+            value.uuid = self.uuid
+        self._object_name = value.name
+
+    @property
+    def uuid(self) -> str:
+        """
+        Get the unique identifier for this object.
+
+        Returns
+        -------
+        str
+            The UUID string for this object.
+        """
+        return self._uuid
+
+    @property
+    def name(self) -> str:
+        """
+        Get the name of the Blender object.
+
+        Returns
+        -------
+        str
+            The name of the Blender object.
+        """
+        return self.object.name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        """
+        Set the name of the Blender object.
+
+        Parameters
+        ----------
+        value : str
+            The name to set for the Blender object.
+        """
+        obj = self.object
+        obj.name = value
+        self._object_name = obj.name
+
+    def store_named_attribute(
+        self,
+        data: np.ndarray,
+        name: str,
+        atype: str | AttributeTypes | None = None,
+        domain: str | AttributeDomains = AttributeDomains.POINT,
+    ) -> None:
+        """
+        Store a named attribute on the Blender object.
+
+        Parameters
+        ----------
+        data : np.ndarray
+            The data to be stored as an attribute.
+        name : str
+            The name for the attribute. Will overwrite an already existing attribute.
+        atype : str or AttributeType or None, optional
+            The attribute type to store the data as. Either string or selection from the
+            AttributeTypes enum. None will attempt to infer the attribute type from the
+            input array.
+        domain : str or AttributeDomain, optional
+            The domain to store the attribute on. Defaults to Domains.POINT.
+
+        Returns
+        -------
+        self
+        """
+        self._check_obj()
+        attr.store_named_attribute(
+            self.object, data=data, name=name, atype=atype, domain=domain
+        )
+
+    def remove_named_attribute(self, name: str) -> None:
+        """
+        Remove a named attribute from the object.
+
+        Parameters
+        ----------
+        name : str
+            The name of the attribute to remove.
+        """
+        self._check_obj()
+        attr.remove_named_attribute(self.object, name=name)
+
+    def named_attribute(self, name: str, evaluate: bool = False) -> np.ndarray:
+        """
+        Retrieve a named attribute from the object.
+
+        Optionally, evaluate the object before reading the named attribute
+
+        Parameters
+        ----------
+        name : str
+            Name of the attribute to get.
+        evaluate : bool, optional
+            Whether to evaluate the object before reading the attribute (default is False).
+        Returns
+        -------
+        np.ndarray
+            The attribute read from the mesh as a numpy array.
+        """
+        self._check_obj()
+        return attr.named_attribute(self.object, name=name, evaluate=evaluate)
+
+    @property
+    def attributes(self):
+        """
+        Get the attributes of the Blender object.
+
+        Returns
+        -------
+        bpy.types.Attributes
+            The attributes of the Blender object.
+        """
+        return self.data.attributes
+
+    @property
+    def position(self) -> AttributeArray:
+        """
+        Get the position of the vertices of the Blender object.
+
+        Returns
+        -------
+        PositionArray
+            A numpy array subclass that automatically syncs changes back to Blender.
+
+        Examples
+        --------
+        ```
+        # Regular array operations
+        pos = bob.position
+        pos[0] = [1, 2, 3]  # Set position of first vertex
+
+        # Column operations will be intercepted automatically
+        pos[:, 2] = 5.0  # Set all Z coordinates to 5.0
+        ```
+        """
+        return AttributeArray(self.object, "position")
+
+    @position.setter
+    def position(self, value: np.ndarray) -> None:
+        """
+        Set the position of the vertices of the Blender object.
+
+        Parameters
+        ----------
+        value : np.ndarray
+            The position to set for the vertices of the Blender object.
+        """
+        self.store_named_attribute(
+            value,
+            name="position",
+            atype=AttributeTypes.FLOAT_VECTOR,
+            domain=AttributeDomains.POINT,
+        )
+
+    def list_attributes(
+        self, evaluate: bool = False, drop_hidden: bool = False
+    ) -> list[str]:
+        """
+        Returns a list of attribute names for the object.
+
+        Parameters
+        ----------
+        evaluate : bool, optional
+            Whether to first evaluate the modifiers on the object before listing the
+            available attributes.
+        drop_hidden : bool, optional
+            Whether to drop hidden attributes (those starting with a dot). Defaults to False.
+
+        Returns
+        -------
+        list[str] | None
+            A list of attribute names if the molecule object exists, None otherwise.
+        """
+        return list_attributes(self.object, evaluate=evaluate, drop_hidden=drop_hidden)
+
+    def __len__(self) -> int:
+        """
+        Get the number of points in the Blender object.
+
+        For meshes, this returns the number of vertices. For point clouds, this
+        returns the number of points. For curves (new Curves type), this returns
+        the number of control points.
+
+        Note: Only supports Mesh, Curves (new), and PointCloud types.
+        Does not support the legacy Curve type.
+
+        Returns
+        -------
+        int
+            The number of points in the Blender object.
+        """
+        if isinstance(self.data, bpy.types.Mesh):
+            return len(self.data.vertices)
+        elif isinstance(self.data, bpy.types.PointCloud):
+            return len(self.data.points)
+        elif isinstance(self.data, bpy.types.Curves):
+            if "position" in self.data.attributes:
+                return len(self.data.attributes["position"].data)
+            return 0
+        else:
+            raise TypeError(
+                f"Object type {type(self.data).__name__} is not supported. "
+                f"Supported types: Mesh, Curves, PointCloud"
+            )
+
+    @property
+    def data(self):
+        """
+        Get the data block of the Blender object.
+
+        Returns
+        -------
+        bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
+            The data block associated with this object (e.g., mesh data, curves data, or point cloud data).
+        """
+        return self.object.data
+
+    def evaluate(self) -> Object:
+        """
+        Return a version of the object with all modifiers applied.
+
+        Returns
+        -------
+        Object
+            A new Object that isn't yet registered with the database
+        """
+        return evaluate_object(self.object)
+
+
+class BlenderObject(BlenderObjectBase):
+    """
+    A convenience class for working with Blender objects.
+
+    Extends BlenderObjectBase with creation methods and additional utility functions.
+    """
 
     @classmethod
     def from_mesh(
@@ -331,102 +687,6 @@ class BlenderObject:
         )
         return cls(obj)
 
-    def _ipython_key_completions_(self) -> list[str]:
-        """Return possible named attributes"""
-        return self.list_attributes()
-
-    def __getitem__(self, name: str) -> AttributeArray:
-        if not isinstance(name, str):
-            raise ValueError("Attribute name must be a string")
-        return AttributeArray(self.object, name)
-
-    def __setitem__(self, name: str, data: np.ndarray) -> None:
-        if name in self.list_attributes():
-            att = Attribute(self.attributes()[name])
-            self.store_named_attribute(
-                data=data, name=name, domain=att.domain, atype=att.atype
-            )
-        self.store_named_attribute(data=data, name=name)
-
-    def _check_obj(self) -> None:
-        _check_obj_attributes(self.object)
-
-    @property
-    def object(self) -> Object:
-        """
-        Get the Blender object.
-
-        Returns
-        -------
-        Object | None
-            The Blender object, or None if not found.
-        """
-
-        # if we can't match a an object by name in the database, we instead try to match
-        # by the uuid. If we match by name and the uuid doesn't match, we try to find
-        # another object instead with the same uuid
-
-        try:
-            obj = bpy.data.objects[self._object_name]
-            if obj.uuid != self.uuid:
-                obj = get_from_uuid(self.uuid)
-        except (KeyError, MemoryError):
-            obj = get_from_uuid(self.uuid)
-            self._object_name = obj.name
-
-        return obj
-
-    @object.setter
-    def object(self, value: Object) -> None:
-        """
-        Set the Blender object.
-
-        Parameters
-        ----------
-        value : Object
-            The Blender object to set.
-        """
-
-        if not isinstance(value, Object):
-            raise ValueError(f"{value} must be a bpy.types.Object")
-
-        try:
-            value.uuid = self.uuid
-        except AttributeError:
-            register()
-            value.uuid = self.uuid
-        self._object_name = value.name
-
-    @property
-    def uuid(self) -> str:
-        return self._uuid
-
-    @property
-    def name(self) -> str:
-        """
-        Get the name of the Blender object.
-
-        Returns
-        -------
-        str
-            The name of the Blender object.
-        """
-        return self.object.name
-
-    @name.setter
-    def name(self, value: str) -> None:
-        """
-        Set the name of the Blender object.
-
-        Parameters
-        ----------
-        value : str
-            The name to set for the Blender object.
-        """
-        obj = self.object
-        obj.name = value
-        self._object_name = obj.name
-
     def new_from_pydata(
         self,
         vertices: npt.ArrayLike | None = None,
@@ -450,89 +710,16 @@ class BlenderObject:
         Object
             The new Blender object.
         """
-        if not isinstance(self.object.data, bpy.types.Mesh):
-            raise TypeError("Object must be a mesh to create a new object from pydata")
+        if not isinstance(self.data, bpy.types.Mesh):
+            raise TypeError(
+                f"Object must be a mesh to create a new object from pydata, not {type(self.data)}"
+            )
         vertices, edges, faces = [
             [] if x is None else x for x in (vertices, edges, faces)
         ]
-        self.object.data.clear_geometry()
-        self.object.data.from_pydata(vertices, edges, faces)
+        self.data.clear_geometry()
+        self.data.from_pydata(vertices, edges, faces)
         return self.object
-
-    def store_named_attribute(
-        self,
-        data: np.ndarray,
-        name: str,
-        atype: str | AttributeTypes | None = None,
-        domain: str | AttributeDomains = AttributeDomains.POINT,
-    ) -> None:
-        """
-        Store a named attribute on the Blender object.
-
-        Parameters
-        ----------
-        data : np.ndarray
-            The data to be stored as an attribute.
-        name : str
-            The name for the attribute. Will overwrite an already existing attribute.
-        atype : str or AttributeType or None, optional
-            The attribute type to store the data as. Either string or selection from the
-            AttributeTypes enum. None will attempt to infer the attribute type from the
-            input array.
-        domain : str or AttributeDomain, optional
-            The domain to store the attribute on. Defaults to Domains.POINT.
-
-        Returns
-        -------
-        self
-        """
-        self._check_obj()
-        attr.store_named_attribute(
-            self.object, data=data, name=name, atype=atype, domain=domain
-        )
-
-    def remove_named_attribute(self, name: str) -> None:
-        """
-        Remove a named attribute from the object.
-
-        Parameters
-        ----------
-        name : str
-            The name of the attribute to remove.
-        """
-        self._check_obj()
-        attr.remove_named_attribute(self.object, name=name)
-
-    def named_attribute(self, name: str, evaluate: bool = False) -> np.ndarray:
-        """
-        Retrieve a named attribute from the object.
-
-        Optionally, evaluate the object before reading the named attribute
-
-        Parameters
-        ----------
-        name : str
-            Name of the attribute to get.
-        evaluate : bool, optional
-            Whether to evaluate the object before reading the attribute (default is False).
-        Returns
-        -------
-        np.ndarray
-            The attribute read from the mesh as a numpy array.
-        """
-        self._check_obj()
-        return attr.named_attribute(self.object, name=name, evaluate=evaluate)
-
-    def evaluate(self) -> Object:
-        """
-        Return a version of the object with all modifiers applied.
-
-        Returns
-        -------
-        Object
-            A new Object that isn't yet registered with the database
-        """
-        return evaluate_object(self.object)
 
     def centroid(self, weight: str | np.ndarray | None = None) -> np.ndarray:
         """
@@ -564,24 +751,6 @@ class BlenderObject:
 
         return np.average(self.position, axis=0)
 
-    def attributes(self):
-        """
-        Get the attributes of the Blender object.
-
-        Returns
-        -------
-        bpy.types.Attributes
-            The attributes of the Blender object.
-        """
-        return self.object.data.attributes
-
-    @property
-    def data(self):
-        """
-        Return the self.object.data
-        """
-        return self.object.data
-
     @property
     def vertices(self):
         """
@@ -610,12 +779,12 @@ class BlenderObject:
             DeprecationWarning,
             stacklevel=2,
         )
-        if not isinstance(self.object.data, bpy.types.Mesh):
+        if not isinstance(self.data, bpy.types.Mesh):
             raise AttributeError(
                 f"vertices property only works with Mesh objects, "
-                f"not {type(self.object.data).__name__}"
+                f"not {type(self.data).__name__}"
             )
-        return self.object.data.vertices
+        return self.data.vertices
 
     @property
     def edges(self):
@@ -642,103 +811,12 @@ class BlenderObject:
             DeprecationWarning,
             stacklevel=2,
         )
-        if not isinstance(self.object.data, bpy.types.Mesh):
+        if not isinstance(self.data, bpy.types.Mesh):
             raise AttributeError(
                 f"edges property only works with Mesh objects, "
-                f"not {type(self.object.data).__name__}"
+                f"not {type(self.data).__name__}"
             )
-        return self.object.data.edges
-
-    @property
-    def position(self) -> AttributeArray:
-        """
-        Get the position of the vertices of the Blender object.
-
-        Returns
-        -------
-        PositionArray
-            A numpy array subclass that automatically syncs changes back to Blender.
-
-        Examples
-        --------
-        ```
-        # Regular array operations
-        pos = bob.position
-        pos[0] = [1, 2, 3]  # Set position of first vertex
-
-        # Column operations will be intercepted automatically
-        pos[:, 2] = 5.0  # Set all Z coordinates to 5.0
-        ```
-        """
-        return AttributeArray(self.object, "position")
-
-    @position.setter
-    def position(self, value: np.ndarray) -> None:
-        """
-        Set the position of the vertices of the Blender object.
-
-        Parameters
-        ----------
-        value : np.ndarray
-            The position to set for the vertices of the Blender object.
-        """
-        self.store_named_attribute(
-            value,
-            name="position",
-            atype=AttributeTypes.FLOAT_VECTOR,
-            domain=AttributeDomains.POINT,
-        )
-
-    def list_attributes(
-        self, evaluate: bool = False, drop_hidden: bool = False
-    ) -> list[str]:
-        """
-        Returns a list of attribute names for the object.
-
-        Parameters
-        ----------
-        evaluate : bool, optional
-            Whether to first evaluate the modifiers on the object before listing the
-            available attributes.
-        drop_hidden : bool, optional
-            Whether to drop hidden attributes (those starting with a dot). Defaults to False.
-
-        Returns
-        -------
-        list[str] | None
-            A list of attribute names if the molecule object exists, None otherwise.
-        """
-        return list_attributes(self.object, evaluate=evaluate, drop_hidden=drop_hidden)
-
-    def __len__(self) -> int:
-        """
-        Get the number of points in the Blender object.
-
-        For meshes, this returns the number of vertices. For point clouds, this
-        returns the number of points. For curves (new Curves type), this returns
-        the number of control points.
-
-        Note: Only supports Mesh, Curves (new), and PointCloud types.
-        Does not support the legacy Curve type.
-
-        Returns
-        -------
-        int
-            The number of points in the Blender object.
-        """
-        if isinstance(self.object.data, bpy.types.Mesh):
-            return len(self.object.data.vertices)
-        elif isinstance(self.object.data, bpy.types.PointCloud):
-            return len(self.object.data.points)
-        elif isinstance(self.object.data, bpy.types.Curves):
-            if "position" in self.object.data.attributes:
-                return len(self.object.data.attributes["position"].data)
-            return 0
-        else:
-            raise TypeError(
-                f"Object type {type(self.object.data).__name__} is not supported. "
-                f"Supported types: Mesh, Curves, PointCloud"
-            )
+        return self.data.edges
 
 
 def create_mesh_object(

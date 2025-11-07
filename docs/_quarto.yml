@@ -60,6 +60,9 @@ quartodoc:
 
   # enable automatic linking of type annotations
   render_interlinks: true
+  
+  options:
+    include_inherited: true
 
   sections:
   - title: Attribute
@@ -85,5 +88,5 @@ quartodoc:
     - create_bob
     - evaluate_object
     - BlenderObject
+    - BlenderObjectBase
     - LinkedObjectError
-    # - ObjectTracker
