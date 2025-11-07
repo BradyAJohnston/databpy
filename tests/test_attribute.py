@@ -329,6 +329,9 @@ def test_str_access_attribute():
     bob["test_name"][0] = 1
     assert bob["test_name"][0][0] == 1
 
+    with pytest.raises(ValueError):
+        bob[0]  # type: ignore
+
     values = np.zeros(3, dtype=int)
 
     bob["another_name"] = values
