@@ -411,7 +411,7 @@ class BlenderObjectBase:
         bpy.types.Attributes
             The attributes of the Blender object.
         """
-        return self.object.data.attributes
+        return self.data.attributes
 
     @property
     def position(self) -> AttributeArray:
@@ -490,17 +490,17 @@ class BlenderObjectBase:
         int
             The number of points in the Blender object.
         """
-        if isinstance(self.object.data, bpy.types.Mesh):
-            return len(self.object.data.vertices)
-        elif isinstance(self.object.data, bpy.types.PointCloud):
-            return len(self.object.data.points)
-        elif isinstance(self.object.data, bpy.types.Curves):
-            if "position" in self.object.data.attributes:
-                return len(self.object.data.attributes["position"].data)
+        if isinstance(self.data, bpy.types.Mesh):
+            return len(self.data.vertices)
+        elif isinstance(self.data, bpy.types.PointCloud):
+            return len(self.data.points)
+        elif isinstance(self.data, bpy.types.Curves):
+            if "position" in self.data.attributes:
+                return len(self.data.attributes["position"].data)
             return 0
         else:
             raise TypeError(
-                f"Object type {type(self.object.data).__name__} is not supported. "
+                f"Object type {type(self.data).__name__} is not supported. "
                 f"Supported types: Mesh, Curves, PointCloud"
             )
 
@@ -710,13 +710,15 @@ class BlenderObject(BlenderObjectBase):
         Object
             The new Blender object.
         """
-        if not isinstance(self.object.data, bpy.types.Mesh):
-            raise TypeError("Object must be a mesh to create a new object from pydata")
+        if not isinstance(self.data, bpy.types.Mesh):
+            raise TypeError(
+                f"Object must be a mesh to create a new object from pydata, not {type(self.data)}"
+            )
         vertices, edges, faces = [
             [] if x is None else x for x in (vertices, edges, faces)
         ]
-        self.object.data.clear_geometry()
-        self.object.data.from_pydata(vertices, edges, faces)
+        self.data.clear_geometry()
+        self.data.from_pydata(vertices, edges, faces)
         return self.object
 
     def centroid(self, weight: str | np.ndarray | None = None) -> np.ndarray:
@@ -777,12 +779,12 @@ class BlenderObject(BlenderObjectBase):
             DeprecationWarning,
             stacklevel=2,
         )
-        if not isinstance(self.object.data, bpy.types.Mesh):
+        if not isinstance(self.data, bpy.types.Mesh):
             raise AttributeError(
                 f"vertices property only works with Mesh objects, "
-                f"not {type(self.object.data).__name__}"
+                f"not {type(self.data).__name__}"
             )
-        return self.object.data.vertices
+        return self.data.vertices
 
     @property
     def edges(self):
@@ -809,12 +811,12 @@ class BlenderObject(BlenderObjectBase):
             DeprecationWarning,
             stacklevel=2,
         )
-        if not isinstance(self.object.data, bpy.types.Mesh):
+        if not isinstance(self.data, bpy.types.Mesh):
             raise AttributeError(
                 f"edges property only works with Mesh objects, "
-                f"not {type(self.object.data).__name__}"
+                f"not {type(self.data).__name__}"
             )
-        return self.object.data.edges
+        return self.data.edges
 
 
 def create_mesh_object(
