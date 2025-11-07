@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>create_bob – databpy</title>
+<title>blenderobjectbase – databpy</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -150,7 +150,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/create_object.html">Objects</a></li><li class="breadcrumb-item"><a href="../api/create_bob.html">create_bob</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/create_object.html">Objects</a></li><li class="breadcrumb-item"><a href="../api/BlenderObjectBase.html">BlenderObjectBase</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -271,7 +271,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/create_bob.html" class="sidebar-item-text sidebar-link active">
+  <a href="../api/create_bob.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">create_bob</span></a>
   </div>
 </li>
@@ -289,7 +289,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../api/BlenderObjectBase.html" class="sidebar-item-text sidebar-link">
+  <a href="../api/BlenderObjectBase.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">BlenderObjectBase</span></a>
   </div>
 </li>
@@ -311,84 +311,107 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-  <li><a href="#databpy.create_bob" id="toc-databpy.create_bob" class="nav-link active" data-scroll-target="#databpy.create_bob">create_bob</a>
+  <li><a href="#databpy.BlenderObjectBase" id="toc-databpy.BlenderObjectBase" class="nav-link active" data-scroll-target="#databpy.BlenderObjectBase">BlenderObjectBase</a>
   <ul class="collapse">
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a></li>
+  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a></li>
   </ul></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content column-body" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/create_object.html">Objects</a></li><li class="breadcrumb-item"><a href="../api/create_bob.html">create_bob</a></li></ol></nav></header>
+<main class="content column-body" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../api/create_object.html">Objects</a></li><li class="breadcrumb-item"><a href="../api/BlenderObjectBase.html">BlenderObjectBase</a></li></ol></nav></header>
 
 
 
 
-<section id="databpy.create_bob" class="level1">
-<h1>create_bob</h1>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>create_bob(</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    vertices<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    edges<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    faces<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    name<span class="op">=</span><span class="st">'NewObject'</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    collection<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    uuid<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Create a BlenderObject wrapper around a new Blender mesh object.</p>
-<section id="parameters" class="level2 doc-section doc-section-parameters">
-<h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
+<section id="databpy.BlenderObjectBase" class="level1">
+<h1>BlenderObjectBase</h1>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase(obj<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Minimal base class for Blender objects with attribute access.</p>
+<p>This class provides core functionality for storing and accessing named attributes on Blender objects. It can be inherited by other packages that need attribute management without the full BlenderObject feature set.</p>
+<section id="attributes" class="level2 doc-section doc-section-attributes">
+<h2 class="doc-section doc-section-attributes anchored" data-anchor-id="attributes">Attributes</h2>
 <table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Name</th>
 <th>Type</th>
 <th>Description</th>
-<th>Default</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>vertices</td>
-<td><code>ndarray</code> or None</td>
-<td>Array of vertex coordinates. Default is None.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>edges</td>
-<td><code>ndarray</code> or None</td>
-<td>Array of edge indices. Default is None.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="odd">
-<td>faces</td>
-<td><code>ndarray</code> or None</td>
-<td>Array of face indices. Default is None.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>name</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
-<td>Name of the created object. Default is “NewObject”.</td>
-<td><code>'NewObject'</code></td>
-</tr>
-<tr class="odd">
-<td>collection</td>
-<td><code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection">Collection</a> or None</td>
-<td>Blender collection to link the object to. Default is None.</td>
-<td><code>None</code></td>
+<td>object</td>
+<td><code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object">Object</a></td>
+<td>The wrapped Blender object.</td>
 </tr>
 <tr class="even">
 <td>uuid</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a> or None</td>
-<td>Directly set the UUID on the resulting BlenderObject. Default is None.</td>
-<td><code>None</code></td>
+<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
+<td>Unique identifier for this object instance.</td>
+</tr>
+<tr class="odd">
+<td>name</td>
+<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
+<td>Name of the Blender object.</td>
+</tr>
+<tr class="even">
+<td>position</td>
+<td><a href="../api/AttributeArray.html#databpy.AttributeArray">AttributeArray</a></td>
+<td>Position attribute of the object’s vertices/points.</td>
+</tr>
+<tr class="odd">
+<td>data</td>
+<td><code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.Mesh.html#bpy.types.Mesh">Mesh</a> | <code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.Curves.html#bpy.types.Curves">Curves</a> | <code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.PointCloud.html#bpy.types.PointCloud">PointCloud</a></td>
+<td>The data block associated with this object.</td>
+</tr>
+<tr class="even">
+<td>attributes</td>
+<td></td>
+<td>Get the attributes collection of the Blender object.</td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="returns" class="level2 doc-section doc-section-returns">
-<h2 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h2>
+<section id="methods" class="level2">
+<h2 class="anchored" data-anchor-id="methods">Methods</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="#databpy.BlenderObjectBase.evaluate">evaluate</a></td>
+<td>Return a version of the object with all modifiers applied.</td>
+</tr>
+<tr class="even">
+<td><a href="#databpy.BlenderObjectBase.list_attributes">list_attributes</a></td>
+<td>Returns a list of attribute names for the object.</td>
+</tr>
+<tr class="odd">
+<td><a href="#databpy.BlenderObjectBase.named_attribute">named_attribute</a></td>
+<td>Retrieve a named attribute from the object.</td>
+</tr>
+<tr class="even">
+<td><a href="#databpy.BlenderObjectBase.remove_named_attribute">remove_named_attribute</a></td>
+<td>Remove a named attribute from the object.</td>
+</tr>
+<tr class="odd">
+<td><a href="#databpy.BlenderObjectBase.store_named_attribute">store_named_attribute</a></td>
+<td>Store a named attribute on the Blender object.</td>
+</tr>
+</tbody>
+</table>
+<section id="databpy.BlenderObjectBase.evaluate" class="level3">
+<h3 class="anchored" data-anchor-id="databpy.BlenderObjectBase.evaluate">evaluate</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase.evaluate()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Return a version of the object with all modifiers applied.</p>
+<section id="returns" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h4>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -400,13 +423,212 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td></td>
-<td><a href="../api/BlenderObject.html#databpy.BlenderObject">BlenderObject</a></td>
-<td>A wrapped Blender mesh object.</td>
+<td><a href="https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object">Object</a></td>
+<td>A new Object that isn’t yet registered with the database</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="databpy.BlenderObjectBase.list_attributes" class="level3">
+<h3 class="anchored" data-anchor-id="databpy.BlenderObjectBase.list_attributes">list_attributes</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase.list_attributes(evaluate<span class="op">=</span><span class="va">False</span>, drop_hidden<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Returns a list of attribute names for the object.</p>
+<section id="parameters" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>evaluate</td>
+<td><a href="https://docs.python.org/3/library/functions.html#bool">bool</a></td>
+<td>Whether to first evaluate the modifiers on the object before listing the available attributes.</td>
+<td><code>False</code></td>
+</tr>
+<tr class="even">
+<td>drop_hidden</td>
+<td><a href="https://docs.python.org/3/library/functions.html#bool">bool</a></td>
+<td>Whether to drop hidden attributes (those starting with a dot). Defaults to False.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns-1" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-1">Returns</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td><a href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str">str</a>] | None</td>
+<td>A list of attribute names if the molecule object exists, None otherwise.</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="databpy.BlenderObjectBase.named_attribute" class="level3">
+<h3 class="anchored" data-anchor-id="databpy.BlenderObjectBase.named_attribute">named_attribute</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase.named_attribute(name, evaluate<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Retrieve a named attribute from the object.</p>
+<p>Optionally, evaluate the object before reading the named attribute</p>
+<section id="parameters-1" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-1">Parameters</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>name</td>
+<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
+<td>Name of the attribute to get.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>evaluate</td>
+<td><a href="https://docs.python.org/3/library/functions.html#bool">bool</a></td>
+<td>Whether to evaluate the object before reading the attribute (default is False).</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns-2" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-2">Returns</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td><a href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a></td>
+<td>The attribute read from the mesh as a numpy array.</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="databpy.BlenderObjectBase.remove_named_attribute" class="level3">
+<h3 class="anchored" data-anchor-id="databpy.BlenderObjectBase.remove_named_attribute">remove_named_attribute</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase.remove_named_attribute(name)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Remove a named attribute from the object.</p>
+<section id="parameters-2" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-2">Parameters</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>name</td>
+<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
+<td>The name of the attribute to remove.</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="databpy.BlenderObjectBase.store_named_attribute" class="level3">
+<h3 class="anchored" data-anchor-id="databpy.BlenderObjectBase.store_named_attribute">store_named_attribute</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase.store_named_attribute(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    data,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    name,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    atype<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    domain<span class="op">=</span>AttributeDomains.POINT,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Store a named attribute on the Blender object.</p>
+<section id="parameters-3" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-3">Parameters</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>data</td>
+<td><a href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a></td>
+<td>The data to be stored as an attribute.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>name</td>
+<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
+<td>The name for the attribute. Will overwrite an already existing attribute.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="odd">
+<td>atype</td>
+<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a> or <code>AttributeType</code> or None</td>
+<td>The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array.</td>
+<td><code>None</code></td>
+</tr>
+<tr class="even">
+<td>domain</td>
+<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a> or <code>AttributeDomain</code></td>
+<td>The domain to store the attribute on. Defaults to Domains.POINT.</td>
+<td><code>AttributeDomains.POINT</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns-3" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-3">Returns</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td><code>self</code></td>
+<td></td>
 </tr>
 </tbody>
 </table>
 
 
+</section>
+</section>
 </section>
 </section>
 

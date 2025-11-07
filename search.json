@@ -4,7 +4,7 @@
     "href": "attributes.html",
     "title": "Working with Attributes",
     "section": "",
-    "text": "In Blender, all data on geometry is stored as attributes. An attribute is a named array of values associated with elements of geometry. Every piece of information—vertex positions, edge indices, face normals, UV coordinates, vertex colors—exists as an attribute on a specific domain.\nFor example: - Vertex positions are stored as a FLOAT_VECTOR attribute named \"position\" on the POINT domain - Face materials are stored as an INT attribute on the FACE domain - UV maps are stored as FLOAT2 attributes on the CORNER domain\ndatabpy provides a clean, intuitive interface for working with these attributes using familiar NumPy operations.\n\n\n\ndatabpy offers three levels of abstraction for working with attributes, each suited to different use cases:\n\n\n\n\n\nflowchart TD\n    A[BlenderObject] --&gt; B[AttributeArray]\n    B --&gt; C[Attribute]\n    C --&gt; D[bpy.types.Attribute]\n\n    A -.-&gt;|\"Auto-sync, convenience methods\"| E[User Level]\n    B -.-&gt;|\"NumPy operations with auto-sync\"| E\n    C -.-&gt;|\"Manual control, one-shot operations\"| F[Advanced Use]\n    D -.-&gt;|\"Raw Blender API\"| G[Low Level]\n\n    style A fill:#90EE90\n    style B fill:#87CEEB\n    style C fill:#FFB6C1\n    style D fill:#FFE4B5\n\n\n\n\n\n\n\n\nThe BlenderObject class (nicknamed “bob”) provides the most ergonomic interface with dictionary-style access and convenience properties.\n\nimport databpy as db\nimport numpy as np\n\n# Create a simple object\nbob = db.create_bob(np.random.rand(10, 3))\n\n# Access attributes like a dictionary - returns AttributeArray\npositions = bob[\"position\"]\npositions[:, 2] += 1.0  # Automatically syncs to Blender\n\n# Or use the convenience property\nbob.position[:, 2] += 1.0  # Same thing\n\n# Store new attributes\nbob[\"my_values\"] = np.random.rand(10)\n\nWhen to use: Interactive work, scripting, when you want automatic syncing.\n\n\n\nAttributeArray is a numpy.ndarray subclass that automatically writes changes back to Blender. It provides natural NumPy operations with automatic bidirectional syncing.\n\nimport databpy as db\nimport bpy\n\nobj = bpy.data.objects[\"Cube\"]\n\n# Create an AttributeArray\npos = db.AttributeArray(obj, \"position\")\n\n# All NumPy operations work and auto-sync\npos[:, 2] += 1.0      # In-place addition\npos *= 2.0            # Broadcasting\npos[0] = [0, 0, 0]    # Item assignment\n\n# Changes are immediately reflected in Blender\n\n\n\n\n\n\n\nNotePerformance Note\n\n\n\nAttributeArray syncs the entire attribute array on every modification, not just changed values. This is due to Blender’s foreach_set API. For large meshes (10K+ vertices), consider batching operations or using the lower-level Attribute class.\n\n\nWhen to use: When you need NumPy-like operations with automatic syncing, working with position/color/custom data interactively.\n\n\n\nThe Attribute class provides direct, stateless access with explicit control over when data is read or written.\n\nimport databpy as db\nimport numpy as np\nimport bpy\n\nobj = bpy.data.objects[\"Cube\"]\n\n# Get the attribute wrapper\nattr = db.Attribute(obj.data.attributes[\"position\"])\n\n# Manually read data\npositions = attr.as_array()\n\n# Perform operations (no auto-sync)\npositions[:, 2] += 1.0\npositions *= 2.0\n\n# Manually write back (single write operation)\nattr.from_array(positions)\n\nWhen to use: - One-shot read or write operations - Performance-critical code where you want control over sync timing - Batch processing where you make many changes before writing back - When you need to inspect attribute metadata without reading data\n\n\n\n\nBlender supports various attribute data types. databpy works with all of them through the AttributeTypes enum:\n\n\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(10, 3))\n\n# FLOAT - Single float per element\ntemperatures = np.random.rand(10).astype(np.float32)\nbob[\"temperature\"] = temperatures\n\n# FLOAT2 - 2D vectors\nuv_coords = np.random.rand(10, 2).astype(np.float32)\ndb.store_named_attribute(bob.object, uv_coords, \"uv\", atype=\"FLOAT2\")\n\n# FLOAT_VECTOR - 3D vectors (most common)\nvelocities = np.random.rand(10, 3).astype(np.float32)\nbob[\"velocity\"] = velocities\n\n# FLOAT_COLOR - RGBA colors (4 components)\ncolors = np.random.rand(10, 4).astype(np.float32)\ndb.store_named_attribute(bob.object, colors, \"color\", atype=\"FLOAT_COLOR\")\n\n# QUATERNION - Rotations (4 components: w, x, y, z)\nrotations = np.random.rand(10, 4).astype(np.float32)\ndb.store_named_attribute(bob.object, rotations, \"rotation\", atype=\"QUATERNION\")\n\n# FLOAT4X4 - 4x4 transformation matrices\nmatrices = np.random.rand(10, 4, 4).astype(np.float32)\ndb.store_named_attribute(bob.object, matrices, \"transform\", atype=\"FLOAT4X4\")\n\nbpy.data.meshes['NewObject.001'].attributes[\"transform\"]\n\n\n\n\n\n\n# INT - 32-bit signed integers\nids = np.arange(10, dtype=np.int32)\nbob[\"id\"] = ids\n\n# INT8 - 8-bit signed integers (memory efficient)\nsmall_values = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], dtype=np.int8)\ndb.store_named_attribute(bob.object, small_values, \"category\", atype=\"INT8\")\n\n# INT32_2D - 2D integer vectors\npairs = np.random.randint(0, 100, size=(10, 2), dtype=np.int32)\ndb.store_named_attribute(bob.object, pairs, \"edge_ids\", atype=\"INT32_2D\")\n\nbpy.data.meshes['NewObject.001'].attributes[\"edge_ids\"]\n\n\n\n\n\n\n# BYTE_COLOR - RGBA as unsigned 8-bit (0-255)\nbyte_colors = np.random.randint(0, 255, size=(10, 4), dtype=np.uint8)\ndb.store_named_attribute(bob.object, byte_colors, \"vertex_color\", atype=\"BYTE_COLOR\")\n\nbpy.data.meshes['NewObject.001'].attributes[\"vertex_color\"]\n\n\n\n\n\n\n# BOOLEAN - True/False flags\nselection = np.random.rand(10) &gt; 0.5\nbob[\"selected\"] = selection\n\n\n\n\n\n\n\nTipType Inference\n\n\n\nIf you don’t specify an atype, databpy will infer it from your array’s dtype and shape using guess_atype_from_array().\n\n\n\n\n\n\nAttributes exist on different domains of the geometry, specified by the AttributeDomains enum:\n\n\n\n\n\n\n\n\nDomain\nDescription\nExample Use Cases\n\n\n\n\nPOINT\nVertices, curve control points\nPositions, vertex colors, temperature\n\n\nEDGE\nMesh edges\nEdge weights, crease values\n\n\nFACE\nMesh faces/polygons\nMaterial indices, face areas\n\n\nCORNER\nFace corners (vertex-face pairs)\nUV coordinates, split normals\n\n\nCURVE\nIndividual curve splines\nPer-spline properties\n\n\nINSTANCE\nGeometry instances\nInstance transforms, IDs\n\n\n\n\nimport databpy as db\nimport numpy as np\nimport bpy\n\nobj = bpy.data.objects[\"Cube\"]\n\n# POINT domain (default) - one value per vertex\nvertex_data = np.random.rand(len(obj.data.vertices), 3)\ndb.store_named_attribute(obj, vertex_data, \"vertex_attr\", domain=\"POINT\")\n\n# FACE domain - one value per face\nface_data = np.random.rand(len(obj.data.polygons))\ndb.store_named_attribute(obj, face_data, \"face_attr\", domain=\"FACE\")\n\n# EDGE domain - one value per edge\nedge_data = np.random.rand(len(obj.data.edges))\ndb.store_named_attribute(obj, edge_data, \"edge_attr\", domain=\"EDGE\")\n\nbpy.data.meshes['Cube'].attributes[\"edge_attr\"]\n\n\n\n\n\n\n\n\nImportantDomain Size Matching\n\n\n\nThe length of your data array must match the number of elements in the target domain. A cube has 8 vertices, 12 edges, and 6 faces, so your arrays must have corresponding lengths.\n\n\n\n\n\n\n\n\nimport databpy as db\nimport bpy\n\nobj = bpy.data.objects[\"Cube\"]\n\n# Method 1: Simple function call (returns regular numpy array)\npositions = db.named_attribute(obj, \"position\")  # see named_attribute()\n\n# Method 2: Via BlenderObject (returns AttributeArray)\nbob = db.BlenderObject(obj)  # see BlenderObject\npositions = bob[\"position\"]  # or bob.position\n\n# Method 3: List available attributes\nattrs = db.list_attributes(obj)  # see list_attributes()\nprint(attrs)\n\n# Method 4: With modifier evaluation\nevaluated_positions = db.named_attribute(obj, \"position\", evaluate=True)\n\n['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', 'UVMap', 'edge_attr', 'face_attr', 'position', 'sharp_face', 'vertex_attr']\n\n\n\n\n\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(10, 3))\n\n# Method 1: Dictionary-style (most convenient)\nbob[\"my_data\"] = np.random.rand(10, 3)\n\n# Method 2: Function call (more options)\ndb.store_named_attribute(\n    bob.object,\n    data=np.random.rand(10),\n    name=\"custom_attr\",\n    atype=\"FLOAT\",\n    domain=\"POINT\",\n    overwrite=True\n)\n\n# Method 3: Via BlenderObject method\nbob.store_named_attribute(\n    np.random.rand(10, 3),\n    name=\"another_attr\",\n    domain=\"POINT\"\n)\n\n\n\n\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(100, 3))\n\n# Using AttributeArray for interactive modifications\npos = bob.position\n\n# Simple operations\npos[:, 2] += 1.0          # Move all points up\npos *= 2.0                # Scale positions\npos[pos &lt; 0] = 0          # Clamp negative values\n\n# Boolean indexing\nselection = pos[:, 2] &gt; 0.5\npos[selection, 2] = 1.0\n\n# Column operations\npos[:, 0] = np.linspace(0, 1, len(pos))  # Linear ramp on X\n\n\n\n\nFor large datasets, use the Attribute class to batch operations:\n\nimport databpy as db\nimport numpy as np\nimport bpy\n\nobj = db.create_object(np.random.rand(int(1e5), 3))\nattr = db.Attribute(obj.data.attributes[\"position\"])\n\n# Single read\npositions = attr.as_array()\n\n# Many operations without syncing\npositions[:, 2] += 1.0\npositions *= 2.0\npositions = np.clip(positions, -10, 10)\n\n# Single write\nattr.from_array(positions)\n\n\n\n\n\n\n\nTipPerformance Comparison\n\n\n\n\nAttributeArray: ~N writes for N operations (auto-sync each time)\nAttribute: 1 read + 1 write for N operations (manual control)\n\nFor 100K vertices with 10 operations, Attribute can be 10x faster.\n\n\n\n\n\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(10, 3))\n\n# Store integer IDs\nids = np.arange(10, dtype=np.int32)\nbob[\"id\"] = ids\n\n# Retrieve as AttributeArray\nid_array = bob[\"id\"]\n\n# Modify (automatically maintains int32 dtype)\nid_array += 100\n\n# Verify it's still integers\nprint(id_array.dtype)  # int32\n\nint32\n\n\n\n\n\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(20, 3))\n\n# Create selection based on position\nselection = bob.position[:, 2] &gt; 0.5\nbob[\"selected\"] = selection\n\n# Use boolean attribute for filtering\nselected_mask = bob[\"selected\"]\nbob.position[selected_mask, 2] = 1.0\n\n\n\n\n\ndatabpy uses a consistent exception hierarchy for attribute-related errors:\n\n\n\ndb.NamedAttributeError (base class, inherits from AttributeError)\n\nRaised when attribute operations fail\nUsed for: non-existent attributes, invalid names, domain size mismatches\ndb.AttributeMismatchError (inherits from NamedAttributeError)\n\nRaised when data doesn’t match attribute expectations\nUsed for: shape mismatches, type incompatibilities\n\n\n\n\n\n\n\nimport databpy as db\nimport numpy as np\nimport bpy\n\nobj = bpy.data.objects[\"Cube\"]\n\ntry:\n    # Trying to access non-existent attribute\n    data = db.named_attribute(obj, \"nonexistent\")\nexcept db.NamedAttributeError as e:\n    print(f\"Attribute not found: {e}\")\n\ntry:\n    # Wrong data size for domain\n    db.store_named_attribute(obj, np.random.rand(100, 3), \"test\")\nexcept db.NamedAttributeError as e:\n    print(f\"Size mismatch: {e}\")\n\ntry:\n    # Shape mismatch when using Attribute class\n    attr = db.Attribute(obj.data.attributes[\"position\"])\n    wrong_shape = np.random.rand(8, 4)  # Should be (8, 3)\n    attr.from_array(wrong_shape)\nexcept db.AttributeMismatchError as e:\n    print(f\"Shape error: {e}\")\n\nAttribute not found: The selected attribute 'nonexistent' does not exist on the mesh.\nSize mismatch: Data size 300 (shape (100, 3)) does not match the required size 24 for domain `POINT` with 8 elements and dimensions (3,)\nShape error: Array size 32 does not match attribute size 24. Array shape (8, 4) cannot be reshaped to attribute shape (8, 3)\n\n\n\n\n\n\n\n\nTipCatching All Attribute Errors\n\n\n\nSince AttributeMismatchError inherits from NamedAttributeError, you can catch all attribute-related errors with a single except db.NamedAttributeError: clause.\n\n\n\n\n\n\n\n\n\nInteractive work, scripting: Use BlenderObject and AttributeArray\nPerformance-critical code: Use Attribute with manual read/write\nQuick one-off reads: Use named_attribute() function\n\n\n\n\n\n# Good: Explicit dtype matching Blender's storage\ndata = np.random.rand(10, 3).astype(np.float32)\n\n# Less good: float64 will be converted to float32 anyway\ndata = np.random.rand(10, 3)  # defaults to float64\n\n\n\n\n\n# Not great: Multiple syncs\npos = bob.position\nfor i in range(len(pos)):\n    pos[i, 2] += 1.0  # Syncs every iteration!\n\n# Better: Vectorized operation (single sync)\npos[:, 2] += 1.0\n\n\n\n\n\nfrom databpy import AttributeDomains, AttributeTypes\n\n# More readable and type-safe\ndb.store_named_attribute(\n    obj,\n    np.random.rand(len(obj.data.vertices), 3),\n    \"my_attr\",\n    atype=AttributeTypes.FLOAT_VECTOR,\n    domain=AttributeDomains.POINT\n)\ndb.named_attribute(obj, \"my_attr\")\n\narray([[0.8678701 , 0.8014326 , 0.07885373],\n       [0.6510982 , 0.70611686, 0.62412745],\n       [0.18226804, 0.9422741 , 0.06992763],\n       [0.40857184, 0.01892899, 0.65550554],\n       [0.39990404, 0.6363508 , 0.07935861],\n       [0.9264619 , 0.83525854, 0.797653  ],\n       [0.07085429, 0.1900507 , 0.66940755],\n       [0.784441  , 0.39701426, 0.9021792 ]], dtype=float32)\n\n\n\n\n\n\n# Remove attributes you no longer need\ndb.remove_named_attribute(obj, \"my_attr\")\ntry:\n    db.named_attribute(obj, \"my_attr\")\nexcept db.NamedAttributeError as e:\n    print(e)\n\nThe selected attribute 'my_attr' does not exist on the mesh.\n\n\n\n\n\n\nUnderstanding the relationship between the classes helps you choose the right tool:\n┌─────────────────────────────────────────────────────┐\n│ BlenderObject (bob)                                 │\n│ - High-level convenience wrapper                    │\n│ - Dictionary access: bob[\"attr\"]                    │\n│ - Property access: bob.position                     │\n│ - Returns: AttributeArray                           │\n└─────────────────┬───────────────────────────────────┘\n                  │\n                  │ creates/returns\n                  ▼\n┌─────────────────────────────────────────────────────┐\n│ AttributeArray                                      │\n│ - NumPy subclass with auto-sync                     │\n│ - All NumPy operations work                         │\n│ - Syncs entire array on every modification          │\n│ - References: Attribute (for metadata)              │\n└─────────────────┬───────────────────────────────────┘\n                  │\n                  │ uses\n                  ▼\n┌─────────────────────────────────────────────────────┐\n│ Attribute                                           │\n│ - Low-level wrapper, manual control                 │\n│ - Methods: as_array(), from_array()                 │\n│ - Properties: atype, domain, shape, dtype           │\n│ - One-shot reads/writes                             │\n└─────────────────┬───────────────────────────────────┘\n                  │\n                  │ wraps\n                  ▼\n┌─────────────────────────────────────────────────────┐\n│ bpy.types.Attribute                                 │\n│ - Raw Blender API                                   │\n│ - foreach_get/foreach_set                           │\n└─────────────────────────────────────────────────────┘\n\n\n\n\n\n\nBlenderObject - High-level object wrapper with convenience methods\nAttributeArray - Auto-syncing NumPy array subclass\nAttribute - Low-level attribute wrapper with manual control\n\n\n\n\n\nnamed_attribute() - Read attribute data as NumPy array\nstore_named_attribute() - Write attribute data to object\nremove_named_attribute() - Delete an attribute\nlist_attributes() - List all attributes on an object\ncreate_bob() - Create a new BlenderObject\ncreate_object() - Create a new Blender object\n\n\n\n\n\nAttributeTypes - Enum of all available attribute data types\nAttributeDomains - Enum of all available geometry domains\n\n\n\n\n\nNamedAttributeError - Base exception for attribute operations\nAttributeMismatchError - Exception for data/type mismatches\n\n\n\n\n\nnumpy.ndarray - NumPy array documentation\nbpy.types.Object - Blender Object documentation\nbpy.types.Attribute - Blender Attribute documentation"
+    "text": "In Blender, all data on geometry is stored as attributes. An attribute is a named array of values associated with elements of geometry. Every piece of information—vertex positions, edge indices, face normals, UV coordinates, vertex colors—exists as an attribute on a specific domain.\nFor example: - Vertex positions are stored as a FLOAT_VECTOR attribute named \"position\" on the POINT domain - Face materials are stored as an INT attribute on the FACE domain - UV maps are stored as FLOAT2 attributes on the CORNER domain\ndatabpy provides a clean, intuitive interface for working with these attributes using familiar NumPy operations.\n\n\n\ndatabpy offers three levels of abstraction for working with attributes, each suited to different use cases:\n\n\n\n\n\nflowchart TD\n    A[BlenderObject] --&gt; B[AttributeArray]\n    B --&gt; C[Attribute]\n    C --&gt; D[bpy.types.Attribute]\n\n    A -.-&gt;|\"Auto-sync, convenience methods\"| E[User Level]\n    B -.-&gt;|\"NumPy operations with auto-sync\"| E\n    C -.-&gt;|\"Manual control, one-shot operations\"| F[Advanced Use]\n    D -.-&gt;|\"Raw Blender API\"| G[Low Level]\n\n    style A fill:#90EE90\n    style B fill:#87CEEB\n    style C fill:#FFB6C1\n    style D fill:#FFE4B5\n\n\n\n\n\n\n\n\nThe BlenderObject class (nicknamed “bob”) provides the most ergonomic interface with dictionary-style access and convenience properties.\n\nimport databpy as db\nimport numpy as np\n\n# Create a simple object\nbob = db.create_bob(np.random.rand(10, 3))\n\n# Access attributes like a dictionary - returns AttributeArray\npositions = bob[\"position\"]\npositions[:, 2] += 1.0  # Automatically syncs to Blender\n\n# Or use the convenience property\nbob.position[:, 2] += 1.0  # Same thing\n\n# Store new attributes\nbob[\"my_values\"] = np.random.rand(10)\n\nWhen to use: Interactive work, scripting, when you want automatic syncing.\n\n\n\nAttributeArray is a numpy.ndarray subclass that automatically writes changes back to Blender. It provides natural NumPy operations with automatic bidirectional syncing.\n\nimport databpy as db\nimport bpy\n\nobj = bpy.data.objects[\"Cube\"]\n\n# Create an AttributeArray\npos = db.AttributeArray(obj, \"position\")\n\n# All NumPy operations work and auto-sync\npos[:, 2] += 1.0      # In-place addition\npos *= 2.0            # Broadcasting\npos[0] = [0, 0, 0]    # Item assignment\n\n# Changes are immediately reflected in Blender\n\n\n\n\n\n\n\nNotePerformance Note\n\n\n\nAttributeArray syncs the entire attribute array on every modification, not just changed values. This is due to Blender’s foreach_set API. For large meshes (10K+ vertices), consider batching operations or using the lower-level Attribute class.\n\n\nWhen to use: When you need NumPy-like operations with automatic syncing, working with position/color/custom data interactively.\n\n\n\nThe Attribute class provides direct, stateless access with explicit control over when data is read or written.\n\nimport databpy as db\nimport numpy as np\nimport bpy\n\nobj = bpy.data.objects[\"Cube\"]\n\n# Get the attribute wrapper\nattr = db.Attribute(obj.data.attributes[\"position\"])\n\n# Manually read data\npositions = attr.as_array()\n\n# Perform operations (no auto-sync)\npositions[:, 2] += 1.0\npositions *= 2.0\n\n# Manually write back (single write operation)\nattr.from_array(positions)\n\nWhen to use: - One-shot read or write operations - Performance-critical code where you want control over sync timing - Batch processing where you make many changes before writing back - When you need to inspect attribute metadata without reading data\n\n\n\n\nBlender supports various attribute data types. databpy works with all of them through the AttributeTypes enum:\n\n\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(10, 3))\n\n# FLOAT - Single float per element\ntemperatures = np.random.rand(10).astype(np.float32)\nbob[\"temperature\"] = temperatures\n\n# FLOAT2 - 2D vectors\nuv_coords = np.random.rand(10, 2).astype(np.float32)\ndb.store_named_attribute(bob.object, uv_coords, \"uv\", atype=\"FLOAT2\")\n\n# FLOAT_VECTOR - 3D vectors (most common)\nvelocities = np.random.rand(10, 3).astype(np.float32)\nbob[\"velocity\"] = velocities\n\n# FLOAT_COLOR - RGBA colors (4 components)\ncolors = np.random.rand(10, 4).astype(np.float32)\ndb.store_named_attribute(bob.object, colors, \"color\", atype=\"FLOAT_COLOR\")\n\n# QUATERNION - Rotations (4 components: w, x, y, z)\nrotations = np.random.rand(10, 4).astype(np.float32)\ndb.store_named_attribute(bob.object, rotations, \"rotation\", atype=\"QUATERNION\")\n\n# FLOAT4X4 - 4x4 transformation matrices\nmatrices = np.random.rand(10, 4, 4).astype(np.float32)\ndb.store_named_attribute(bob.object, matrices, \"transform\", atype=\"FLOAT4X4\")\n\nbpy.data.meshes['NewObject.001'].attributes[\"transform\"]\n\n\n\n\n\n\n# INT - 32-bit signed integers\nids = np.arange(10, dtype=np.int32)\nbob[\"id\"] = ids\n\n# INT8 - 8-bit signed integers (memory efficient)\nsmall_values = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], dtype=np.int8)\ndb.store_named_attribute(bob.object, small_values, \"category\", atype=\"INT8\")\n\n# INT32_2D - 2D integer vectors\npairs = np.random.randint(0, 100, size=(10, 2), dtype=np.int32)\ndb.store_named_attribute(bob.object, pairs, \"edge_ids\", atype=\"INT32_2D\")\n\nbpy.data.meshes['NewObject.001'].attributes[\"edge_ids\"]\n\n\n\n\n\n\n# BYTE_COLOR - RGBA as unsigned 8-bit (0-255)\nbyte_colors = np.random.randint(0, 255, size=(10, 4), dtype=np.uint8)\ndb.store_named_attribute(bob.object, byte_colors, \"vertex_color\", atype=\"BYTE_COLOR\")\n\nbpy.data.meshes['NewObject.001'].attributes[\"vertex_color\"]\n\n\n\n\n\n\n# BOOLEAN - True/False flags\nselection = np.random.rand(10) &gt; 0.5\nbob[\"selected\"] = selection\n\n\n\n\n\n\n\nTipType Inference\n\n\n\nIf you don’t specify an atype, databpy will infer it from your array’s dtype and shape using guess_atype_from_array().\n\n\n\n\n\n\nAttributes exist on different domains of the geometry, specified by the AttributeDomains enum:\n\n\n\n\n\n\n\n\nDomain\nDescription\nExample Use Cases\n\n\n\n\nPOINT\nVertices, curve control points\nPositions, vertex colors, temperature\n\n\nEDGE\nMesh edges\nEdge weights, crease values\n\n\nFACE\nMesh faces/polygons\nMaterial indices, face areas\n\n\nCORNER\nFace corners (vertex-face pairs)\nUV coordinates, split normals\n\n\nCURVE\nIndividual curve splines\nPer-spline properties\n\n\nINSTANCE\nGeometry instances\nInstance transforms, IDs\n\n\n\n\nimport databpy as db\nimport numpy as np\nimport bpy\n\nobj = bpy.data.objects[\"Cube\"]\n\n# POINT domain (default) - one value per vertex\nvertex_data = np.random.rand(len(obj.data.vertices), 3)\ndb.store_named_attribute(obj, vertex_data, \"vertex_attr\", domain=\"POINT\")\n\n# FACE domain - one value per face\nface_data = np.random.rand(len(obj.data.polygons))\ndb.store_named_attribute(obj, face_data, \"face_attr\", domain=\"FACE\")\n\n# EDGE domain - one value per edge\nedge_data = np.random.rand(len(obj.data.edges))\ndb.store_named_attribute(obj, edge_data, \"edge_attr\", domain=\"EDGE\")\n\nbpy.data.meshes['Cube'].attributes[\"edge_attr\"]\n\n\n\n\n\n\n\n\nImportantDomain Size Matching\n\n\n\nThe length of your data array must match the number of elements in the target domain. A cube has 8 vertices, 12 edges, and 6 faces, so your arrays must have corresponding lengths.\n\n\n\n\n\n\n\n\nimport databpy as db\nimport bpy\n\nobj = bpy.data.objects[\"Cube\"]\n\n# Method 1: Simple function call (returns regular numpy array)\npositions = db.named_attribute(obj, \"position\")  # see named_attribute()\n\n# Method 2: Via BlenderObject (returns AttributeArray)\nbob = db.BlenderObject(obj)  # see BlenderObject\npositions = bob[\"position\"]  # or bob.position\n\n# Method 3: List available attributes\nattrs = db.list_attributes(obj)  # see list_attributes()\nprint(attrs)\n\n# Method 4: With modifier evaluation\nevaluated_positions = db.named_attribute(obj, \"position\", evaluate=True)\n\n['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', 'UVMap', 'edge_attr', 'face_attr', 'position', 'sharp_face', 'vertex_attr']\n\n\n\n\n\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(10, 3))\n\n# Method 1: Dictionary-style (most convenient)\nbob[\"my_data\"] = np.random.rand(10, 3)\n\n# Method 2: Function call (more options)\ndb.store_named_attribute(\n    bob.object,\n    data=np.random.rand(10),\n    name=\"custom_attr\",\n    atype=\"FLOAT\",\n    domain=\"POINT\",\n    overwrite=True\n)\n\n# Method 3: Via BlenderObject method\nbob.store_named_attribute(\n    np.random.rand(10, 3),\n    name=\"another_attr\",\n    domain=\"POINT\"\n)\n\n\n\n\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(100, 3))\n\n# Using AttributeArray for interactive modifications\npos = bob.position\n\n# Simple operations\npos[:, 2] += 1.0          # Move all points up\npos *= 2.0                # Scale positions\npos[pos &lt; 0] = 0          # Clamp negative values\n\n# Boolean indexing\nselection = pos[:, 2] &gt; 0.5\npos[selection, 2] = 1.0\n\n# Column operations\npos[:, 0] = np.linspace(0, 1, len(pos))  # Linear ramp on X\n\n\n\n\nFor large datasets, use the Attribute class to batch operations:\n\nimport databpy as db\nimport numpy as np\nimport bpy\n\nobj = db.create_object(np.random.rand(int(1e5), 3))\nattr = db.Attribute(obj.data.attributes[\"position\"])\n\n# Single read\npositions = attr.as_array()\n\n# Many operations without syncing\npositions[:, 2] += 1.0\npositions *= 2.0\npositions = np.clip(positions, -10, 10)\n\n# Single write\nattr.from_array(positions)\n\n\n\n\n\n\n\nTipPerformance Comparison\n\n\n\n\nAttributeArray: ~N writes for N operations (auto-sync each time)\nAttribute: 1 read + 1 write for N operations (manual control)\n\nFor 100K vertices with 10 operations, Attribute can be 10x faster.\n\n\n\n\n\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(10, 3))\n\n# Store integer IDs\nids = np.arange(10, dtype=np.int32)\nbob[\"id\"] = ids\n\n# Retrieve as AttributeArray\nid_array = bob[\"id\"]\n\n# Modify (automatically maintains int32 dtype)\nid_array += 100\n\n# Verify it's still integers\nprint(id_array.dtype)  # int32\n\nint32\n\n\n\n\n\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(20, 3))\n\n# Create selection based on position\nselection = bob.position[:, 2] &gt; 0.5\nbob[\"selected\"] = selection\n\n# Use boolean attribute for filtering\nselected_mask = bob[\"selected\"]\nbob.position[selected_mask, 2] = 1.0\n\n\n\n\n\ndatabpy uses a consistent exception hierarchy for attribute-related errors:\n\n\n\ndb.NamedAttributeError (base class, inherits from AttributeError)\n\nRaised when attribute operations fail\nUsed for: non-existent attributes, invalid names, domain size mismatches\ndb.AttributeMismatchError (inherits from NamedAttributeError)\n\nRaised when data doesn’t match attribute expectations\nUsed for: shape mismatches, type incompatibilities\n\n\n\n\n\n\n\nimport databpy as db\nimport numpy as np\nimport bpy\n\nobj = bpy.data.objects[\"Cube\"]\n\ntry:\n    # Trying to access non-existent attribute\n    data = db.named_attribute(obj, \"nonexistent\")\nexcept db.NamedAttributeError as e:\n    print(f\"Attribute not found: {e}\")\n\ntry:\n    # Wrong data size for domain\n    db.store_named_attribute(obj, np.random.rand(100, 3), \"test\")\nexcept db.NamedAttributeError as e:\n    print(f\"Size mismatch: {e}\")\n\ntry:\n    # Shape mismatch when using Attribute class\n    attr = db.Attribute(obj.data.attributes[\"position\"])\n    wrong_shape = np.random.rand(8, 4)  # Should be (8, 3)\n    attr.from_array(wrong_shape)\nexcept db.AttributeMismatchError as e:\n    print(f\"Shape error: {e}\")\n\nAttribute not found: The selected attribute 'nonexistent' does not exist on the mesh.\nSize mismatch: Data size 300 (shape (100, 3)) does not match the required size 24 for domain `POINT` with 8 elements and dimensions (3,)\nShape error: Array size 32 does not match attribute size 24. Array shape (8, 4) cannot be reshaped to attribute shape (8, 3)\n\n\n\n\n\n\n\n\nTipCatching All Attribute Errors\n\n\n\nSince AttributeMismatchError inherits from NamedAttributeError, you can catch all attribute-related errors with a single except db.NamedAttributeError: clause.\n\n\n\n\n\n\n\n\n\nInteractive work, scripting: Use BlenderObject and AttributeArray\nPerformance-critical code: Use Attribute with manual read/write\nQuick one-off reads: Use named_attribute() function\n\n\n\n\n\n# Good: Explicit dtype matching Blender's storage\ndata = np.random.rand(10, 3).astype(np.float32)\n\n# Less good: float64 will be converted to float32 anyway\ndata = np.random.rand(10, 3)  # defaults to float64\n\n\n\n\n\n# Not great: Multiple syncs\npos = bob.position\nfor i in range(len(pos)):\n    pos[i, 2] += 1.0  # Syncs every iteration!\n\n# Better: Vectorized operation (single sync)\npos[:, 2] += 1.0\n\n\n\n\n\nfrom databpy import AttributeDomains, AttributeTypes\n\n# More readable and type-safe\ndb.store_named_attribute(\n    obj,\n    np.random.rand(len(obj.data.vertices), 3),\n    \"my_attr\",\n    atype=AttributeTypes.FLOAT_VECTOR,\n    domain=AttributeDomains.POINT\n)\ndb.named_attribute(obj, \"my_attr\")\n\narray([[0.12383267, 0.10213587, 0.040612  ],\n       [0.57848907, 0.91559863, 0.8728852 ],\n       [0.6541252 , 0.8486449 , 0.74591327],\n       [0.7403221 , 0.3676333 , 0.07287502],\n       [0.61528665, 0.9567711 , 0.93572944],\n       [0.8877571 , 0.25735554, 0.6682423 ],\n       [0.95820975, 0.88680583, 0.24096505],\n       [0.03619318, 0.382439  , 0.6691955 ]], dtype=float32)\n\n\n\n\n\n\n# Remove attributes you no longer need\ndb.remove_named_attribute(obj, \"my_attr\")\ntry:\n    db.named_attribute(obj, \"my_attr\")\nexcept db.NamedAttributeError as e:\n    print(e)\n\nThe selected attribute 'my_attr' does not exist on the mesh.\n\n\n\n\n\n\nUnderstanding the relationship between the classes helps you choose the right tool:\n┌─────────────────────────────────────────────────────┐\n│ BlenderObject (bob)                                 │\n│ - High-level convenience wrapper                    │\n│ - Dictionary access: bob[\"attr\"]                    │\n│ - Property access: bob.position                     │\n│ - Returns: AttributeArray                           │\n└─────────────────┬───────────────────────────────────┘\n                  │\n                  │ creates/returns\n                  ▼\n┌─────────────────────────────────────────────────────┐\n│ AttributeArray                                      │\n│ - NumPy subclass with auto-sync                     │\n│ - All NumPy operations work                         │\n│ - Syncs entire array on every modification          │\n│ - References: Attribute (for metadata)              │\n└─────────────────┬───────────────────────────────────┘\n                  │\n                  │ uses\n                  ▼\n┌─────────────────────────────────────────────────────┐\n│ Attribute                                           │\n│ - Low-level wrapper, manual control                 │\n│ - Methods: as_array(), from_array()                 │\n│ - Properties: atype, domain, shape, dtype           │\n│ - One-shot reads/writes                             │\n└─────────────────┬───────────────────────────────────┘\n                  │\n                  │ wraps\n                  ▼\n┌─────────────────────────────────────────────────────┐\n│ bpy.types.Attribute                                 │\n│ - Raw Blender API                                   │\n│ - foreach_get/foreach_set                           │\n└─────────────────────────────────────────────────────┘\n\n\n\n\n\n\nBlenderObject - High-level object wrapper with convenience methods\nAttributeArray - Auto-syncing NumPy array subclass\nAttribute - Low-level attribute wrapper with manual control\n\n\n\n\n\nnamed_attribute() - Read attribute data as NumPy array\nstore_named_attribute() - Write attribute data to object\nremove_named_attribute() - Delete an attribute\nlist_attributes() - List all attributes on an object\ncreate_bob() - Create a new BlenderObject\ncreate_object() - Create a new Blender object\n\n\n\n\n\nAttributeTypes - Enum of all available attribute data types\nAttributeDomains - Enum of all available geometry domains\n\n\n\n\n\nNamedAttributeError - Base exception for attribute operations\nAttributeMismatchError - Exception for data/type mismatches\n\n\n\n\n\nnumpy.ndarray - NumPy array documentation\nbpy.types.Object - Blender Object documentation\nbpy.types.Attribute - Blender Attribute documentation"
   },
   {
     "objectID": "attributes.html#what-are-attributes",
@@ -53,7 +53,7 @@
     "href": "attributes.html#best-practices",
     "title": "Working with Attributes",
     "section": "",
-    "text": "Interactive work, scripting: Use BlenderObject and AttributeArray\nPerformance-critical code: Use Attribute with manual read/write\nQuick one-off reads: Use named_attribute() function\n\n\n\n\n\n# Good: Explicit dtype matching Blender's storage\ndata = np.random.rand(10, 3).astype(np.float32)\n\n# Less good: float64 will be converted to float32 anyway\ndata = np.random.rand(10, 3)  # defaults to float64\n\n\n\n\n\n# Not great: Multiple syncs\npos = bob.position\nfor i in range(len(pos)):\n    pos[i, 2] += 1.0  # Syncs every iteration!\n\n# Better: Vectorized operation (single sync)\npos[:, 2] += 1.0\n\n\n\n\n\nfrom databpy import AttributeDomains, AttributeTypes\n\n# More readable and type-safe\ndb.store_named_attribute(\n    obj,\n    np.random.rand(len(obj.data.vertices), 3),\n    \"my_attr\",\n    atype=AttributeTypes.FLOAT_VECTOR,\n    domain=AttributeDomains.POINT\n)\ndb.named_attribute(obj, \"my_attr\")\n\narray([[0.8678701 , 0.8014326 , 0.07885373],\n       [0.6510982 , 0.70611686, 0.62412745],\n       [0.18226804, 0.9422741 , 0.06992763],\n       [0.40857184, 0.01892899, 0.65550554],\n       [0.39990404, 0.6363508 , 0.07935861],\n       [0.9264619 , 0.83525854, 0.797653  ],\n       [0.07085429, 0.1900507 , 0.66940755],\n       [0.784441  , 0.39701426, 0.9021792 ]], dtype=float32)\n\n\n\n\n\n\n# Remove attributes you no longer need\ndb.remove_named_attribute(obj, \"my_attr\")\ntry:\n    db.named_attribute(obj, \"my_attr\")\nexcept db.NamedAttributeError as e:\n    print(e)\n\nThe selected attribute 'my_attr' does not exist on the mesh."
+    "text": "Interactive work, scripting: Use BlenderObject and AttributeArray\nPerformance-critical code: Use Attribute with manual read/write\nQuick one-off reads: Use named_attribute() function\n\n\n\n\n\n# Good: Explicit dtype matching Blender's storage\ndata = np.random.rand(10, 3).astype(np.float32)\n\n# Less good: float64 will be converted to float32 anyway\ndata = np.random.rand(10, 3)  # defaults to float64\n\n\n\n\n\n# Not great: Multiple syncs\npos = bob.position\nfor i in range(len(pos)):\n    pos[i, 2] += 1.0  # Syncs every iteration!\n\n# Better: Vectorized operation (single sync)\npos[:, 2] += 1.0\n\n\n\n\n\nfrom databpy import AttributeDomains, AttributeTypes\n\n# More readable and type-safe\ndb.store_named_attribute(\n    obj,\n    np.random.rand(len(obj.data.vertices), 3),\n    \"my_attr\",\n    atype=AttributeTypes.FLOAT_VECTOR,\n    domain=AttributeDomains.POINT\n)\ndb.named_attribute(obj, \"my_attr\")\n\narray([[0.12383267, 0.10213587, 0.040612  ],\n       [0.57848907, 0.91559863, 0.8728852 ],\n       [0.6541252 , 0.8486449 , 0.74591327],\n       [0.7403221 , 0.3676333 , 0.07287502],\n       [0.61528665, 0.9567711 , 0.93572944],\n       [0.8877571 , 0.25735554, 0.6682423 ],\n       [0.95820975, 0.88680583, 0.24096505],\n       [0.03619318, 0.382439  , 0.6691955 ]], dtype=float32)\n\n\n\n\n\n\n# Remove attributes you no longer need\ndb.remove_named_attribute(obj, \"my_attr\")\ntry:\n    db.named_attribute(obj, \"my_attr\")\nexcept db.NamedAttributeError as e:\n    print(e)\n\nThe selected attribute 'my_attr' does not exist on the mesh."
   },
   {
     "objectID": "attributes.html#architecture-summary",
@@ -110,7 +110,7 @@
     "href": "api/BlenderObject.html",
     "title": "BlenderObject",
     "section": "",
-    "text": "BlenderObject(obj=None)\nA convenience class for working with Blender objects\n\n\n\n\n\nName\nDescription\n\n\n\n\ndata\nReturn the self.object.data\n\n\nedges\nGet the edges of the Blender mesh object.\n\n\nname\nGet the name of the Blender object.\n\n\nobject\nGet the Blender object.\n\n\nposition\nGet the position of the vertices of the Blender object.\n\n\nvertices\nGet the vertices of the Blender mesh object.\n\n\n\n\n\n\n\n\n\nName\nDescription\n\n\n\n\nattributes\nGet the attributes of the Blender object.\n\n\ncentroid\nCalculate the weighted or unweighted centroid of the object’s positions.\n\n\nevaluate\nReturn a version of the object with all modifiers applied.\n\n\nfrom_curves\nCreate a BlenderObject from curves data.\n\n\nfrom_mesh\nCreate a BlenderObject from mesh data.\n\n\nfrom_pointcloud\nCreate a BlenderObject from point cloud data.\n\n\nlist_attributes\nReturns a list of attribute names for the object.\n\n\nnamed_attribute\nRetrieve a named attribute from the object.\n\n\nnew_from_pydata\nCreate a new Blender object from vertex, edge and face data.\n\n\nremove_named_attribute\nRemove a named attribute from the object.\n\n\nstore_named_attribute\nStore a named attribute on the Blender object.\n\n\n\n\n\nBlenderObject.attributes()\nGet the attributes of the Blender object.\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nbpy.types.Attributes\nThe attributes of the Blender object.\n\n\n\n\n\n\n\nBlenderObject.centroid(weight=None)\nCalculate the weighted or unweighted centroid of the object’s positions.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nweight\nstr | np.ndarray | None\nThe weights or indices for calculating the centroid: - If str: Name of attribute to use as weights - If np.ndarray with float dtype: Weights for each position - If np.ndarray with int dtype: Indices of positions to include - If None: Use all positions equally weighted Defaults to None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nA 3D vector representing the centroid position.\n\n\n\n\n\n\n\nBlenderObject.evaluate()\nReturn a version of the object with all modifiers applied.\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nObject\nA new Object that isn’t yet registered with the database\n\n\n\n\n\n\n\nBlenderObject.from_curves(\n    positions=None,\n    curve_sizes=None,\n    name='Curves',\n    collection=None,\n)\nCreate a BlenderObject from curves data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\npositions\nndarray or None\nControl point positions with shape (N, 3). Default is None.\nNone\n\n\ncurve_sizes\nlist[int] | np.ndarray or None\nNumber of points in each curve. Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “Curves”.\n'Curves'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender curves object.\n\n\n\n\n\n\nimport numpy as np\nimport databpy as db\n\n# Create 2 curves with 3 and 4 points\npositions = np.random.random((7, 3))\nbob = db.BlenderObject.from_curves(positions, [3, 4], name=\"MyCurves\")\nprint(len(bob))  # 7\n\n\n\n\nBlenderObject.from_mesh(\n    vertices=None,\n    edges=None,\n    faces=None,\n    name='Mesh',\n    collection=None,\n)\nCreate a BlenderObject from mesh data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nvertices\nndarray or None\nArray of vertex coordinates with shape (N, 3). Default is None.\nNone\n\n\nedges\nndarray or None\nArray of edge indices. Default is None.\nNone\n\n\nfaces\nndarray or None\nArray of face indices. Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “Mesh”.\n'Mesh'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender mesh object.\n\n\n\n\n\n\nimport numpy as np\nimport databpy as db\n\nvertices = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])\nbob = db.BlenderObject.from_mesh(vertices=vertices, name=\"MyMesh\")\nprint(len(bob))  # 4\n\n\n\n\nBlenderObject.from_pointcloud(\n    positions=None,\n    name='PointCloud',\n    collection=None,\n)\nCreate a BlenderObject from point cloud data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\npositions\nndarray or None\nPoint positions with shape (N, 3). Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “PointCloud”.\n'PointCloud'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender point cloud object.\n\n\n\n\n\n\nimport numpy as np\nimport databpy as db\n\n# Create point cloud with 100 random points\npositions = np.random.random((100, 3))\nbob = db.BlenderObject.from_pointcloud(positions, name=\"MyPointCloud\")\nprint(len(bob))  # 100\n\n\n\n\nBlenderObject.list_attributes(evaluate=False, drop_hidden=False)\nReturns a list of attribute names for the object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nevaluate\nbool\nWhether to first evaluate the modifiers on the object before listing the available attributes.\nFalse\n\n\ndrop_hidden\nbool\nWhether to drop hidden attributes (those starting with a dot). Defaults to False.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nlist[str] | None\nA list of attribute names if the molecule object exists, None otherwise.\n\n\n\n\n\n\n\nBlenderObject.named_attribute(name, evaluate=False)\nRetrieve a named attribute from the object.\nOptionally, evaluate the object before reading the named attribute\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nName of the attribute to get.\nrequired\n\n\nevaluate\nbool\nWhether to evaluate the object before reading the attribute (default is False).\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nThe attribute read from the mesh as a numpy array.\n\n\n\n\n\n\n\nBlenderObject.new_from_pydata(vertices=None, edges=None, faces=None)\nCreate a new Blender object from vertex, edge and face data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nvertices\nnp.ndarray\nThe vertices of the object.\nNone\n\n\nedges\nnp.ndarray\nThe edges of the object.\nNone\n\n\nfaces\nnp.ndarray\nThe faces of the object.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nObject\nThe new Blender object.\n\n\n\n\n\n\n\nBlenderObject.remove_named_attribute(name)\nRemove a named attribute from the object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nThe name of the attribute to remove.\nrequired\n\n\n\n\n\n\n\nBlenderObject.store_named_attribute(\n    data,\n    name,\n    atype=None,\n    domain=AttributeDomains.POINT,\n)\nStore a named attribute on the Blender object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndata\nnp.ndarray\nThe data to be stored as an attribute.\nrequired\n\n\nname\nstr\nThe name for the attribute. Will overwrite an already existing attribute.\nrequired\n\n\natype\nstr or AttributeType or None\nThe attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array.\nNone\n\n\ndomain\nstr or AttributeDomain\nThe domain to store the attribute on. Defaults to Domains.POINT.\nAttributeDomains.POINT\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nself",
+    "text": "BlenderObject(obj=None)\nA convenience class for working with Blender objects.\nExtends BlenderObjectBase with creation methods and additional utility functions.\n\n\n\n\n\nName\nDescription\n\n\n\n\nattributes\nGet the attributes of the Blender object.\n\n\ndata\nGet the data block of the Blender object.\n\n\nedges\nGet the edges of the Blender mesh object.\n\n\nname\nGet the name of the Blender object.\n\n\nobject\nGet the Blender object.\n\n\nposition\nGet the position of the vertices of the Blender object.\n\n\nuuid\nGet the unique identifier for this object.\n\n\nvertices\nGet the vertices of the Blender mesh object.\n\n\n\n\n\n\n\n\n\nName\nDescription\n\n\n\n\ncentroid\nCalculate the weighted or unweighted centroid of the object’s positions.\n\n\nevaluate\nReturn a version of the object with all modifiers applied.\n\n\nfrom_curves\nCreate a BlenderObject from curves data.\n\n\nfrom_mesh\nCreate a BlenderObject from mesh data.\n\n\nfrom_pointcloud\nCreate a BlenderObject from point cloud data.\n\n\nlist_attributes\nReturns a list of attribute names for the object.\n\n\nnamed_attribute\nRetrieve a named attribute from the object.\n\n\nnew_from_pydata\nCreate a new Blender object from vertex, edge and face data.\n\n\nremove_named_attribute\nRemove a named attribute from the object.\n\n\nstore_named_attribute\nStore a named attribute on the Blender object.\n\n\n\n\n\nBlenderObject.centroid(weight=None)\nCalculate the weighted or unweighted centroid of the object’s positions.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nweight\nstr | np.ndarray | None\nThe weights or indices for calculating the centroid: - If str: Name of attribute to use as weights - If np.ndarray with float dtype: Weights for each position - If np.ndarray with int dtype: Indices of positions to include - If None: Use all positions equally weighted Defaults to None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nA 3D vector representing the centroid position.\n\n\n\n\n\n\n\nBlenderObject.evaluate()\nReturn a version of the object with all modifiers applied.\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nObject\nA new Object that isn’t yet registered with the database\n\n\n\n\n\n\n\nBlenderObject.from_curves(\n    positions=None,\n    curve_sizes=None,\n    name='Curves',\n    collection=None,\n)\nCreate a BlenderObject from curves data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\npositions\nndarray or None\nControl point positions with shape (N, 3). Default is None.\nNone\n\n\ncurve_sizes\nlist[int] | np.ndarray or None\nNumber of points in each curve. Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “Curves”.\n'Curves'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender curves object.\n\n\n\n\n\n\nimport numpy as np\nimport databpy as db\n\n# Create 2 curves with 3 and 4 points\npositions = np.random.random((7, 3))\nbob = db.BlenderObject.from_curves(positions, [3, 4], name=\"MyCurves\")\nprint(len(bob))  # 7\n\n\n\n\nBlenderObject.from_mesh(\n    vertices=None,\n    edges=None,\n    faces=None,\n    name='Mesh',\n    collection=None,\n)\nCreate a BlenderObject from mesh data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nvertices\nndarray or None\nArray of vertex coordinates with shape (N, 3). Default is None.\nNone\n\n\nedges\nndarray or None\nArray of edge indices. Default is None.\nNone\n\n\nfaces\nndarray or None\nArray of face indices. Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “Mesh”.\n'Mesh'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender mesh object.\n\n\n\n\n\n\nimport numpy as np\nimport databpy as db\n\nvertices = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])\nbob = db.BlenderObject.from_mesh(vertices=vertices, name=\"MyMesh\")\nprint(len(bob))  # 4\n\n\n\n\nBlenderObject.from_pointcloud(\n    positions=None,\n    name='PointCloud',\n    collection=None,\n)\nCreate a BlenderObject from point cloud data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\npositions\nndarray or None\nPoint positions with shape (N, 3). Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “PointCloud”.\n'PointCloud'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender point cloud object.\n\n\n\n\n\n\nimport numpy as np\nimport databpy as db\n\n# Create point cloud with 100 random points\npositions = np.random.random((100, 3))\nbob = db.BlenderObject.from_pointcloud(positions, name=\"MyPointCloud\")\nprint(len(bob))  # 100\n\n\n\n\nBlenderObject.list_attributes(evaluate=False, drop_hidden=False)\nReturns a list of attribute names for the object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nevaluate\nbool\nWhether to first evaluate the modifiers on the object before listing the available attributes.\nFalse\n\n\ndrop_hidden\nbool\nWhether to drop hidden attributes (those starting with a dot). Defaults to False.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nlist[str] | None\nA list of attribute names if the molecule object exists, None otherwise.\n\n\n\n\n\n\n\nBlenderObject.named_attribute(name, evaluate=False)\nRetrieve a named attribute from the object.\nOptionally, evaluate the object before reading the named attribute\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nName of the attribute to get.\nrequired\n\n\nevaluate\nbool\nWhether to evaluate the object before reading the attribute (default is False).\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nThe attribute read from the mesh as a numpy array.\n\n\n\n\n\n\n\nBlenderObject.new_from_pydata(vertices=None, edges=None, faces=None)\nCreate a new Blender object from vertex, edge and face data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nvertices\nnp.ndarray\nThe vertices of the object.\nNone\n\n\nedges\nnp.ndarray\nThe edges of the object.\nNone\n\n\nfaces\nnp.ndarray\nThe faces of the object.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nObject\nThe new Blender object.\n\n\n\n\n\n\n\nBlenderObject.remove_named_attribute(name)\nRemove a named attribute from the object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nThe name of the attribute to remove.\nrequired\n\n\n\n\n\n\n\nBlenderObject.store_named_attribute(\n    data,\n    name,\n    atype=None,\n    domain=AttributeDomains.POINT,\n)\nStore a named attribute on the Blender object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndata\nnp.ndarray\nThe data to be stored as an attribute.\nrequired\n\n\nname\nstr\nThe name for the attribute. Will overwrite an already existing attribute.\nrequired\n\n\natype\nstr or AttributeType or None\nThe attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array.\nNone\n\n\ndomain\nstr or AttributeDomain\nThe domain to store the attribute on. Defaults to Domains.POINT.\nAttributeDomains.POINT\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nself",
     "crumbs": [
       "API",
       "Objects",
@@ -122,7 +122,7 @@
     "href": "api/BlenderObject.html#attributes",
     "title": "BlenderObject",
     "section": "",
-    "text": "Name\nDescription\n\n\n\n\ndata\nReturn the self.object.data\n\n\nedges\nGet the edges of the Blender mesh object.\n\n\nname\nGet the name of the Blender object.\n\n\nobject\nGet the Blender object.\n\n\nposition\nGet the position of the vertices of the Blender object.\n\n\nvertices\nGet the vertices of the Blender mesh object.",
+    "text": "Name\nDescription\n\n\n\n\nattributes\nGet the attributes of the Blender object.\n\n\ndata\nGet the data block of the Blender object.\n\n\nedges\nGet the edges of the Blender mesh object.\n\n\nname\nGet the name of the Blender object.\n\n\nobject\nGet the Blender object.\n\n\nposition\nGet the position of the vertices of the Blender object.\n\n\nuuid\nGet the unique identifier for this object.\n\n\nvertices\nGet the vertices of the Blender mesh object.",
     "crumbs": [
       "API",
       "Objects",
@@ -134,7 +134,7 @@
     "href": "api/BlenderObject.html#methods",
     "title": "BlenderObject",
     "section": "",
-    "text": "Name\nDescription\n\n\n\n\nattributes\nGet the attributes of the Blender object.\n\n\ncentroid\nCalculate the weighted or unweighted centroid of the object’s positions.\n\n\nevaluate\nReturn a version of the object with all modifiers applied.\n\n\nfrom_curves\nCreate a BlenderObject from curves data.\n\n\nfrom_mesh\nCreate a BlenderObject from mesh data.\n\n\nfrom_pointcloud\nCreate a BlenderObject from point cloud data.\n\n\nlist_attributes\nReturns a list of attribute names for the object.\n\n\nnamed_attribute\nRetrieve a named attribute from the object.\n\n\nnew_from_pydata\nCreate a new Blender object from vertex, edge and face data.\n\n\nremove_named_attribute\nRemove a named attribute from the object.\n\n\nstore_named_attribute\nStore a named attribute on the Blender object.\n\n\n\n\n\nBlenderObject.attributes()\nGet the attributes of the Blender object.\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nbpy.types.Attributes\nThe attributes of the Blender object.\n\n\n\n\n\n\n\nBlenderObject.centroid(weight=None)\nCalculate the weighted or unweighted centroid of the object’s positions.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nweight\nstr | np.ndarray | None\nThe weights or indices for calculating the centroid: - If str: Name of attribute to use as weights - If np.ndarray with float dtype: Weights for each position - If np.ndarray with int dtype: Indices of positions to include - If None: Use all positions equally weighted Defaults to None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nA 3D vector representing the centroid position.\n\n\n\n\n\n\n\nBlenderObject.evaluate()\nReturn a version of the object with all modifiers applied.\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nObject\nA new Object that isn’t yet registered with the database\n\n\n\n\n\n\n\nBlenderObject.from_curves(\n    positions=None,\n    curve_sizes=None,\n    name='Curves',\n    collection=None,\n)\nCreate a BlenderObject from curves data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\npositions\nndarray or None\nControl point positions with shape (N, 3). Default is None.\nNone\n\n\ncurve_sizes\nlist[int] | np.ndarray or None\nNumber of points in each curve. Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “Curves”.\n'Curves'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender curves object.\n\n\n\n\n\n\nimport numpy as np\nimport databpy as db\n\n# Create 2 curves with 3 and 4 points\npositions = np.random.random((7, 3))\nbob = db.BlenderObject.from_curves(positions, [3, 4], name=\"MyCurves\")\nprint(len(bob))  # 7\n\n\n\n\nBlenderObject.from_mesh(\n    vertices=None,\n    edges=None,\n    faces=None,\n    name='Mesh',\n    collection=None,\n)\nCreate a BlenderObject from mesh data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nvertices\nndarray or None\nArray of vertex coordinates with shape (N, 3). Default is None.\nNone\n\n\nedges\nndarray or None\nArray of edge indices. Default is None.\nNone\n\n\nfaces\nndarray or None\nArray of face indices. Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “Mesh”.\n'Mesh'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender mesh object.\n\n\n\n\n\n\nimport numpy as np\nimport databpy as db\n\nvertices = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])\nbob = db.BlenderObject.from_mesh(vertices=vertices, name=\"MyMesh\")\nprint(len(bob))  # 4\n\n\n\n\nBlenderObject.from_pointcloud(\n    positions=None,\n    name='PointCloud',\n    collection=None,\n)\nCreate a BlenderObject from point cloud data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\npositions\nndarray or None\nPoint positions with shape (N, 3). Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “PointCloud”.\n'PointCloud'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender point cloud object.\n\n\n\n\n\n\nimport numpy as np\nimport databpy as db\n\n# Create point cloud with 100 random points\npositions = np.random.random((100, 3))\nbob = db.BlenderObject.from_pointcloud(positions, name=\"MyPointCloud\")\nprint(len(bob))  # 100\n\n\n\n\nBlenderObject.list_attributes(evaluate=False, drop_hidden=False)\nReturns a list of attribute names for the object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nevaluate\nbool\nWhether to first evaluate the modifiers on the object before listing the available attributes.\nFalse\n\n\ndrop_hidden\nbool\nWhether to drop hidden attributes (those starting with a dot). Defaults to False.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nlist[str] | None\nA list of attribute names if the molecule object exists, None otherwise.\n\n\n\n\n\n\n\nBlenderObject.named_attribute(name, evaluate=False)\nRetrieve a named attribute from the object.\nOptionally, evaluate the object before reading the named attribute\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nName of the attribute to get.\nrequired\n\n\nevaluate\nbool\nWhether to evaluate the object before reading the attribute (default is False).\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nThe attribute read from the mesh as a numpy array.\n\n\n\n\n\n\n\nBlenderObject.new_from_pydata(vertices=None, edges=None, faces=None)\nCreate a new Blender object from vertex, edge and face data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nvertices\nnp.ndarray\nThe vertices of the object.\nNone\n\n\nedges\nnp.ndarray\nThe edges of the object.\nNone\n\n\nfaces\nnp.ndarray\nThe faces of the object.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nObject\nThe new Blender object.\n\n\n\n\n\n\n\nBlenderObject.remove_named_attribute(name)\nRemove a named attribute from the object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nThe name of the attribute to remove.\nrequired\n\n\n\n\n\n\n\nBlenderObject.store_named_attribute(\n    data,\n    name,\n    atype=None,\n    domain=AttributeDomains.POINT,\n)\nStore a named attribute on the Blender object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndata\nnp.ndarray\nThe data to be stored as an attribute.\nrequired\n\n\nname\nstr\nThe name for the attribute. Will overwrite an already existing attribute.\nrequired\n\n\natype\nstr or AttributeType or None\nThe attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array.\nNone\n\n\ndomain\nstr or AttributeDomain\nThe domain to store the attribute on. Defaults to Domains.POINT.\nAttributeDomains.POINT\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nself",
+    "text": "Name\nDescription\n\n\n\n\ncentroid\nCalculate the weighted or unweighted centroid of the object’s positions.\n\n\nevaluate\nReturn a version of the object with all modifiers applied.\n\n\nfrom_curves\nCreate a BlenderObject from curves data.\n\n\nfrom_mesh\nCreate a BlenderObject from mesh data.\n\n\nfrom_pointcloud\nCreate a BlenderObject from point cloud data.\n\n\nlist_attributes\nReturns a list of attribute names for the object.\n\n\nnamed_attribute\nRetrieve a named attribute from the object.\n\n\nnew_from_pydata\nCreate a new Blender object from vertex, edge and face data.\n\n\nremove_named_attribute\nRemove a named attribute from the object.\n\n\nstore_named_attribute\nStore a named attribute on the Blender object.\n\n\n\n\n\nBlenderObject.centroid(weight=None)\nCalculate the weighted or unweighted centroid of the object’s positions.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nweight\nstr | np.ndarray | None\nThe weights or indices for calculating the centroid: - If str: Name of attribute to use as weights - If np.ndarray with float dtype: Weights for each position - If np.ndarray with int dtype: Indices of positions to include - If None: Use all positions equally weighted Defaults to None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nA 3D vector representing the centroid position.\n\n\n\n\n\n\n\nBlenderObject.evaluate()\nReturn a version of the object with all modifiers applied.\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nObject\nA new Object that isn’t yet registered with the database\n\n\n\n\n\n\n\nBlenderObject.from_curves(\n    positions=None,\n    curve_sizes=None,\n    name='Curves',\n    collection=None,\n)\nCreate a BlenderObject from curves data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\npositions\nndarray or None\nControl point positions with shape (N, 3). Default is None.\nNone\n\n\ncurve_sizes\nlist[int] | np.ndarray or None\nNumber of points in each curve. Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “Curves”.\n'Curves'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender curves object.\n\n\n\n\n\n\nimport numpy as np\nimport databpy as db\n\n# Create 2 curves with 3 and 4 points\npositions = np.random.random((7, 3))\nbob = db.BlenderObject.from_curves(positions, [3, 4], name=\"MyCurves\")\nprint(len(bob))  # 7\n\n\n\n\nBlenderObject.from_mesh(\n    vertices=None,\n    edges=None,\n    faces=None,\n    name='Mesh',\n    collection=None,\n)\nCreate a BlenderObject from mesh data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nvertices\nndarray or None\nArray of vertex coordinates with shape (N, 3). Default is None.\nNone\n\n\nedges\nndarray or None\nArray of edge indices. Default is None.\nNone\n\n\nfaces\nndarray or None\nArray of face indices. Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “Mesh”.\n'Mesh'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender mesh object.\n\n\n\n\n\n\nimport numpy as np\nimport databpy as db\n\nvertices = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])\nbob = db.BlenderObject.from_mesh(vertices=vertices, name=\"MyMesh\")\nprint(len(bob))  # 4\n\n\n\n\nBlenderObject.from_pointcloud(\n    positions=None,\n    name='PointCloud',\n    collection=None,\n)\nCreate a BlenderObject from point cloud data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\npositions\nndarray or None\nPoint positions with shape (N, 3). Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “PointCloud”.\n'PointCloud'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender point cloud object.\n\n\n\n\n\n\nimport numpy as np\nimport databpy as db\n\n# Create point cloud with 100 random points\npositions = np.random.random((100, 3))\nbob = db.BlenderObject.from_pointcloud(positions, name=\"MyPointCloud\")\nprint(len(bob))  # 100\n\n\n\n\nBlenderObject.list_attributes(evaluate=False, drop_hidden=False)\nReturns a list of attribute names for the object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nevaluate\nbool\nWhether to first evaluate the modifiers on the object before listing the available attributes.\nFalse\n\n\ndrop_hidden\nbool\nWhether to drop hidden attributes (those starting with a dot). Defaults to False.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nlist[str] | None\nA list of attribute names if the molecule object exists, None otherwise.\n\n\n\n\n\n\n\nBlenderObject.named_attribute(name, evaluate=False)\nRetrieve a named attribute from the object.\nOptionally, evaluate the object before reading the named attribute\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nName of the attribute to get.\nrequired\n\n\nevaluate\nbool\nWhether to evaluate the object before reading the attribute (default is False).\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nThe attribute read from the mesh as a numpy array.\n\n\n\n\n\n\n\nBlenderObject.new_from_pydata(vertices=None, edges=None, faces=None)\nCreate a new Blender object from vertex, edge and face data.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nvertices\nnp.ndarray\nThe vertices of the object.\nNone\n\n\nedges\nnp.ndarray\nThe edges of the object.\nNone\n\n\nfaces\nnp.ndarray\nThe faces of the object.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nObject\nThe new Blender object.\n\n\n\n\n\n\n\nBlenderObject.remove_named_attribute(name)\nRemove a named attribute from the object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nThe name of the attribute to remove.\nrequired\n\n\n\n\n\n\n\nBlenderObject.store_named_attribute(\n    data,\n    name,\n    atype=None,\n    domain=AttributeDomains.POINT,\n)\nStore a named attribute on the Blender object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndata\nnp.ndarray\nThe data to be stored as an attribute.\nrequired\n\n\nname\nstr\nThe name for the attribute. Will overwrite an already existing attribute.\nrequired\n\n\natype\nstr or AttributeType or None\nThe attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array.\nNone\n\n\ndomain\nstr or AttributeDomain\nThe domain to store the attribute on. Defaults to Domains.POINT.\nAttributeDomains.POINT\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nself",
     "crumbs": [
       "API",
       "Objects",
@@ -178,123 +178,359 @@
     ]
   },
   {
-    "objectID": "api/create_curves_object.html",
-    "href": "api/create_curves_object.html",
-    "title": "create_curves_object",
+    "objectID": "api/BlenderObjectBase.html",
+    "href": "api/BlenderObjectBase.html",
+    "title": "BlenderObjectBase",
     "section": "",
-    "text": "create_curves_object(\n    positions=None,\n    curve_sizes=None,\n    name='Curves',\n    collection=None,\n)\nCreate a new Blender curves object (new Curves type, not legacy Curve).\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\npositions\nnp.ndarray\nThe control point positions as a numpy array with shape (N, 3). If None, creates an empty curves object. Defaults to None.\nNone\n\n\ncurve_sizes\nlist[int] | np.ndarray\nNumber of points in each curve. For example, [4, 5, 6] creates 3 curves with 4, 5, and 6 control points respectively. Total must equal len(positions). If None, creates an empty curves object. Defaults to None.\nNone\n\n\nname\nstr\nThe name of the object. Defaults to ‘Curves’.\n'Curves'\n\n\ncollection\nbpy.types.Collection\nThe collection to link the object to. Defaults to None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nObject\nThe created curves object.\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nValueError\nIf positions and curve_sizes lengths don’t match.\n\n\n\n\n\n\nimport numpy as np\nfrom databpy import create_curves_object\n\n# Create 2 curves with 3 and 4 points\npositions = np.random.random((7, 3))\ncurves_obj = create_curves_object(positions, [3, 4])",
+    "text": "BlenderObjectBase(obj=None)\nMinimal base class for Blender objects with attribute access.\nThis class provides core functionality for storing and accessing named attributes on Blender objects. It can be inherited by other packages that need attribute management without the full BlenderObject feature set.\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\nobject\nbpy.types.Object\nThe wrapped Blender object.\n\n\nuuid\nstr\nUnique identifier for this object instance.\n\n\nname\nstr\nName of the Blender object.\n\n\nposition\nAttributeArray\nPosition attribute of the object’s vertices/points.\n\n\ndata\nbpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud\nThe data block associated with this object.\n\n\nattributes\n\nGet the attributes collection of the Blender object.\n\n\n\n\n\n\n\n\n\nName\nDescription\n\n\n\n\nevaluate\nReturn a version of the object with all modifiers applied.\n\n\nlist_attributes\nReturns a list of attribute names for the object.\n\n\nnamed_attribute\nRetrieve a named attribute from the object.\n\n\nremove_named_attribute\nRemove a named attribute from the object.\n\n\nstore_named_attribute\nStore a named attribute on the Blender object.\n\n\n\n\n\nBlenderObjectBase.evaluate()\nReturn a version of the object with all modifiers applied.\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nObject\nA new Object that isn’t yet registered with the database\n\n\n\n\n\n\n\nBlenderObjectBase.list_attributes(evaluate=False, drop_hidden=False)\nReturns a list of attribute names for the object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nevaluate\nbool\nWhether to first evaluate the modifiers on the object before listing the available attributes.\nFalse\n\n\ndrop_hidden\nbool\nWhether to drop hidden attributes (those starting with a dot). Defaults to False.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nlist[str] | None\nA list of attribute names if the molecule object exists, None otherwise.\n\n\n\n\n\n\n\nBlenderObjectBase.named_attribute(name, evaluate=False)\nRetrieve a named attribute from the object.\nOptionally, evaluate the object before reading the named attribute\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nName of the attribute to get.\nrequired\n\n\nevaluate\nbool\nWhether to evaluate the object before reading the attribute (default is False).\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nThe attribute read from the mesh as a numpy array.\n\n\n\n\n\n\n\nBlenderObjectBase.remove_named_attribute(name)\nRemove a named attribute from the object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nThe name of the attribute to remove.\nrequired\n\n\n\n\n\n\n\nBlenderObjectBase.store_named_attribute(\n    data,\n    name,\n    atype=None,\n    domain=AttributeDomains.POINT,\n)\nStore a named attribute on the Blender object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndata\nnp.ndarray\nThe data to be stored as an attribute.\nrequired\n\n\nname\nstr\nThe name for the attribute. Will overwrite an already existing attribute.\nrequired\n\n\natype\nstr or AttributeType or None\nThe attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array.\nNone\n\n\ndomain\nstr or AttributeDomain\nThe domain to store the attribute on. Defaults to Domains.POINT.\nAttributeDomains.POINT\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nself",
     "crumbs": [
       "API",
       "Objects",
-      "create_curves_object"
+      "BlenderObjectBase"
     ]
   },
   {
-    "objectID": "api/create_curves_object.html#parameters",
-    "href": "api/create_curves_object.html#parameters",
-    "title": "create_curves_object",
+    "objectID": "api/BlenderObjectBase.html#attributes",
+    "href": "api/BlenderObjectBase.html#attributes",
+    "title": "BlenderObjectBase",
     "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\npositions\nnp.ndarray\nThe control point positions as a numpy array with shape (N, 3). If None, creates an empty curves object. Defaults to None.\nNone\n\n\ncurve_sizes\nlist[int] | np.ndarray\nNumber of points in each curve. For example, [4, 5, 6] creates 3 curves with 4, 5, and 6 control points respectively. Total must equal len(positions). If None, creates an empty curves object. Defaults to None.\nNone\n\n\nname\nstr\nThe name of the object. Defaults to ‘Curves’.\n'Curves'\n\n\ncollection\nbpy.types.Collection\nThe collection to link the object to. Defaults to None.\nNone",
+    "text": "Name\nType\nDescription\n\n\n\n\nobject\nbpy.types.Object\nThe wrapped Blender object.\n\n\nuuid\nstr\nUnique identifier for this object instance.\n\n\nname\nstr\nName of the Blender object.\n\n\nposition\nAttributeArray\nPosition attribute of the object’s vertices/points.\n\n\ndata\nbpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud\nThe data block associated with this object.\n\n\nattributes\n\nGet the attributes collection of the Blender object.",
     "crumbs": [
       "API",
       "Objects",
-      "create_curves_object"
+      "BlenderObjectBase"
     ]
   },
   {
-    "objectID": "api/create_curves_object.html#returns",
-    "href": "api/create_curves_object.html#returns",
-    "title": "create_curves_object",
+    "objectID": "api/BlenderObjectBase.html#methods",
+    "href": "api/BlenderObjectBase.html#methods",
+    "title": "BlenderObjectBase",
     "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\n\nObject\nThe created curves object.",
+    "text": "Name\nDescription\n\n\n\n\nevaluate\nReturn a version of the object with all modifiers applied.\n\n\nlist_attributes\nReturns a list of attribute names for the object.\n\n\nnamed_attribute\nRetrieve a named attribute from the object.\n\n\nremove_named_attribute\nRemove a named attribute from the object.\n\n\nstore_named_attribute\nStore a named attribute on the Blender object.\n\n\n\n\n\nBlenderObjectBase.evaluate()\nReturn a version of the object with all modifiers applied.\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nObject\nA new Object that isn’t yet registered with the database\n\n\n\n\n\n\n\nBlenderObjectBase.list_attributes(evaluate=False, drop_hidden=False)\nReturns a list of attribute names for the object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nevaluate\nbool\nWhether to first evaluate the modifiers on the object before listing the available attributes.\nFalse\n\n\ndrop_hidden\nbool\nWhether to drop hidden attributes (those starting with a dot). Defaults to False.\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nlist[str] | None\nA list of attribute names if the molecule object exists, None otherwise.\n\n\n\n\n\n\n\nBlenderObjectBase.named_attribute(name, evaluate=False)\nRetrieve a named attribute from the object.\nOptionally, evaluate the object before reading the named attribute\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nName of the attribute to get.\nrequired\n\n\nevaluate\nbool\nWhether to evaluate the object before reading the attribute (default is False).\nFalse\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nnp.ndarray\nThe attribute read from the mesh as a numpy array.\n\n\n\n\n\n\n\nBlenderObjectBase.remove_named_attribute(name)\nRemove a named attribute from the object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nThe name of the attribute to remove.\nrequired\n\n\n\n\n\n\n\nBlenderObjectBase.store_named_attribute(\n    data,\n    name,\n    atype=None,\n    domain=AttributeDomains.POINT,\n)\nStore a named attribute on the Blender object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\ndata\nnp.ndarray\nThe data to be stored as an attribute.\nrequired\n\n\nname\nstr\nThe name for the attribute. Will overwrite an already existing attribute.\nrequired\n\n\natype\nstr or AttributeType or None\nThe attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array.\nNone\n\n\ndomain\nstr or AttributeDomain\nThe domain to store the attribute on. Defaults to Domains.POINT.\nAttributeDomains.POINT\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nself",
     "crumbs": [
       "API",
       "Objects",
-      "create_curves_object"
+      "BlenderObjectBase"
     ]
   },
   {
-    "objectID": "api/create_curves_object.html#raises",
-    "href": "api/create_curves_object.html#raises",
-    "title": "create_curves_object",
+    "objectID": "api/LinkedObjectError.html",
+    "href": "api/LinkedObjectError.html",
+    "title": "LinkedObjectError",
     "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\n\nValueError\nIf positions and curve_sizes lengths don’t match.",
+    "text": "LinkedObjectError(message)\nError raised when a Python object doesn’t have a linked object in the 3D scene.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nmessage\nstr\nThe error message describing why the linked object is missing or invalid.\nrequired\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\nmessage\nstr\nThe error message that was passed.",
     "crumbs": [
       "API",
       "Objects",
-      "create_curves_object"
+      "LinkedObjectError"
     ]
   },
   {
-    "objectID": "api/create_curves_object.html#examples",
-    "href": "api/create_curves_object.html#examples",
-    "title": "create_curves_object",
+    "objectID": "api/LinkedObjectError.html#parameters",
+    "href": "api/LinkedObjectError.html#parameters",
+    "title": "LinkedObjectError",
     "section": "",
-    "text": "import numpy as np\nfrom databpy import create_curves_object\n\n# Create 2 curves with 3 and 4 points\npositions = np.random.random((7, 3))\ncurves_obj = create_curves_object(positions, [3, 4])",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nmessage\nstr\nThe error message describing why the linked object is missing or invalid.\nrequired",
     "crumbs": [
       "API",
       "Objects",
-      "create_curves_object"
+      "LinkedObjectError"
     ]
   },
   {
-    "objectID": "api/evaluate_object.html",
-    "href": "api/evaluate_object.html",
-    "title": "evaluate_object",
+    "objectID": "api/LinkedObjectError.html#attributes",
+    "href": "api/LinkedObjectError.html#attributes",
+    "title": "LinkedObjectError",
     "section": "",
-    "text": "evaluate_object(obj, context=None)\nReturn an object which has the modifiers evaluated.",
+    "text": "Name\nType\nDescription\n\n\n\n\nmessage\nstr\nThe error message that was passed.",
     "crumbs": [
       "API",
       "Objects",
-      "evaluate_object"
+      "LinkedObjectError"
     ]
   },
   {
-    "objectID": "api/evaluate_object.html#parameters",
-    "href": "api/evaluate_object.html#parameters",
-    "title": "evaluate_object",
-    "section": "Parameters",
-    "text": "Parameters\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object to evaluate.\nrequired\n\n\ncontext\nbpy.types.Context | None\nThe Blender context to use for evaluation, by default None\nNone",
+    "objectID": "api/AttributeArray.html",
+    "href": "api/AttributeArray.html",
+    "title": "AttributeArray",
+    "section": "",
+    "text": "AttributeArray()\nA numpy array subclass that automatically syncs changes back to the Blender object.\nAttributeArray provides an ergonomic interface for working with Blender attributes using familiar numpy operations. It automatically handles bidirectional syncing: values are retrieved from Blender as a numpy array, operations are applied, and results are immediately stored back to Blender.\nThis is the high-level interface for attribute manipulation. For low-level control, see the Attribute class which provides manual get/set operations without auto-sync.",
     "crumbs": [
       "API",
-      "Objects",
-      "evaluate_object"
+      "Attribute",
+      "AttributeArray"
     ]
   },
   {
-    "objectID": "api/evaluate_object.html#returns",
-    "href": "api/evaluate_object.html#returns",
-    "title": "evaluate_object",
-    "section": "Returns",
-    "text": "Returns\n\n\n\nName\nType\nDescription\n\n\n\n\n\nbpy.types.Object\nThe evaluated object with modifiers applied.",
+    "objectID": "api/AttributeArray.html#performance-characteristics",
+    "href": "api/AttributeArray.html#performance-characteristics",
+    "title": "AttributeArray",
+    "section": "Performance Characteristics",
+    "text": "Performance Characteristics\n\nEvery modification syncs the ENTIRE attribute array to Blender, not just changed values\nThis is due to Blender’s foreach_set API requiring the complete array\nFor large meshes (10K+ elements), consider batching multiple operations\nExample: pos[:, 2] += 1.0 writes all position data, not just Z coordinates",
     "crumbs": [
       "API",
-      "Objects",
-      "evaluate_object"
+      "Attribute",
+      "AttributeArray"
     ]
   },
   {
-    "objectID": "api/evaluate_object.html#notes",
-    "href": "api/evaluate_object.html#notes",
-    "title": "evaluate_object",
-    "section": "Notes",
-    "text": "Notes\nThis function evaluates the object’s modifiers using the current depsgraph. If no context is provided, it uses the current bpy.context.",
+    "objectID": "api/AttributeArray.html#supported-types",
+    "href": "api/AttributeArray.html#supported-types",
+    "title": "AttributeArray",
+    "section": "Supported Types",
+    "text": "Supported Types\nWorks with all Blender attribute types: - Float types: FLOAT, FLOAT2, FLOAT_VECTOR, FLOAT_COLOR, FLOAT4X4, QUATERNION - Integer types: INT (int32), INT8, INT32_2D - Boolean: BOOLEAN - Color: BYTE_COLOR (uint8)",
     "crumbs": [
       "API",
-      "Objects",
-      "evaluate_object"
+      "Attribute",
+      "AttributeArray"
     ]
   },
   {
-    "objectID": "api/evaluate_object.html#examples",
-    "href": "api/evaluate_object.html#examples",
-    "title": "evaluate_object",
+    "objectID": "api/AttributeArray.html#attributes",
+    "href": "api/AttributeArray.html#attributes",
+    "title": "AttributeArray",
+    "section": "Attributes",
+    "text": "Attributes\n\n\n\nName\nType\nDescription\n\n\n\n\n_blender_object\nbpy.types.Object\nReference to the Blender object for syncing changes.\n\n\n_attribute\nAttribute\nThe underlying Attribute instance with type information.\n\n\n_attr_name\nstr\nName of the attribute being wrapped.\n\n\n_root\nAttributeArray\nReference to the root array for handling views/slices correctly.",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "AttributeArray"
+    ]
+  },
+  {
+    "objectID": "api/AttributeArray.html#examples",
+    "href": "api/AttributeArray.html#examples",
+    "title": "AttributeArray",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nfrom databpy import evaluate_object\nobj = bpy.data.objects['Cube']\nevaluated_obj = evaluate_object(obj)",
+    "text": "Examples\nBasic usage:\n\nimport databpy as db\nimport numpy as np\n\nobj = db.create_object(np.random.rand(10, 3), name=\"test_bob\")\npos = db.AttributeArray(obj, \"position\")\npos[:, 2] += 1.0  # Automatically syncs to Blender\n\nUsing BlenderObject for convenience:\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(10, 3), name=\"test_bob\")\nprint('Initial position:')\nprint(bob.position)  # Returns an AttributeArray\n\nInitial position:\nAttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)\n[[0.04071534 0.11628133 0.10338945]\n [0.4220425  0.79895425 0.55021477]\n [0.6619739  0.50077164 0.31694457]\n [0.869983   0.1800257  0.81045943]\n [0.35137632 0.38053888 0.06169277]\n [0.584897   0.82070726 0.53925174]\n [0.1211533  0.29944965 0.9204342 ]\n [0.24753486 0.8021274  0.80900323]\n [0.7221611  0.30255345 0.84631157]\n [0.5384672  0.12742265 0.52575   ]]\n\n\n\nbob.position[:, 2] += 1.0\nprint('Updated position:')\nprint(bob.position)\n\nUpdated position:\nAttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)\n[[0.04071534 0.11628133 1.1033895 ]\n [0.4220425  0.79895425 1.5502148 ]\n [0.6619739  0.50077164 1.3169446 ]\n [0.869983   0.1800257  1.8104594 ]\n [0.35137632 0.38053888 1.0616927 ]\n [0.584897   0.82070726 1.5392518 ]\n [0.1211533  0.29944965 1.9204342 ]\n [0.24753486 0.8021274  1.8090032 ]\n [0.7221611  0.30255345 1.8463116 ]\n [0.5384672  0.12742265 1.5257499 ]]\n\n\n\n# Convert to regular numpy array (no sync)\nprint('As Array:')\nprint(np.asarray(bob.position))\n\nAs Array:\n[[0.04071534 0.11628133 1.1033895 ]\n [0.4220425  0.79895425 1.5502148 ]\n [0.6619739  0.50077164 1.3169446 ]\n [0.869983   0.1800257  1.8104594 ]\n [0.35137632 0.38053888 1.0616927 ]\n [0.584897   0.82070726 1.5392518 ]\n [0.1211533  0.29944965 1.9204342 ]\n [0.24753486 0.8021274  1.8090032 ]\n [0.7221611  0.30255345 1.8463116 ]\n [0.5384672  0.12742265 1.5257499 ]]\n\n\nWorking with integer attributes:\n\nimport databpy as db\nimport numpy as np\n\nobj = db.create_object(np.random.rand(10, 3))\n# Store integer attribute\nids = np.arange(10, dtype=np.int32)\ndb.store_named_attribute(obj, ids, \"id\", atype=\"INT\")\n\n# Access as AttributeArray\nid_array = db.AttributeArray(obj, \"id\")\nid_array += 100  # Automatically syncs as int32",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "AttributeArray"
+    ]
+  },
+  {
+    "objectID": "api/AttributeArray.html#see-also",
+    "href": "api/AttributeArray.html#see-also",
+    "title": "AttributeArray",
+    "section": "See Also",
+    "text": "See Also\nAttribute : Low-level attribute interface without auto-sync store_named_attribute : Function to create/update attributes named_attribute : Function to read attribute data as regular arrays",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "AttributeArray"
+    ]
+  },
+  {
+    "objectID": "api/index.html",
+    "href": "api/index.html",
+    "title": "Function reference",
+    "section": "",
+    "text": "For interacting with attributes on meshes\n\n\n\nnamed_attribute\nGet the named attribute data from the object.\n\n\nstore_named_attribute\nAdds and sets the values of an attribute on the object.\n\n\nremove_named_attribute\nRemove a named attribute from an object.\n\n\nAttributeDomains\nEnumeration of attribute domains in Blender. You can store an attribute onto one of\n\n\nAttributeTypes\nEnumeration of attribute types in Blender.\n\n\nAttributeArray\nA numpy array subclass that automatically syncs changes back to the Blender object.\n\n\n\n\n\n\nWorking with collections in Blender\n\n\n\ncreate_collection\nCreate a new Blender collection or retrieve an existing one.\n\n\n\n\n\n\n\n\n\ncreate_object\nCreate a new Blender mesh object.\n\n\ncreate_mesh_object\nCreate a new Blender mesh object.\n\n\ncreate_curves_object\nCreate a new Blender curves object (new Curves type, not legacy Curve).\n\n\ncreate_pointcloud_object\nCreate a new Blender point cloud object.\n\n\ncreate_bob\nCreate a BlenderObject wrapper around a new Blender mesh object.\n\n\nevaluate_object\nReturn an object which has the modifiers evaluated.\n\n\nBlenderObject\nA convenience class for working with Blender objects.\n\n\nBlenderObjectBase\nMinimal base class for Blender objects with attribute access.\n\n\nLinkedObjectError\nError raised when a Python object doesn’t have a linked object in the 3D scene.",
+    "crumbs": [
+      "API",
+      "Function reference"
+    ]
+  },
+  {
+    "objectID": "api/index.html#attribute",
+    "href": "api/index.html#attribute",
+    "title": "Function reference",
+    "section": "",
+    "text": "For interacting with attributes on meshes\n\n\n\nnamed_attribute\nGet the named attribute data from the object.\n\n\nstore_named_attribute\nAdds and sets the values of an attribute on the object.\n\n\nremove_named_attribute\nRemove a named attribute from an object.\n\n\nAttributeDomains\nEnumeration of attribute domains in Blender. You can store an attribute onto one of\n\n\nAttributeTypes\nEnumeration of attribute types in Blender.\n\n\nAttributeArray\nA numpy array subclass that automatically syncs changes back to the Blender object.",
+    "crumbs": [
+      "API",
+      "Function reference"
+    ]
+  },
+  {
+    "objectID": "api/index.html#collections",
+    "href": "api/index.html#collections",
+    "title": "Function reference",
+    "section": "",
+    "text": "Working with collections in Blender\n\n\n\ncreate_collection\nCreate a new Blender collection or retrieve an existing one.",
+    "crumbs": [
+      "API",
+      "Function reference"
+    ]
+  },
+  {
+    "objectID": "api/index.html#objects",
+    "href": "api/index.html#objects",
+    "title": "Function reference",
+    "section": "",
+    "text": "create_object\nCreate a new Blender mesh object.\n\n\ncreate_mesh_object\nCreate a new Blender mesh object.\n\n\ncreate_curves_object\nCreate a new Blender curves object (new Curves type, not legacy Curve).\n\n\ncreate_pointcloud_object\nCreate a new Blender point cloud object.\n\n\ncreate_bob\nCreate a BlenderObject wrapper around a new Blender mesh object.\n\n\nevaluate_object\nReturn an object which has the modifiers evaluated.\n\n\nBlenderObject\nA convenience class for working with Blender objects.\n\n\nBlenderObjectBase\nMinimal base class for Blender objects with attribute access.\n\n\nLinkedObjectError\nError raised when a Python object doesn’t have a linked object in the 3D scene.",
+    "crumbs": [
+      "API",
+      "Function reference"
+    ]
+  },
+  {
+    "objectID": "api/remove_named_attribute.html",
+    "href": "api/remove_named_attribute.html",
+    "title": "remove_named_attribute",
+    "section": "",
+    "text": "remove_named_attribute(obj, name)\nRemove a named attribute from an object.",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "remove_named_attribute"
+    ]
+  },
+  {
+    "objectID": "api/remove_named_attribute.html#parameters",
+    "href": "api/remove_named_attribute.html#parameters",
+    "title": "remove_named_attribute",
+    "section": "Parameters",
+    "text": "Parameters\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object.\nrequired\n\n\nname\nstr\nName of the attribute to remove.\nrequired",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "remove_named_attribute"
+    ]
+  },
+  {
+    "objectID": "api/remove_named_attribute.html#raises",
+    "href": "api/remove_named_attribute.html#raises",
+    "title": "remove_named_attribute",
+    "section": "Raises",
+    "text": "Raises\n\n\n\nName\nType\nDescription\n\n\n\n\n\nAttributeError\nIf the named attribute does not exist on the mesh.",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "remove_named_attribute"
+    ]
+  },
+  {
+    "objectID": "api/remove_named_attribute.html#examples",
+    "href": "api/remove_named_attribute.html#examples",
+    "title": "remove_named_attribute",
+    "section": "Examples",
+    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import remove_named_attribute, list_attributes, store_named_attribute\nobj = bpy.data.objects[\"Cube\"]\nstore_named_attribute(obj, np.random.rand(8, 3), \"random_numbers\")\nprint(f\"{list_attributes(obj)=}\")\n\nlist_attributes(obj)=['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', 'UVMap', 'position', 'random_numbers', 'sharp_face']\n\n\n\nremove_named_attribute(obj, \"random_numbers\")\nprint(f\"{list_attributes(obj)=}\")\n\nlist_attributes(obj)=['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', 'UVMap', 'position', 'sharp_face']",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "remove_named_attribute"
+    ]
+  },
+  {
+    "objectID": "api/create_bob.html",
+    "href": "api/create_bob.html",
+    "title": "create_bob",
+    "section": "",
+    "text": "create_bob(\n    vertices=None,\n    edges=None,\n    faces=None,\n    name='NewObject',\n    collection=None,\n    uuid=None,\n)\nCreate a BlenderObject wrapper around a new Blender mesh object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nvertices\nndarray or None\nArray of vertex coordinates. Default is None.\nNone\n\n\nedges\nndarray or None\nArray of edge indices. Default is None.\nNone\n\n\nfaces\nndarray or None\nArray of face indices. Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “NewObject”.\n'NewObject'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\nuuid\nstr or None\nDirectly set the UUID on the resulting BlenderObject. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender mesh object.",
     "crumbs": [
       "API",
       "Objects",
-      "evaluate_object"
+      "create_bob"
+    ]
+  },
+  {
+    "objectID": "api/create_bob.html#parameters",
+    "href": "api/create_bob.html#parameters",
+    "title": "create_bob",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nvertices\nndarray or None\nArray of vertex coordinates. Default is None.\nNone\n\n\nedges\nndarray or None\nArray of edge indices. Default is None.\nNone\n\n\nfaces\nndarray or None\nArray of face indices. Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “NewObject”.\n'NewObject'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\nuuid\nstr or None\nDirectly set the UUID on the resulting BlenderObject. Default is None.\nNone",
+    "crumbs": [
+      "API",
+      "Objects",
+      "create_bob"
+    ]
+  },
+  {
+    "objectID": "api/create_bob.html#returns",
+    "href": "api/create_bob.html#returns",
+    "title": "create_bob",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender mesh object.",
+    "crumbs": [
+      "API",
+      "Objects",
+      "create_bob"
+    ]
+  },
+  {
+    "objectID": "api/create_collection.html",
+    "href": "api/create_collection.html",
+    "title": "create_collection",
+    "section": "",
+    "text": "create_collection(name='NewCollection', parent=None)\nCreate a new Blender collection or retrieve an existing one.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nThe name of the collection to create or retrieve. Default is “NewCollection”.\n'NewCollection'\n\n\nparent\nCollection or str or None\nThe parent collection to link the new collection to. If a string is provided, it will be used to find an existing collection by name. If None, the new collection will be linked to the scene’s root collection. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nCollection\nThe created or retrieved Blender collection.\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nTypeError\nIf the parent parameter is not a Collection, string or None.\n\n\n\nKeyError\nIf the parent collection name provided does not exist in bpy.data.collections.",
+    "crumbs": [
+      "API",
+      "Collections",
+      "create_collection"
+    ]
+  },
+  {
+    "objectID": "api/create_collection.html#parameters",
+    "href": "api/create_collection.html#parameters",
+    "title": "create_collection",
+    "section": "",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nThe name of the collection to create or retrieve. Default is “NewCollection”.\n'NewCollection'\n\n\nparent\nCollection or str or None\nThe parent collection to link the new collection to. If a string is provided, it will be used to find an existing collection by name. If None, the new collection will be linked to the scene’s root collection. Default is None.\nNone",
+    "crumbs": [
+      "API",
+      "Collections",
+      "create_collection"
+    ]
+  },
+  {
+    "objectID": "api/create_collection.html#returns",
+    "href": "api/create_collection.html#returns",
+    "title": "create_collection",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nCollection\nThe created or retrieved Blender collection.",
+    "crumbs": [
+      "API",
+      "Collections",
+      "create_collection"
+    ]
+  },
+  {
+    "objectID": "api/create_collection.html#raises",
+    "href": "api/create_collection.html#raises",
+    "title": "create_collection",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nTypeError\nIf the parent parameter is not a Collection, string or None.\n\n\n\nKeyError\nIf the parent collection name provided does not exist in bpy.data.collections.",
+    "crumbs": [
+      "API",
+      "Collections",
+      "create_collection"
+    ]
+  },
+  {
+    "objectID": "api/AttributeTypes.html",
+    "href": "api/AttributeTypes.html",
+    "title": "AttributeTypes",
+    "section": "",
+    "text": "AttributeTypes()\nEnumeration of attribute types in Blender.\nEach attribute type has a specific data type and dimensionality that corresponds to Blender’s internal CustomData types. The dtype values use explicit NumPy types (e.g., np.float32, np.uint8) that match Blender’s internal storage precision.\n\n\nAll float types use np.float32 (not Python’s float or np.float64) as this matches Blender’s internal 32-bit float storage. BYTE_COLOR uses np.uint8 (unsigned) as it corresponds to Blender’s MLoopCol struct which stores color components as unsigned char values (0-255 range).\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\nFLOAT\nAttributeType\nSingle float value with dimensions (1,). Dtype: np.float32 More Info\n\n\nFLOAT_VECTOR\nAttributeType\n3D vector of floats with dimensions (3,). Dtype: np.float32 More Info\n\n\nFLOAT2\nAttributeType\n2D vector of floats with dimensions (2,). Dtype: np.float32 More Info\n\n\nFLOAT_COLOR\nAttributeType\nRGBA color values as floats with dimensions (4,). Dtype: np.float32 More Info\n\n\nBYTE_COLOR\nAttributeType\nRGBA color values as unsigned 8-bit integers with dimensions (4,). Dtype: np.uint8 More Info\n\n\nQUATERNION\nAttributeType\nQuaternion rotation (w, x, y, z) as floats with dimensions (4,). Dtype: np.float32 More Info\n\n\nINT\nAttributeType\nSingle 32-bit integer value with dimensions (1,). Dtype: np.int32 More Info\n\n\nINT8\nAttributeType\n8-bit signed integer value with dimensions (1,). Dtype: np.int8 More Info\n\n\nINT32_2D\nAttributeType\n2D vector of 32-bit integers with dimensions (2,). Dtype: np.int32 More Info\n\n\nFLOAT4X4\nAttributeType\n4x4 transformation matrix of floats with dimensions (4, 4). Dtype: np.float32 More Info\n\n\nBOOLEAN\nAttributeType\nSingle boolean value with dimensions (1,). Dtype: bool More Info",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "AttributeTypes"
+    ]
+  },
+  {
+    "objectID": "api/AttributeTypes.html#notes",
+    "href": "api/AttributeTypes.html#notes",
+    "title": "AttributeTypes",
+    "section": "",
+    "text": "All float types use np.float32 (not Python’s float or np.float64) as this matches Blender’s internal 32-bit float storage. BYTE_COLOR uses np.uint8 (unsigned) as it corresponds to Blender’s MLoopCol struct which stores color components as unsigned char values (0-255 range).",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "AttributeTypes"
+    ]
+  },
+  {
+    "objectID": "api/AttributeTypes.html#attributes",
+    "href": "api/AttributeTypes.html#attributes",
+    "title": "AttributeTypes",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\nFLOAT\nAttributeType\nSingle float value with dimensions (1,). Dtype: np.float32 More Info\n\n\nFLOAT_VECTOR\nAttributeType\n3D vector of floats with dimensions (3,). Dtype: np.float32 More Info\n\n\nFLOAT2\nAttributeType\n2D vector of floats with dimensions (2,). Dtype: np.float32 More Info\n\n\nFLOAT_COLOR\nAttributeType\nRGBA color values as floats with dimensions (4,). Dtype: np.float32 More Info\n\n\nBYTE_COLOR\nAttributeType\nRGBA color values as unsigned 8-bit integers with dimensions (4,). Dtype: np.uint8 More Info\n\n\nQUATERNION\nAttributeType\nQuaternion rotation (w, x, y, z) as floats with dimensions (4,). Dtype: np.float32 More Info\n\n\nINT\nAttributeType\nSingle 32-bit integer value with dimensions (1,). Dtype: np.int32 More Info\n\n\nINT8\nAttributeType\n8-bit signed integer value with dimensions (1,). Dtype: np.int8 More Info\n\n\nINT32_2D\nAttributeType\n2D vector of 32-bit integers with dimensions (2,). Dtype: np.int32 More Info\n\n\nFLOAT4X4\nAttributeType\n4x4 transformation matrix of floats with dimensions (4, 4). Dtype: np.float32 More Info\n\n\nBOOLEAN\nAttributeType\nSingle boolean value with dimensions (1,). Dtype: bool More Info",
+    "crumbs": [
+      "API",
+      "Attribute",
+      "AttributeTypes"
     ]
   },
   {
@@ -358,323 +594,123 @@
     ]
   },
   {
-    "objectID": "api/AttributeTypes.html",
-    "href": "api/AttributeTypes.html",
-    "title": "AttributeTypes",
+    "objectID": "api/evaluate_object.html",
+    "href": "api/evaluate_object.html",
+    "title": "evaluate_object",
     "section": "",
-    "text": "AttributeTypes()\nEnumeration of attribute types in Blender.\nEach attribute type has a specific data type and dimensionality that corresponds to Blender’s internal CustomData types. The dtype values use explicit NumPy types (e.g., np.float32, np.uint8) that match Blender’s internal storage precision.\n\n\nAll float types use np.float32 (not Python’s float or np.float64) as this matches Blender’s internal 32-bit float storage. BYTE_COLOR uses np.uint8 (unsigned) as it corresponds to Blender’s MLoopCol struct which stores color components as unsigned char values (0-255 range).\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\nFLOAT\nAttributeType\nSingle float value with dimensions (1,). Dtype: np.float32 More Info\n\n\nFLOAT_VECTOR\nAttributeType\n3D vector of floats with dimensions (3,). Dtype: np.float32 More Info\n\n\nFLOAT2\nAttributeType\n2D vector of floats with dimensions (2,). Dtype: np.float32 More Info\n\n\nFLOAT_COLOR\nAttributeType\nRGBA color values as floats with dimensions (4,). Dtype: np.float32 More Info\n\n\nBYTE_COLOR\nAttributeType\nRGBA color values as unsigned 8-bit integers with dimensions (4,). Dtype: np.uint8 More Info\n\n\nQUATERNION\nAttributeType\nQuaternion rotation (w, x, y, z) as floats with dimensions (4,). Dtype: np.float32 More Info\n\n\nINT\nAttributeType\nSingle 32-bit integer value with dimensions (1,). Dtype: np.int32 More Info\n\n\nINT8\nAttributeType\n8-bit signed integer value with dimensions (1,). Dtype: np.int8 More Info\n\n\nINT32_2D\nAttributeType\n2D vector of 32-bit integers with dimensions (2,). Dtype: np.int32 More Info\n\n\nFLOAT4X4\nAttributeType\n4x4 transformation matrix of floats with dimensions (4, 4). Dtype: np.float32 More Info\n\n\nBOOLEAN\nAttributeType\nSingle boolean value with dimensions (1,). Dtype: bool More Info",
-    "crumbs": [
-      "API",
-      "Attribute",
-      "AttributeTypes"
-    ]
-  },
-  {
-    "objectID": "api/AttributeTypes.html#notes",
-    "href": "api/AttributeTypes.html#notes",
-    "title": "AttributeTypes",
-    "section": "",
-    "text": "All float types use np.float32 (not Python’s float or np.float64) as this matches Blender’s internal 32-bit float storage. BYTE_COLOR uses np.uint8 (unsigned) as it corresponds to Blender’s MLoopCol struct which stores color components as unsigned char values (0-255 range).",
-    "crumbs": [
-      "API",
-      "Attribute",
-      "AttributeTypes"
-    ]
-  },
-  {
-    "objectID": "api/AttributeTypes.html#attributes",
-    "href": "api/AttributeTypes.html#attributes",
-    "title": "AttributeTypes",
-    "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\nFLOAT\nAttributeType\nSingle float value with dimensions (1,). Dtype: np.float32 More Info\n\n\nFLOAT_VECTOR\nAttributeType\n3D vector of floats with dimensions (3,). Dtype: np.float32 More Info\n\n\nFLOAT2\nAttributeType\n2D vector of floats with dimensions (2,). Dtype: np.float32 More Info\n\n\nFLOAT_COLOR\nAttributeType\nRGBA color values as floats with dimensions (4,). Dtype: np.float32 More Info\n\n\nBYTE_COLOR\nAttributeType\nRGBA color values as unsigned 8-bit integers with dimensions (4,). Dtype: np.uint8 More Info\n\n\nQUATERNION\nAttributeType\nQuaternion rotation (w, x, y, z) as floats with dimensions (4,). Dtype: np.float32 More Info\n\n\nINT\nAttributeType\nSingle 32-bit integer value with dimensions (1,). Dtype: np.int32 More Info\n\n\nINT8\nAttributeType\n8-bit signed integer value with dimensions (1,). Dtype: np.int8 More Info\n\n\nINT32_2D\nAttributeType\n2D vector of 32-bit integers with dimensions (2,). Dtype: np.int32 More Info\n\n\nFLOAT4X4\nAttributeType\n4x4 transformation matrix of floats with dimensions (4, 4). Dtype: np.float32 More Info\n\n\nBOOLEAN\nAttributeType\nSingle boolean value with dimensions (1,). Dtype: bool More Info",
-    "crumbs": [
-      "API",
-      "Attribute",
-      "AttributeTypes"
-    ]
-  },
-  {
-    "objectID": "api/create_collection.html",
-    "href": "api/create_collection.html",
-    "title": "create_collection",
-    "section": "",
-    "text": "create_collection(name='NewCollection', parent=None)\nCreate a new Blender collection or retrieve an existing one.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nThe name of the collection to create or retrieve. Default is “NewCollection”.\n'NewCollection'\n\n\nparent\nCollection or str or None\nThe parent collection to link the new collection to. If a string is provided, it will be used to find an existing collection by name. If None, the new collection will be linked to the scene’s root collection. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nCollection\nThe created or retrieved Blender collection.\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nTypeError\nIf the parent parameter is not a Collection, string or None.\n\n\n\nKeyError\nIf the parent collection name provided does not exist in bpy.data.collections.",
-    "crumbs": [
-      "API",
-      "Collections",
-      "create_collection"
-    ]
-  },
-  {
-    "objectID": "api/create_collection.html#parameters",
-    "href": "api/create_collection.html#parameters",
-    "title": "create_collection",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nname\nstr\nThe name of the collection to create or retrieve. Default is “NewCollection”.\n'NewCollection'\n\n\nparent\nCollection or str or None\nThe parent collection to link the new collection to. If a string is provided, it will be used to find an existing collection by name. If None, the new collection will be linked to the scene’s root collection. Default is None.\nNone",
-    "crumbs": [
-      "API",
-      "Collections",
-      "create_collection"
-    ]
-  },
-  {
-    "objectID": "api/create_collection.html#returns",
-    "href": "api/create_collection.html#returns",
-    "title": "create_collection",
-    "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\n\nCollection\nThe created or retrieved Blender collection.",
-    "crumbs": [
-      "API",
-      "Collections",
-      "create_collection"
-    ]
-  },
-  {
-    "objectID": "api/create_collection.html#raises",
-    "href": "api/create_collection.html#raises",
-    "title": "create_collection",
-    "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\n\nTypeError\nIf the parent parameter is not a Collection, string or None.\n\n\n\nKeyError\nIf the parent collection name provided does not exist in bpy.data.collections.",
-    "crumbs": [
-      "API",
-      "Collections",
-      "create_collection"
-    ]
-  },
-  {
-    "objectID": "api/create_bob.html",
-    "href": "api/create_bob.html",
-    "title": "create_bob",
-    "section": "",
-    "text": "create_bob(\n    vertices=None,\n    edges=None,\n    faces=None,\n    name='NewObject',\n    collection=None,\n    uuid=None,\n)\nCreate a BlenderObject wrapper around a new Blender mesh object.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nvertices\nndarray or None\nArray of vertex coordinates. Default is None.\nNone\n\n\nedges\nndarray or None\nArray of edge indices. Default is None.\nNone\n\n\nfaces\nndarray or None\nArray of face indices. Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “NewObject”.\n'NewObject'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\nuuid\nstr or None\nDirectly set the UUID on the resulting BlenderObject. Default is None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender mesh object.",
+    "text": "evaluate_object(obj, context=None)\nReturn an object which has the modifiers evaluated.",
     "crumbs": [
       "API",
       "Objects",
-      "create_bob"
+      "evaluate_object"
     ]
   },
   {
-    "objectID": "api/create_bob.html#parameters",
-    "href": "api/create_bob.html#parameters",
-    "title": "create_bob",
-    "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nvertices\nndarray or None\nArray of vertex coordinates. Default is None.\nNone\n\n\nedges\nndarray or None\nArray of edge indices. Default is None.\nNone\n\n\nfaces\nndarray or None\nArray of face indices. Default is None.\nNone\n\n\nname\nstr\nName of the created object. Default is “NewObject”.\n'NewObject'\n\n\ncollection\nbpy.types.Collection or None\nBlender collection to link the object to. Default is None.\nNone\n\n\nuuid\nstr or None\nDirectly set the UUID on the resulting BlenderObject. Default is None.\nNone",
-    "crumbs": [
-      "API",
-      "Objects",
-      "create_bob"
-    ]
-  },
-  {
-    "objectID": "api/create_bob.html#returns",
-    "href": "api/create_bob.html#returns",
-    "title": "create_bob",
-    "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\n\nBlenderObject\nA wrapped Blender mesh object.",
-    "crumbs": [
-      "API",
-      "Objects",
-      "create_bob"
-    ]
-  },
-  {
-    "objectID": "api/remove_named_attribute.html",
-    "href": "api/remove_named_attribute.html",
-    "title": "remove_named_attribute",
-    "section": "",
-    "text": "remove_named_attribute(obj, name)\nRemove a named attribute from an object.",
-    "crumbs": [
-      "API",
-      "Attribute",
-      "remove_named_attribute"
-    ]
-  },
-  {
-    "objectID": "api/remove_named_attribute.html#parameters",
-    "href": "api/remove_named_attribute.html#parameters",
-    "title": "remove_named_attribute",
+    "objectID": "api/evaluate_object.html#parameters",
+    "href": "api/evaluate_object.html#parameters",
+    "title": "evaluate_object",
     "section": "Parameters",
-    "text": "Parameters\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object.\nrequired\n\n\nname\nstr\nName of the attribute to remove.\nrequired",
+    "text": "Parameters\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nobj\nbpy.types.Object\nThe Blender object to evaluate.\nrequired\n\n\ncontext\nbpy.types.Context | None\nThe Blender context to use for evaluation, by default None\nNone",
     "crumbs": [
       "API",
-      "Attribute",
-      "remove_named_attribute"
+      "Objects",
+      "evaluate_object"
     ]
   },
   {
-    "objectID": "api/remove_named_attribute.html#raises",
-    "href": "api/remove_named_attribute.html#raises",
-    "title": "remove_named_attribute",
-    "section": "Raises",
-    "text": "Raises\n\n\n\nName\nType\nDescription\n\n\n\n\n\nAttributeError\nIf the named attribute does not exist on the mesh.",
+    "objectID": "api/evaluate_object.html#returns",
+    "href": "api/evaluate_object.html#returns",
+    "title": "evaluate_object",
+    "section": "Returns",
+    "text": "Returns\n\n\n\nName\nType\nDescription\n\n\n\n\n\nbpy.types.Object\nThe evaluated object with modifiers applied.",
     "crumbs": [
       "API",
-      "Attribute",
-      "remove_named_attribute"
+      "Objects",
+      "evaluate_object"
     ]
   },
   {
-    "objectID": "api/remove_named_attribute.html#examples",
-    "href": "api/remove_named_attribute.html#examples",
-    "title": "remove_named_attribute",
+    "objectID": "api/evaluate_object.html#notes",
+    "href": "api/evaluate_object.html#notes",
+    "title": "evaluate_object",
+    "section": "Notes",
+    "text": "Notes\nThis function evaluates the object’s modifiers using the current depsgraph. If no context is provided, it uses the current bpy.context.",
+    "crumbs": [
+      "API",
+      "Objects",
+      "evaluate_object"
+    ]
+  },
+  {
+    "objectID": "api/evaluate_object.html#examples",
+    "href": "api/evaluate_object.html#examples",
+    "title": "evaluate_object",
     "section": "Examples",
-    "text": "Examples\n\nimport bpy\nimport numpy as np\nfrom databpy import remove_named_attribute, list_attributes, store_named_attribute\nobj = bpy.data.objects[\"Cube\"]\nstore_named_attribute(obj, np.random.rand(8, 3), \"random_numbers\")\nprint(f\"{list_attributes(obj)=}\")\n\nlist_attributes(obj)=['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', 'UVMap', 'position', 'random_numbers', 'sharp_face']\n\n\n\nremove_named_attribute(obj, \"random_numbers\")\nprint(f\"{list_attributes(obj)=}\")\n\nlist_attributes(obj)=['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', 'UVMap', 'position', 'sharp_face']",
-    "crumbs": [
-      "API",
-      "Attribute",
-      "remove_named_attribute"
-    ]
-  },
-  {
-    "objectID": "api/index.html",
-    "href": "api/index.html",
-    "title": "Function reference",
-    "section": "",
-    "text": "For interacting with attributes on meshes\n\n\n\nnamed_attribute\nGet the named attribute data from the object.\n\n\nstore_named_attribute\nAdds and sets the values of an attribute on the object.\n\n\nremove_named_attribute\nRemove a named attribute from an object.\n\n\nAttributeDomains\nEnumeration of attribute domains in Blender. You can store an attribute onto one of\n\n\nAttributeTypes\nEnumeration of attribute types in Blender.\n\n\nAttributeArray\nA numpy array subclass that automatically syncs changes back to the Blender object.\n\n\n\n\n\n\nWorking with collections in Blender\n\n\n\ncreate_collection\nCreate a new Blender collection or retrieve an existing one.\n\n\n\n\n\n\n\n\n\ncreate_object\nCreate a new Blender mesh object.\n\n\ncreate_mesh_object\nCreate a new Blender mesh object.\n\n\ncreate_curves_object\nCreate a new Blender curves object (new Curves type, not legacy Curve).\n\n\ncreate_pointcloud_object\nCreate a new Blender point cloud object.\n\n\ncreate_bob\nCreate a BlenderObject wrapper around a new Blender mesh object.\n\n\nevaluate_object\nReturn an object which has the modifiers evaluated.\n\n\nBlenderObject\nA convenience class for working with Blender objects\n\n\nLinkedObjectError\nError raised when a Python object doesn’t have a linked object in the 3D scene.",
-    "crumbs": [
-      "API",
-      "Function reference"
-    ]
-  },
-  {
-    "objectID": "api/index.html#attribute",
-    "href": "api/index.html#attribute",
-    "title": "Function reference",
-    "section": "",
-    "text": "For interacting with attributes on meshes\n\n\n\nnamed_attribute\nGet the named attribute data from the object.\n\n\nstore_named_attribute\nAdds and sets the values of an attribute on the object.\n\n\nremove_named_attribute\nRemove a named attribute from an object.\n\n\nAttributeDomains\nEnumeration of attribute domains in Blender. You can store an attribute onto one of\n\n\nAttributeTypes\nEnumeration of attribute types in Blender.\n\n\nAttributeArray\nA numpy array subclass that automatically syncs changes back to the Blender object.",
-    "crumbs": [
-      "API",
-      "Function reference"
-    ]
-  },
-  {
-    "objectID": "api/index.html#collections",
-    "href": "api/index.html#collections",
-    "title": "Function reference",
-    "section": "",
-    "text": "Working with collections in Blender\n\n\n\ncreate_collection\nCreate a new Blender collection or retrieve an existing one.",
-    "crumbs": [
-      "API",
-      "Function reference"
-    ]
-  },
-  {
-    "objectID": "api/index.html#objects",
-    "href": "api/index.html#objects",
-    "title": "Function reference",
-    "section": "",
-    "text": "create_object\nCreate a new Blender mesh object.\n\n\ncreate_mesh_object\nCreate a new Blender mesh object.\n\n\ncreate_curves_object\nCreate a new Blender curves object (new Curves type, not legacy Curve).\n\n\ncreate_pointcloud_object\nCreate a new Blender point cloud object.\n\n\ncreate_bob\nCreate a BlenderObject wrapper around a new Blender mesh object.\n\n\nevaluate_object\nReturn an object which has the modifiers evaluated.\n\n\nBlenderObject\nA convenience class for working with Blender objects\n\n\nLinkedObjectError\nError raised when a Python object doesn’t have a linked object in the 3D scene.",
-    "crumbs": [
-      "API",
-      "Function reference"
-    ]
-  },
-  {
-    "objectID": "api/AttributeArray.html",
-    "href": "api/AttributeArray.html",
-    "title": "AttributeArray",
-    "section": "",
-    "text": "AttributeArray()\nA numpy array subclass that automatically syncs changes back to the Blender object.\nAttributeArray provides an ergonomic interface for working with Blender attributes using familiar numpy operations. It automatically handles bidirectional syncing: values are retrieved from Blender as a numpy array, operations are applied, and results are immediately stored back to Blender.\nThis is the high-level interface for attribute manipulation. For low-level control, see the Attribute class which provides manual get/set operations without auto-sync.",
-    "crumbs": [
-      "API",
-      "Attribute",
-      "AttributeArray"
-    ]
-  },
-  {
-    "objectID": "api/AttributeArray.html#performance-characteristics",
-    "href": "api/AttributeArray.html#performance-characteristics",
-    "title": "AttributeArray",
-    "section": "Performance Characteristics",
-    "text": "Performance Characteristics\n\nEvery modification syncs the ENTIRE attribute array to Blender, not just changed values\nThis is due to Blender’s foreach_set API requiring the complete array\nFor large meshes (10K+ elements), consider batching multiple operations\nExample: pos[:, 2] += 1.0 writes all position data, not just Z coordinates",
-    "crumbs": [
-      "API",
-      "Attribute",
-      "AttributeArray"
-    ]
-  },
-  {
-    "objectID": "api/AttributeArray.html#supported-types",
-    "href": "api/AttributeArray.html#supported-types",
-    "title": "AttributeArray",
-    "section": "Supported Types",
-    "text": "Supported Types\nWorks with all Blender attribute types: - Float types: FLOAT, FLOAT2, FLOAT_VECTOR, FLOAT_COLOR, FLOAT4X4, QUATERNION - Integer types: INT (int32), INT8, INT32_2D - Boolean: BOOLEAN - Color: BYTE_COLOR (uint8)",
-    "crumbs": [
-      "API",
-      "Attribute",
-      "AttributeArray"
-    ]
-  },
-  {
-    "objectID": "api/AttributeArray.html#attributes",
-    "href": "api/AttributeArray.html#attributes",
-    "title": "AttributeArray",
-    "section": "Attributes",
-    "text": "Attributes\n\n\n\nName\nType\nDescription\n\n\n\n\n_blender_object\nbpy.types.Object\nReference to the Blender object for syncing changes.\n\n\n_attribute\nAttribute\nThe underlying Attribute instance with type information.\n\n\n_attr_name\nstr\nName of the attribute being wrapped.\n\n\n_root\nAttributeArray\nReference to the root array for handling views/slices correctly.",
-    "crumbs": [
-      "API",
-      "Attribute",
-      "AttributeArray"
-    ]
-  },
-  {
-    "objectID": "api/AttributeArray.html#examples",
-    "href": "api/AttributeArray.html#examples",
-    "title": "AttributeArray",
-    "section": "Examples",
-    "text": "Examples\nBasic usage:\n\nimport databpy as db\nimport numpy as np\n\nobj = db.create_object(np.random.rand(10, 3), name=\"test_bob\")\npos = db.AttributeArray(obj, \"position\")\npos[:, 2] += 1.0  # Automatically syncs to Blender\n\nUsing BlenderObject for convenience:\n\nimport databpy as db\nimport numpy as np\n\nbob = db.create_bob(np.random.rand(10, 3), name=\"test_bob\")\nprint('Initial position:')\nprint(bob.position)  # Returns an AttributeArray\n\nInitial position:\nAttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)\n[[0.8607442  0.82867783 0.07143029]\n [0.12278412 0.58607167 0.18358546]\n [0.3561663  0.36614814 0.01823344]\n [0.88045996 0.3372941  0.8975375 ]\n [0.85791117 0.85586447 0.48940465]\n [0.23577406 0.51296306 0.07087202]\n [0.1538958  0.4539907  0.33257025]\n [0.288974   0.04921997 0.8415714 ]\n [0.20160383 0.89324474 0.09758639]\n [0.50726575 0.938804   0.24787544]]\n\n\n\nbob.position[:, 2] += 1.0\nprint('Updated position:')\nprint(bob.position)\n\nUpdated position:\nAttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)\n[[0.8607442  0.82867783 1.0714303 ]\n [0.12278412 0.58607167 1.1835854 ]\n [0.3561663  0.36614814 1.0182334 ]\n [0.88045996 0.3372941  1.8975375 ]\n [0.85791117 0.85586447 1.4894047 ]\n [0.23577406 0.51296306 1.0708721 ]\n [0.1538958  0.4539907  1.3325703 ]\n [0.288974   0.04921997 1.8415713 ]\n [0.20160383 0.89324474 1.0975864 ]\n [0.50726575 0.938804   1.2478755 ]]\n\n\n\n# Convert to regular numpy array (no sync)\nprint('As Array:')\nprint(np.asarray(bob.position))\n\nAs Array:\n[[0.8607442  0.82867783 1.0714303 ]\n [0.12278412 0.58607167 1.1835854 ]\n [0.3561663  0.36614814 1.0182334 ]\n [0.88045996 0.3372941  1.8975375 ]\n [0.85791117 0.85586447 1.4894047 ]\n [0.23577406 0.51296306 1.0708721 ]\n [0.1538958  0.4539907  1.3325703 ]\n [0.288974   0.04921997 1.8415713 ]\n [0.20160383 0.89324474 1.0975864 ]\n [0.50726575 0.938804   1.2478755 ]]\n\n\nWorking with integer attributes:\n\nimport databpy as db\nimport numpy as np\n\nobj = db.create_object(np.random.rand(10, 3))\n# Store integer attribute\nids = np.arange(10, dtype=np.int32)\ndb.store_named_attribute(obj, ids, \"id\", atype=\"INT\")\n\n# Access as AttributeArray\nid_array = db.AttributeArray(obj, \"id\")\nid_array += 100  # Automatically syncs as int32",
-    "crumbs": [
-      "API",
-      "Attribute",
-      "AttributeArray"
-    ]
-  },
-  {
-    "objectID": "api/AttributeArray.html#see-also",
-    "href": "api/AttributeArray.html#see-also",
-    "title": "AttributeArray",
-    "section": "See Also",
-    "text": "See Also\nAttribute : Low-level attribute interface without auto-sync store_named_attribute : Function to create/update attributes named_attribute : Function to read attribute data as regular arrays",
-    "crumbs": [
-      "API",
-      "Attribute",
-      "AttributeArray"
-    ]
-  },
-  {
-    "objectID": "api/LinkedObjectError.html",
-    "href": "api/LinkedObjectError.html",
-    "title": "LinkedObjectError",
-    "section": "",
-    "text": "LinkedObjectError(message)\nError raised when a Python object doesn’t have a linked object in the 3D scene.\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\nmessage\nstr\nThe error message describing why the linked object is missing or invalid.\nrequired\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\nmessage\nstr\nThe error message that was passed.",
+    "text": "Examples\n\nimport bpy\nfrom databpy import evaluate_object\nobj = bpy.data.objects['Cube']\nevaluated_obj = evaluate_object(obj)",
     "crumbs": [
       "API",
       "Objects",
-      "LinkedObjectError"
+      "evaluate_object"
     ]
   },
   {
-    "objectID": "api/LinkedObjectError.html#parameters",
-    "href": "api/LinkedObjectError.html#parameters",
-    "title": "LinkedObjectError",
+    "objectID": "api/create_curves_object.html",
+    "href": "api/create_curves_object.html",
+    "title": "create_curves_object",
     "section": "",
-    "text": "Name\nType\nDescription\nDefault\n\n\n\n\nmessage\nstr\nThe error message describing why the linked object is missing or invalid.\nrequired",
+    "text": "create_curves_object(\n    positions=None,\n    curve_sizes=None,\n    name='Curves',\n    collection=None,\n)\nCreate a new Blender curves object (new Curves type, not legacy Curve).\n\n\n\n\n\nName\nType\nDescription\nDefault\n\n\n\n\npositions\nnp.ndarray\nThe control point positions as a numpy array with shape (N, 3). If None, creates an empty curves object. Defaults to None.\nNone\n\n\ncurve_sizes\nlist[int] | np.ndarray\nNumber of points in each curve. For example, [4, 5, 6] creates 3 curves with 4, 5, and 6 control points respectively. Total must equal len(positions). If None, creates an empty curves object. Defaults to None.\nNone\n\n\nname\nstr\nThe name of the object. Defaults to ‘Curves’.\n'Curves'\n\n\ncollection\nbpy.types.Collection\nThe collection to link the object to. Defaults to None.\nNone\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nObject\nThe created curves object.\n\n\n\n\n\n\n\n\n\nName\nType\nDescription\n\n\n\n\n\nValueError\nIf positions and curve_sizes lengths don’t match.\n\n\n\n\n\n\nimport numpy as np\nfrom databpy import create_curves_object\n\n# Create 2 curves with 3 and 4 points\npositions = np.random.random((7, 3))\ncurves_obj = create_curves_object(positions, [3, 4])",
     "crumbs": [
       "API",
       "Objects",
-      "LinkedObjectError"
+      "create_curves_object"
     ]
   },
   {
-    "objectID": "api/LinkedObjectError.html#attributes",
-    "href": "api/LinkedObjectError.html#attributes",
-    "title": "LinkedObjectError",
+    "objectID": "api/create_curves_object.html#parameters",
+    "href": "api/create_curves_object.html#parameters",
+    "title": "create_curves_object",
     "section": "",
-    "text": "Name\nType\nDescription\n\n\n\n\nmessage\nstr\nThe error message that was passed.",
+    "text": "Name\nType\nDescription\nDefault\n\n\n\n\npositions\nnp.ndarray\nThe control point positions as a numpy array with shape (N, 3). If None, creates an empty curves object. Defaults to None.\nNone\n\n\ncurve_sizes\nlist[int] | np.ndarray\nNumber of points in each curve. For example, [4, 5, 6] creates 3 curves with 4, 5, and 6 control points respectively. Total must equal len(positions). If None, creates an empty curves object. Defaults to None.\nNone\n\n\nname\nstr\nThe name of the object. Defaults to ‘Curves’.\n'Curves'\n\n\ncollection\nbpy.types.Collection\nThe collection to link the object to. Defaults to None.\nNone",
     "crumbs": [
       "API",
       "Objects",
-      "LinkedObjectError"
+      "create_curves_object"
+    ]
+  },
+  {
+    "objectID": "api/create_curves_object.html#returns",
+    "href": "api/create_curves_object.html#returns",
+    "title": "create_curves_object",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nObject\nThe created curves object.",
+    "crumbs": [
+      "API",
+      "Objects",
+      "create_curves_object"
+    ]
+  },
+  {
+    "objectID": "api/create_curves_object.html#raises",
+    "href": "api/create_curves_object.html#raises",
+    "title": "create_curves_object",
+    "section": "",
+    "text": "Name\nType\nDescription\n\n\n\n\n\nValueError\nIf positions and curve_sizes lengths don’t match.",
+    "crumbs": [
+      "API",
+      "Objects",
+      "create_curves_object"
+    ]
+  },
+  {
+    "objectID": "api/create_curves_object.html#examples",
+    "href": "api/create_curves_object.html#examples",
+    "title": "create_curves_object",
+    "section": "",
+    "text": "import numpy as np\nfrom databpy import create_curves_object\n\n# Create 2 curves with 3 and 4 points\npositions = np.random.random((7, 3))\ncurves_obj = create_curves_object(positions, [3, 4])",
+    "crumbs": [
+      "API",
+      "Objects",
+      "create_curves_object"
     ]
   },
   {
