@@ -1,5 +1,6 @@
 from .object import (
     ObjectTracker,
+    BlenderObjectBase,
     BlenderObject,
     BOB,
     create_object,
@@ -35,6 +36,7 @@ from .attribute import (
 
 __all__ = [
     "ObjectTracker",
+    "BlenderObjectBase",
     "BlenderObject",
     "BOB",
     "create_object",
