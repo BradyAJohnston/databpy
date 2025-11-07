@@ -1,6 +1,5 @@
 """Tests for BlenderObjectBase class methods."""
 
-import pytest
 import numpy as np
 import bpy
 import databpy as db
