@@ -43,3 +43,21 @@ def create_collection(
             parent.children.link(coll)
 
     return coll
+
+def move_objects(objs, target_collection: bpy.types.Collection) -> None:
+    """Move one or many objects into a target collection.
+
+    objs: list[bpy.types.Object] or a single object
+    """
+    # Allow single object
+    if isinstance(objs, bpy.types.Object):
+        objs = [objs]
+
+    for obj in objs:
+        # Unlink from all current collections
+        for c in obj.users_collection:
+            c.objects.unlink(obj)
+
+        # Link to target collection
+        target_collection.objects.link(obj)
+        
