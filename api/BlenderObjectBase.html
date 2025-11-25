@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.25">
+<meta name="generator" content="quarto-1.8.26">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -72,7 +72,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-142fe7a2ded85a30838d8a144fbab236.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -114,8 +114,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="../index.html" class="navbar-brand navbar-brand-logo">
-    </a>
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">databpy</span>
     </a>
@@ -127,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="../index.html" aria-current="page"> 
+    <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
@@ -135,7 +133,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Attributes</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../api/index.html"> 
+    <a class="nav-link active" href="../api/index.html" aria-current="page"> 
 <span class="menu-text">API</span></a>
   </li>  
 </ul>
@@ -160,10 +158,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
-    <div class="pt-lg-2 mt-2 text-left sidebar-header">
-      <a href="../index.html" class="sidebar-logo-link">
-      </a>
-      </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
@@ -289,6 +283,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/BlenderObjectAttribute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BlenderObjectAttribute</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/BlenderObjectBase.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">BlenderObjectBase</span></a>
   </div>
@@ -314,7 +314,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#databpy.BlenderObjectBase" id="toc-databpy.BlenderObjectBase" class="nav-link active" data-scroll-target="#databpy.BlenderObjectBase">BlenderObjectBase</a>
   <ul class="collapse">
   <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a></li>
-  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -328,8 +327,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="databpy.BlenderObjectBase" class="level1">
 <h1>BlenderObjectBase</h1>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase(obj<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Minimal base class for Blender objects with attribute access.</p>
-<p>This class provides core functionality for storing and accessing named attributes on Blender objects. It can be inherited by other packages that need attribute management without the full BlenderObject feature set.</p>
+<p>Minimal base class for Blender objects with name and object access.</p>
+<p>This provides a minimal set of functionality to persistently track a an object in Blender’s database, providing access to it’s name property and also the object itself. Referencing an object in the database directly can lead to ReferenceErrors as Blender can <em>without warning</em> alter the database and thus the Object’s place in memory.</p>
+<p>To get around this BlenderObjectBase always looks up via the name attribute and double checks with the <code>uuid</code> attribute to ensure the correct object is being returned. If there is a mismatch the entite database will be searched for an object with a uuid that matches and if none is found a LinkedObjectError will be raised.</p>
+<p>Blender <em>internally</em> uses it’s own UUID / reference system but this is currently (and frustratingly) not available to us via the Python API.</p>
 <section id="attributes" class="level2 doc-section doc-section-attributes">
 <h2 class="doc-section doc-section-attributes anchored" data-anchor-id="attributes">Attributes</h2>
 <table class="caption-top table">
@@ -356,279 +357,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
 <td>Name of the Blender object.</td>
 </tr>
-<tr class="even">
-<td>position</td>
-<td><a href="../api/AttributeArray.html#databpy.AttributeArray">AttributeArray</a></td>
-<td>Position attribute of the object’s vertices/points.</td>
-</tr>
-<tr class="odd">
-<td>data</td>
-<td><code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.Mesh.html#bpy.types.Mesh">Mesh</a> | <code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.Curves.html#bpy.types.Curves">Curves</a> | <code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.PointCloud.html#bpy.types.PointCloud">PointCloud</a></td>
-<td>The data block associated with this object.</td>
-</tr>
-<tr class="even">
-<td>attributes</td>
-<td></td>
-<td>Get the attributes collection of the Blender object.</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="methods" class="level2">
-<h2 class="anchored" data-anchor-id="methods">Methods</h2>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><a href="#databpy.BlenderObjectBase.evaluate">evaluate</a></td>
-<td>Return a version of the object with all modifiers applied.</td>
-</tr>
-<tr class="even">
-<td><a href="#databpy.BlenderObjectBase.list_attributes">list_attributes</a></td>
-<td>Returns a list of attribute names for the object.</td>
-</tr>
-<tr class="odd">
-<td><a href="#databpy.BlenderObjectBase.named_attribute">named_attribute</a></td>
-<td>Retrieve a named attribute from the object.</td>
-</tr>
-<tr class="even">
-<td><a href="#databpy.BlenderObjectBase.remove_named_attribute">remove_named_attribute</a></td>
-<td>Remove a named attribute from the object.</td>
-</tr>
-<tr class="odd">
-<td><a href="#databpy.BlenderObjectBase.store_named_attribute">store_named_attribute</a></td>
-<td>Store a named attribute on the Blender object.</td>
-</tr>
-</tbody>
-</table>
-<section id="databpy.BlenderObjectBase.evaluate" class="level3">
-<h3 class="anchored" data-anchor-id="databpy.BlenderObjectBase.evaluate">evaluate</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase.evaluate()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Return a version of the object with all modifiers applied.</p>
-<section id="returns" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h4>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td><a href="https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object">Object</a></td>
-<td>A new Object that isn’t yet registered with the database</td>
-</tr>
-</tbody>
-</table>
-</section>
-</section>
-<section id="databpy.BlenderObjectBase.list_attributes" class="level3">
-<h3 class="anchored" data-anchor-id="databpy.BlenderObjectBase.list_attributes">list_attributes</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase.list_attributes(evaluate<span class="op">=</span><span class="va">False</span>, drop_hidden<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Returns a list of attribute names for the object.</p>
-<section id="parameters" class="level4 doc-section doc-section-parameters">
-<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h4>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>evaluate</td>
-<td><a href="https://docs.python.org/3/library/functions.html#bool">bool</a></td>
-<td>Whether to first evaluate the modifiers on the object before listing the available attributes.</td>
-<td><code>False</code></td>
-</tr>
-<tr class="even">
-<td>drop_hidden</td>
-<td><a href="https://docs.python.org/3/library/functions.html#bool">bool</a></td>
-<td>Whether to drop hidden attributes (those starting with a dot). Defaults to False.</td>
-<td><code>False</code></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-1" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-1">Returns</h4>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str">str</a>] | None</td>
-<td>A list of attribute names if the molecule object exists, None otherwise.</td>
-</tr>
-</tbody>
-</table>
-</section>
-</section>
-<section id="databpy.BlenderObjectBase.named_attribute" class="level3">
-<h3 class="anchored" data-anchor-id="databpy.BlenderObjectBase.named_attribute">named_attribute</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase.named_attribute(name, evaluate<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Retrieve a named attribute from the object.</p>
-<p>Optionally, evaluate the object before reading the named attribute</p>
-<section id="parameters-1" class="level4 doc-section doc-section-parameters">
-<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-1">Parameters</h4>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>name</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
-<td>Name of the attribute to get.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td>evaluate</td>
-<td><a href="https://docs.python.org/3/library/functions.html#bool">bool</a></td>
-<td>Whether to evaluate the object before reading the attribute (default is False).</td>
-<td><code>False</code></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-2" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-2">Returns</h4>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td><a href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a></td>
-<td>The attribute read from the mesh as a numpy array.</td>
-</tr>
-</tbody>
-</table>
-</section>
-</section>
-<section id="databpy.BlenderObjectBase.remove_named_attribute" class="level3">
-<h3 class="anchored" data-anchor-id="databpy.BlenderObjectBase.remove_named_attribute">remove_named_attribute</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase.remove_named_attribute(name)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Remove a named attribute from the object.</p>
-<section id="parameters-2" class="level4 doc-section doc-section-parameters">
-<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-2">Parameters</h4>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>name</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
-<td>The name of the attribute to remove.</td>
-<td><em>required</em></td>
-</tr>
-</tbody>
-</table>
-</section>
-</section>
-<section id="databpy.BlenderObjectBase.store_named_attribute" class="level3">
-<h3 class="anchored" data-anchor-id="databpy.BlenderObjectBase.store_named_attribute">store_named_attribute</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase.store_named_attribute(</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    data,</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    name,</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    atype<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    domain<span class="op">=</span>AttributeDomains.POINT,</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Store a named attribute on the Blender object.</p>
-<section id="parameters-3" class="level4 doc-section doc-section-parameters">
-<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-3">Parameters</h4>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>data</td>
-<td><a href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a></td>
-<td>The data to be stored as an attribute.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="even">
-<td>name</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
-<td>The name for the attribute. Will overwrite an already existing attribute.</td>
-<td><em>required</em></td>
-</tr>
-<tr class="odd">
-<td>atype</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a> or <code>AttributeType</code> or None</td>
-<td>The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array.</td>
-<td><code>None</code></td>
-</tr>
-<tr class="even">
-<td>domain</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a> or <code>AttributeDomain</code></td>
-<td>The domain to store the attribute on. Defaults to Domains.POINT.</td>
-<td><code>AttributeDomains.POINT</code></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="returns-3" class="level4 doc-section doc-section-returns">
-<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-3">Returns</h4>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td><code>self</code></td>
-<td></td>
-</tr>
 </tbody>
 </table>
 
 
-</section>
-</section>
 </section>
 </section>
 
