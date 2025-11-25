@@ -21,6 +21,7 @@ website:
       - api/create_bob.qmd
       - api/evaluate_object.qmd
       - api/BlenderObject.qmd
+      - api/BlenderObjectAttribute.qmd
       - api/BlenderObjectBase.qmd
       - api/LinkedObjectError.qmd
       section: Objects
