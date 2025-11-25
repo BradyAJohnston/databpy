@@ -88,5 +88,6 @@ quartodoc:
     - create_bob
     - evaluate_object
     - BlenderObject
+    - BlenderObjectAttribute
     - BlenderObjectBase
     - LinkedObjectError

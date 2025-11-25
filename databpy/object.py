@@ -149,11 +149,20 @@ def get_from_uuid(uuid: str) -> Object:
 
 class BlenderObjectBase:
     """
-    Minimal base class for Blender objects with attribute access.
+    Minimal base class for Blender objects with name and object access.
 
-    This class provides core functionality for storing and accessing named attributes
-    on Blender objects. It can be inherited by other packages that need attribute
-    management without the full BlenderObject feature set.
+    This provides a minimal set of functionality to persistently track a an object in
+    Blender's database, providing access to it's name property and also the object itself.
+    Referencing an object in the database directly can lead to ReferenceErrors as Blender
+    can _without warning_ alter the database and thus the Object's place in memory.
+
+    To get around this BlenderObjectBase always looks up via the name attribute and
+    double checks with the `uuid` attribute to ensure the correct object is being returned.
+    If there is a mismatch the entite database will be searched for an object with a uuid
+    that matches and if none is found a LinkedObjectError will be raised.
+
+    Blender _internally_ uses it's own UUID / reference system but this is currently (and
+    frustratingly) not available to us via the Python API.
 
     Attributes
     ----------
@@ -163,12 +172,6 @@ class BlenderObjectBase:
         Unique identifier for this object instance.
     name : str
         Name of the Blender object.
-    position : AttributeArray
-        Position attribute of the object's vertices/points.
-    data : bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
-        The data block associated with this object.
-    attributes
-        Get the attributes collection of the Blender object.
     """
 
     def __init__(self, obj: Object | str | None = None):
@@ -197,61 +200,6 @@ class BlenderObjectBase:
             self.object = obj
         elif obj is None:
             self._object_name = ""
-
-    def _ipython_key_completions_(self) -> list[str]:
-        """
-        Return possible named attributes for IPython tab completion.
-
-        Returns
-        -------
-        list[str]
-            List of attribute names available on this object.
-        """
-        return self.list_attributes()
-
-    def __getitem__(self, name: str) -> AttributeArray:
-        """
-        Access a named attribute using dictionary-style syntax.
-
-        Parameters
-        ----------
-        name : str
-            The name of the attribute to access.
-
-        Returns
-        -------
-        AttributeArray
-            An AttributeArray that wraps the named attribute data.
-
-        Raises
-        ------
-        ValueError
-            If name is not a string.
-        """
-        if not isinstance(name, str):
-            raise ValueError("Attribute name must be a string")
-        return AttributeArray(self.object, name)
-
-    def __setitem__(self, name: str, data: np.ndarray) -> None:
-        """
-        Set a named attribute using dictionary-style syntax.
-
-        Parameters
-        ----------
-        name : str
-            The name of the attribute to set.
-        data : np.ndarray
-            The data to store in the attribute.
-        """
-        if name in self.list_attributes():
-            att = Attribute(self.attributes[name])
-            self.store_named_attribute(
-                data=data, name=name, domain=att.domain, atype=att.atype
-            )
-        self.store_named_attribute(data=data, name=name)
-
-    def _check_obj(self) -> None:
-        _check_obj_attributes(self.object)
 
     @property
     def object(self) -> Object:
@@ -337,6 +285,29 @@ class BlenderObjectBase:
         obj.name = value
         self._object_name = obj.name
 
+
+class BlenderObjectAttribute(BlenderObjectBase):
+    """
+    Minimal base class for Blender objects with attribute access.
+
+    This class provides core functionality for storing and accessing named attributes
+    on Blender objects.
+
+    It is intended for use with Mesh, PointCloud and Curves type objects for easier and
+    "numpy-like" attribute access.
+
+    It can be inherited by other classes for easier attribute management on objects.
+
+    Attributes
+    ----------
+    position : AttributeArray
+        Position attribute of the object's vertices/points.
+    data : bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
+        The data block associated with this object.
+    attributes
+        Get the attributes collection of the Blender object.
+    """
+
     def store_named_attribute(
         self,
         data: np.ndarray,
@@ -400,6 +371,18 @@ class BlenderObjectBase:
         """
         self._check_obj()
         return attr.named_attribute(self.object, name=name, evaluate=evaluate)
+
+    @property
+    def data(self):
+        """
+        Get the data block of the Blender object.
+
+        Returns
+        -------
+        bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
+            The data block associated with this object (e.g., mesh data, curves data, or point cloud data).
+        """
+        return self.object.data
 
     @property
     def attributes(self):
@@ -504,17 +487,60 @@ class BlenderObjectBase:
                 f"Supported types: Mesh, Curves, PointCloud"
             )
 
-    @property
-    def data(self):
+    def _ipython_key_completions_(self) -> list[str]:
         """
-        Get the data block of the Blender object.
+        Return possible named attributes for IPython tab completion.
 
         Returns
         -------
-        bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
-            The data block associated with this object (e.g., mesh data, curves data, or point cloud data).
+        list[str]
+            List of attribute names available on this object.
         """
-        return self.object.data
+        return self.list_attributes()
+
+    def __getitem__(self, name: str) -> AttributeArray:
+        """
+        Access a named attribute using dictionary-style syntax.
+
+        Parameters
+        ----------
+        name : str
+            The name of the attribute to access.
+
+        Returns
+        -------
+        AttributeArray
+            An AttributeArray that wraps the named attribute data.
+
+        Raises
+        ------
+        ValueError
+            If name is not a string.
+        """
+        if not isinstance(name, str):
+            raise ValueError("Attribute name must be a string")
+        return AttributeArray(self.object, name)
+
+    def __setitem__(self, name: str, data: np.ndarray) -> None:
+        """
+        Set a named attribute using dictionary-style syntax.
+
+        Parameters
+        ----------
+        name : str
+            The name of the attribute to set.
+        data : np.ndarray
+            The data to store in the attribute.
+        """
+        if name in self.list_attributes():
+            att = Attribute(self.attributes[name])
+            self.store_named_attribute(
+                data=data, name=name, domain=att.domain, atype=att.atype
+            )
+        self.store_named_attribute(data=data, name=name)
+
+    def _check_obj(self) -> None:
+        _check_obj_attributes(self.object)
 
     def evaluate(self) -> Object:
         """
@@ -528,7 +554,7 @@ class BlenderObjectBase:
         return evaluate_object(self.object)
 
 
-class BlenderObject(BlenderObjectBase):
+class BlenderObject(BlenderObjectAttribute):
     """
     A convenience class for working with Blender objects.
 
