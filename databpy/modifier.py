@@ -105,3 +105,7 @@ class NodesModifierInterface(BlenderObjectBase):
 
     def __setitem__(self, name: str, value: POSSIBLE_TYPES) -> None:
         self.set_value(name, value)
+
+    # might be able to get tab completion in Blender using this?
+    def __dir__(self) -> list[str]:
+        return self.list_inputs()
