@@ -49,6 +49,11 @@ class NodesModifierInterface(BlenderObjectBase):
             raise RuntimeError("Tree not found")
         return tree
 
+    @tree.setter
+    def tree(self, value: bpy.types.NodeTree) -> None:
+        assert isinstance(value, bpy.types.NodeTree)
+        self.modifier.node_group = value
+
     @property
     def tree_interface(self) -> bpy.types.NodeTreeInterface:
         interface = self.tree.interface
