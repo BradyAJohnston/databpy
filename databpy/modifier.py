@@ -84,8 +84,23 @@ class NodesModifierInterface(BlenderObjectBase):
         self.modifier[self.get_id_from_name(name)] = value
         _trigger_mesh_update(self.object)
 
-    def get_default_attribute(self, name: str) -> str:
-        return self.modifier[self.get_id_from_name(name)]
+    def _key_attr_name(self, name: str) -> str:
+        return "{}_attribute_attribute".format(self.get_id_from_name(name))
+
+    def get_attr_name(self, name: str) -> str:
+        return self.modifier[self._key_attr_name(name)]
+
+    def set_attr_name(self, name: str, value: str) -> None:
+        self.modifier[self._key_attr_name(name)] = value
+
+    def _key_use_att(self, name: str) -> str:
+        return "{}_use_attribute".format(self.get_id_from_name(name))
+
+    def get_use_attr(self, name: str):
+        return self.modifier[self._key_use_att(name)]
+
+    def set_use_att(self, name: str, value: bool) -> None:
+        self.modifier[self._key_use_att(name)] = value
 
     def list_inputs(self) -> list[str]:
         """Return list of inputs names that can accept and return values"""
