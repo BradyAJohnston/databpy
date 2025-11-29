@@ -23,6 +23,7 @@ def _trigger_mesh_update(obj: bpy.types.Object) -> None:
 
 class NodesModifierInterface(BlenderObjectBase):
     def __init__(self, modifier: bpy.types.NodesModifier):
+        assert isinstance(modifier, bpy.types.NodesModifier)
         super().__init__(modifier.id_data)  # type: ignore
         self._modifier_name = modifier.name
 
@@ -38,8 +39,7 @@ class NodesModifierInterface(BlenderObjectBase):
     @property
     def modifier(self) -> bpy.types.NodesModifier:
         mod = self.object.modifiers[self._modifier_name]
-        if not isinstance(mod, bpy.types.NodesModifier):
-            raise TypeError("Modifier is not a NodesModifier")
+        assert isinstance(mod, bpy.types.NodesModifier)
         return mod
 
     @property
@@ -57,8 +57,7 @@ class NodesModifierInterface(BlenderObjectBase):
     @property
     def tree_interface(self) -> bpy.types.NodeTreeInterface:
         interface = self.tree.interface
-        if interface is None:
-            raise RuntimeError("Interface not found")
+        assert interface is not None
         return interface
 
     @property
@@ -68,17 +67,15 @@ class NodesModifierInterface(BlenderObjectBase):
             for item in self.tree_interface.items_tree
             if isinstance(item, bpy.types.NodeTreeInterfaceSocket)
             and item.in_out == "INPUT"
+            and hasattr(item, "default_value")
         ]
 
     def get_id_from_name(self, name: str) -> str:
-        if not hasattr(self.tree, "interface") or self.tree.interface is None:
-            raise RuntimeError("Interface not found")
-
         for item in self.input_sockets:
-            if item.in_out == "INPUT" and item.name == name:
+            if item.name == name:
                 return item.identifier
 
-        raise RuntimeError(f"Input socket not found: {name=}")
+        raise ValueError(f"Input socket not found: {name=}")
 
     def get_value(self, name: str) -> POSSIBLE_TYPES:
         return self.modifier[self.get_id_from_name(name)]
