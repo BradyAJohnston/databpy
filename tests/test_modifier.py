@@ -28,10 +28,16 @@ def test_modifier():
     assert mod.list_inputs() == mod._ipython_key_completions_()
     assert mod.list_inputs() == dir(mod)
 
-    assert mod._key_use_att == "Socket_1_use_attribute"
-    assert mod._key_attr_name == "Socket_1_attribute_name"
+    assert mod._key_use_att("Count") == "Socket_2_use_attribute"
+    assert mod._key_attr_name("Count") == "Socket_2_attribute_name"
 
-    assert mod.get_attr_name("Count") == "Something"
+    assert mod.get_attr_name("Count") == ""
+    mod.set_attr_name("Count", "is_peptide")
+    assert mod.get_attr_name("Count") == "is_peptide"
+
+    assert not mod.get_attr_use("Count")
+    mod.set_attr_use("Count", True)
+    assert mod.get_attr_use("Count")
 
     with pytest.raises(ValueError):
         mod.get_id_from_name("non_existant_input")

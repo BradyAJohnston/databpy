@@ -85,7 +85,7 @@ class NodesModifierInterface(BlenderObjectBase):
         _trigger_mesh_update(self.object)
 
     def _key_attr_name(self, name: str) -> str:
-        return "{}_attribute_attribute".format(self.get_id_from_name(name))
+        return "{}_attribute_name".format(self.get_id_from_name(name))
 
     def get_attr_name(self, name: str) -> str:
         return self.modifier[self._key_attr_name(name)]
@@ -96,10 +96,10 @@ class NodesModifierInterface(BlenderObjectBase):
     def _key_use_att(self, name: str) -> str:
         return "{}_use_attribute".format(self.get_id_from_name(name))
 
-    def get_use_attr(self, name: str):
+    def get_attr_use(self, name: str):
         return self.modifier[self._key_use_att(name)]
 
-    def set_use_att(self, name: str, value: bool) -> None:
+    def set_attr_use(self, name: str, value: bool) -> None:
         self.modifier[self._key_use_att(name)] = value
 
     def list_inputs(self) -> list[str]:
