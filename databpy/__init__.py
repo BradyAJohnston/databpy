@@ -10,7 +10,7 @@ from .vdb import import_vdb
 import bpy
 from .addon import register, unregister
 from .utils import centre, lerp
-from .collection import create_collection, move_objects
+from .collection import create_collection, move_to_collection
 from .attribute import (
     named_attribute,
     store_named_attribute,

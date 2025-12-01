@@ -44,7 +44,7 @@ def create_collection(
 
     return coll
 
-def move_objects(objs: bpy.types.Object | list[bpy.types.Object], target_collection: bpy.types.Collection) -> None:
+def move_to_collection(objs: bpy.types.Object | list[bpy.types.Object], target_collection: bpy.types.Collection) -> None:
     """
     Move one or many objects into a target collection.
 
