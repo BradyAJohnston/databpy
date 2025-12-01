@@ -44,10 +44,21 @@ def create_collection(
 
     return coll
 
-def move_objects(objs, target_collection: bpy.types.Collection) -> None:
-    """Move one or many objects into a target collection.
+def move_objects(objs: bpy.types.Object | list[bpy.types.Object], target_collection: bpy.types.Collection) -> None:
+    """
+    Move one or many objects into a target collection.
 
-    objs: list[bpy.types.Object] or a single object
+    Parameters
+    ----------
+    objs : bpy.types.Object or list[bpy.types.Object]
+        A single object or list of objects to move.
+    target_collection : bpy.types.Collection
+        The collection to move the objects into.
+
+    Returns
+    -------
+    None
+        This function does not return a value.
     """
     # Allow single object
     if isinstance(objs, bpy.types.Object):
@@ -60,4 +71,3 @@ def move_objects(objs, target_collection: bpy.types.Collection) -> None:
 
         # Link to target collection
         target_collection.objects.link(obj)
-        
