@@ -2,6 +2,29 @@ import bpy
 from bpy.types import Collection
 
 
+def _get_collection(name: str) -> Collection:
+    """
+    Retrieve a Blender collection by name, if it doesn't exist, create it and link to scene.
+
+    Parameters
+    ----------
+    name : str
+        The name of the collection to retrieve or create
+
+    Returns
+    -------
+    Collection
+        The retrieved or created Blender collection
+    """
+    if name in bpy.data.collections:
+        return bpy.data.collections[name]
+
+    coll = bpy.data.collections.new(name)
+    if bpy.context.scene:
+        bpy.context.scene.collection.children.link(coll)
+    return coll
+
+
 def create_collection(
     name: str = "NewCollection", parent: Collection | str | None = None
 ) -> Collection:
@@ -24,23 +47,28 @@ def create_collection(
 
     Raises
     ------
+    TypeError
+        If the parent parameter is not a Collection, string or None.
     KeyError
         If the parent collection name provided does not exist in bpy.data.collections.
     """
+    if not isinstance(parent, (Collection, str, type(None))):
+        raise TypeError("Parent must be a Collection, string or None")
+
     if isinstance(parent, str):
-        try:
-            parent = bpy.data.collections[name]
-        except KeyError:
-            parent = bpy.data.collections.new(name)
-            bpy.context.scene.collection.children.linke(parent)
-    try:
-        coll = bpy.data.collections[name]
-    except KeyError:
-        coll = bpy.data.collections.new(name)
-        if parent is None:
-            bpy.context.scene.collection.children.link(coll)
-        else:
-            parent.children.link(coll)
+        parent = _get_collection(parent)
+
+    coll = _get_collection(name)
+
+    if parent is None:
+        return coll
+
+    if coll.name in parent.children:
+        return coll
+
+    parent.children.link(coll)
+    if bpy.context.scene and coll.name in bpy.context.scene.collection.children:
+        bpy.context.scene.collection.children.unlink(coll)
 
     return coll
 

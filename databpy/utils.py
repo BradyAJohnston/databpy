@@ -1,29 +1,43 @@
 import numpy as np
+from pathlib import Path
+import bpy
 
 
-def centre(position: np.ndarray, weight: np.ndarray | None = None):
-    "Calculate the weighted centroid of the vectors"
-    if weight is None:
-        return np.mean(position, axis=0)
-    return np.sum(position * weight.reshape((-1, 1)), axis=0) / np.sum(weight)
-
-
-def lerp(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
-    """
-    Linearly interpolate between two values.
+def centre(position: np.ndarray, weight: np.ndarray | None = None) -> np.ndarray:
+    """Calculate the weighted centroid of the vectors.
 
     Parameters
     ----------
-    a : array_like
+    position : np.ndarray
+        Array of position vectors.
+    weight : np.ndarray | None, optional
+        Array of weights for each position. Default is None.
+
+    Returns
+    -------
+    np.ndarray
+        The weighted centroid of the input vectors.
+    """
+    if weight is None:
+        return np.average(position, axis=0)
+    return np.average(position, weights=weight, axis=0)
+
+
+def lerp(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
+    """Linearly interpolate between two values.
+
+    Parameters
+    ----------
+    a : np.ndarray
         The starting value.
-    b : array_like
+    b : np.ndarray
         The ending value.
     t : float, optional
         The interpolation parameter. Default is 0.5.
 
     Returns
     -------
-    array_like
+    np.ndarray
         The interpolated value(s).
 
     Notes
@@ -33,14 +47,35 @@ def lerp(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
 
     Examples
     --------
-    >>> lerp(1, 2, 0.5)
-    1.5
-
-    >>> lerp(3, 7, 0.2)
-    3.8
-
-    >>> lerp([1, 2, 3], [4, 5, 6], 0.5)
-    array([2.5, 3.5, 4.5])
-
+    ```{python}
+    from databpy.utils import lerp
+    lerp(1, 2, 0.5)
+    lerp(3, 7, 0.2)
+    lerp([1, 2, 3], [4, 5, 6], 0.5)
+    ```
     """
-    return np.add(a, np.multiply(np.subtract(b, a), t))
+    return a + (b - a) * t
+
+
+def path_resolve(path: str | Path) -> Path:
+    """Resolve a path string or Path object to an absolute Path.
+
+    Parameters
+    ----------
+    path : str | Path
+        The path to resolve, either as a string or Path object.
+
+    Returns
+    -------
+    Path
+        The resolved absolute Path.
+
+    Raises
+    ------
+    ValueError
+        If the path cannot be resolved or is of invalid type.
+    """
+    if not isinstance(path, (str, Path)):
+        raise ValueError(f"Path must be string or Path object, got {type(path)}")
+
+    return Path(bpy.path.abspath(str(path))).resolve()

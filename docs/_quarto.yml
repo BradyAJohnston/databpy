@@ -2,22 +2,52 @@ project:
   type: website
   output-dir: _build
 
+filters:
+- interlinks
+
 website:
   title: "databpy"
   navbar:
     left:
-      - href: index.qmd
-        text: Home
-      - href: api/index.qmd
-        text: API
+    - href: index.qmd
+      text: Home
+    - href: attributes.qmd
+      text: Attributes
+    - href: api/index.qmd
+      text: API
+    tools:
+    - icon: github
+      href: https://github.com/BradyAJohnston/databpy
+
+format:
+  html:
+    page-layout: full
+    theme:
+    - sandstone
+    - style.scss
+    toc: true
+    toc-depth: 2
+    preview-colour:
+      code: true
+      text: true
+
 # tell quarto to read the generated sidebar
 metadata-files:
-  - api/_sidebar.yml
+- api/_sidebar.yml
 
-# tell quarto to read the generated styles
-# format:
-#   css:
-#     - api/_styles-quartodoc.css
+interlinks:
+  fast: true
+  aliases:
+    databpy: null  # Allow shortened internal references
+    numpy: np
+    molecularnodes: mn
+  sources:
+    numpy:
+      url: https://numpy.org/doc/stable/
+    python:
+      url: https://docs.python.org/3/
+    bpy:
+      url: https://docs.blender.org/api/current/
 
 quartodoc:
   # the name used to import the package you want to create reference docs for
@@ -26,21 +56,38 @@ quartodoc:
 
   # write sidebar and style data
   sidebar: api/_sidebar.yml
-  # css: api/_styles-quartodoc.css
+  css: api/_styles-quartodoc.css
+
+  # enable automatic linking of type annotations
+  render_interlinks: true
+  
+  options:
+    include_inherited: true
 
   sections:
-    - title: Attribute
-      desc: For interacting with attributes on meshes
-      contents:
-        - named_attribute
-        - store_named_attribute
-    - title: Collections
-      desc: Working with collections in Blender
-      contents:
-        - create_collection
-    - title: Objects
-      contents:
-        # - object.ObjectTracker
-        - BlenderObject
-        - create_object
-        - create_bob
+  - title: Attribute
+    desc: For interacting with attributes on meshes
+    contents:
+    - named_attribute
+    - store_named_attribute
+    - remove_named_attribute
+    - AttributeDomains
+    - AttributeTypes
+    - AttributeArray
+  - title: Collections
+    desc: Working with collections in Blender
+    contents:
+    - create_collection
+  - title: Objects
+    contents:
+    # - object.ObjectTracker
+    - create_object
+    - create_mesh_object
+    - create_curves_object
+    - create_pointcloud_object
+    - create_bob
+    - evaluate_object
+    - BlenderObject
+    - BlenderObjectAttribute
+    - BlenderObjectBase
+    - LinkedObjectError

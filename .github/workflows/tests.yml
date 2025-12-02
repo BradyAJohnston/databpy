@@ -13,14 +13,10 @@ jobs:
             max-parallel: 4
             fail-fast: false
             matrix:
-              version: ["4.2", "4.3"]
-              os: [macos-14]
+              version: ['4.5', '5.0', '5.1']
+              os: [macos-latest, windows-latest, ubuntu-latest]
         steps:
             - uses: actions/checkout@v4
-            - uses: actions/setup-python@v5
-              with:
-                python-version: 3.11.7
-                cache: pip
 
             - name: Install the latest version of uv
               uses: astral-sh/setup-uv@v4
@@ -29,25 +25,21 @@ jobs:
             
             - name: Install
               run: |
-                uv venv --python=3.11
-                source .venv/bin/activate
-                uv pip install -r pyproject.toml --all-extras
-                uv pip install -e .
-                uv pip install bpy==${{ matrix.version }}
+                uv sync  --all-extras --dev
+                uv pip install "bpy==${{ matrix.version }}.*" --extra-index-url https://bradyajohnston.github.io/dailybpy/ --index-strategy unsafe-best-match  --prerelease=allow
             
             - name: Run tests
               run: |
-                source .venv/bin/activate
-                pytest -vv --cov=databpy --cov-report=xml
+                uv run -m pytest -vv --cov=databpy --cov-report=xml
     
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v5
-              if: matrix.os == 'macos-14' && matrix.version == '4.2'
+              if: matrix.os == 'macos-latest' && matrix.version == '5.0'
               with:
                 token: ${{ secrets.CODECOV_TOKEN }}
                 name: coverage.xml
 
             - name: Upload coverage reports to Codecov
-              if: matrix.os == 'maxos-14' && matrix.version == '4.2'
+              if: matrix.os == 'macos-latest' && matrix.version == '5.0'
               uses: codecov/codecov-action@v3
     

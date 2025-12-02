@@ -1,9 +1,11 @@
 [project]
 name = "databpy"
-version = "0.0.3"
+version = "0.6.0"
 description = "A data-oriented wrapper library for the Blender Python API"
 readme = "README.md"
-dependencies = ["numpy>=1.26.0,<2.0"]
+dependencies = [
+    "numpy>=1.24.0,<2.0",
+]
 requires-python = "~=3.11.0"
 keywords = ["blender", "python", "numpy"]
 maintainers = [
@@ -13,12 +15,25 @@ maintainers = [
 [project.urls]
 Homepage = "https://bradyajohnston.github.io/databpy"
 Repository = "https://github.com/bradyajohnston/databpy"
-Dcumentation = "https://bradyajohnston.github.io/databpy"
+Documentation = "https://bradyajohnston.github.io/databpy"
 
 [project.optional-dependencies]
-bpy = ["bpy>=4.2"]
-test = ["pytest", "pytest-cov", "syrupy", "polars"]
+bpy = ["bpy>=4.5"]
+test = ["pytest", "pytest-cov"]
 dev = ["fake-bpy-module", "polars"]
 docs = ["quartodoc", "jupyter", "polars"]
+
+[tool.uv.workspace]
+members = [
+    ".",
+]
+
+[tool.uv.sources]
+databpy = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "databpy",
+]
 
 

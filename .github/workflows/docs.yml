@@ -4,36 +4,40 @@ on:
   workflow_dispatch:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["*"]
 
 jobs:
   build-docs:
     runs-on: ubuntu-latest
     permissions: write-all
-    env:
-      BLENDER_VERSION: blender-4.2.0-linux-x64
     steps:
       - uses: actions/checkout@v4
       - uses: quarto-dev/quarto-actions/setup@v2
-      - uses: actions/setup-python@v5
-        with:
-            python-version: "3.11.7"
-            cache: pip
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v4
         with:
             version: "latest"
+
       - name: Build Docs
         run: |
-            uv venv --python=3.11
-            source .venv/bin/activate
-            uv pip install -r pyproject.toml --all-extras
+            uv sync --all-extras --dev
             uv pip install -e .
             cd docs
-            quartodoc build
-            quarto render
+            uv run -m quartodoc build
 
+      - name: Fetch Interlinks
+        run: |
+            cd docs
+            uv run -m quartodoc interlinks
 
-      - name: Publish to GitHub Pages (and render)
+      - name: Quarto Render
+        run: |
+            uv run quarto render docs
+
+      # Only publish to GitHub Pages on push to main, not on PRs
+      - name: Publish to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: quarto-dev/quarto-actions/publish@v2
         with:
             target: gh-pages

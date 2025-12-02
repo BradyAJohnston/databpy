@@ -45,6 +45,37 @@ def test_set_position():
     assert np.allclose(pos_a, pos_b - 10, rtol=0.1)
 
 
+def test_centroid():
+    bpy.ops.wm.read_factory_settings()
+    # Create test object with known vertices
+    verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
+    bob = db.create_bob(verts, name="TestObject")
+
+    # Test unweighted centroid
+    centroid = bob.centroid()
+    assert np.allclose(centroid, np.array([1, 1, 1]))
+    assert np.allclose(db.centre(verts), np.array([1, 1, 1]))
+
+    # Test weighted centroid with float weights
+    weights = np.array([0.5, 0.3, 0.2])
+    weighted_centroid = bob.centroid(weights)
+    expected = np.average(verts, weights=weights, axis=0)
+    assert np.allclose(weighted_centroid, expected)
+    assert np.allclose(db.utils.centre(verts, weight=weights), expected)
+
+    # Test centroid with integer index selection
+    indices = np.array([0, 1])
+    indexed_centroid = bob.centroid(indices)
+    expected = np.mean(verts[indices], axis=0)
+    assert np.allclose(indexed_centroid, expected)
+
+    # Test centroid with named attribute weights
+    db.store_named_attribute(bob.object, weights, "weights")
+    named_centroid = bob.centroid("weights")
+    expected = np.average(verts, weights=weights, axis=0)
+    assert np.allclose(named_centroid, expected)
+
+
 def test_change_names():
     bob_cube = db.BlenderObject("Cube")
     assert bob_cube.name == "Cube"
@@ -80,7 +111,18 @@ def test_matrix_read_write():
     arr2 = np.random.rand(5, 4, 4)
     bob.store_named_attribute(data=arr2, name="test_matrix2")
     assert (
-        bob.object.data.attributes["test_matrix2"].data_type
+        bob.data.attributes["test_matrix2"].data_type
         == db.AttributeTypes.FLOAT4X4.value.type_name
     )
     assert not np.allclose(bob.named_attribute("test_matrix2"), arr)
+
+
+def test_newfrompydata():
+    values = np.random.rand(8, 3)
+    bob = db.BlenderObject()
+    with pytest.raises(LinkedObjectError):
+        bob.new_from_pydata(values)
+
+    bob = db.BlenderObject.from_pointcloud(values)
+    with pytest.raises(TypeError):
+        bob.new_from_pydata(values)

@@ -5,14 +5,25 @@ website:
     - contents:
       - api/named_attribute.qmd
       - api/store_named_attribute.qmd
+      - api/remove_named_attribute.qmd
+      - api/AttributeDomains.qmd
+      - api/AttributeTypes.qmd
+      - api/AttributeArray.qmd
       section: Attribute
     - contents:
       - api/create_collection.qmd
       section: Collections
     - contents:
-      - api/BlenderObject.qmd
       - api/create_object.qmd
+      - api/create_mesh_object.qmd
+      - api/create_curves_object.qmd
+      - api/create_pointcloud_object.qmd
       - api/create_bob.qmd
+      - api/evaluate_object.qmd
+      - api/BlenderObject.qmd
+      - api/BlenderObjectAttribute.qmd
+      - api/BlenderObjectBase.qmd
+      - api/LinkedObjectError.qmd
       section: Objects
     id: api
   - id: dummy-sidebar

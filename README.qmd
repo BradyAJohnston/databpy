@@ -5,17 +5,37 @@ title: databpy
 ---
 
 [![codecov](https://codecov.io/gh/BradyAJohnston/databpy/graph/badge.svg?token=KFuu67hzAz)](https://codecov.io/gh/BradyAJohnston/databpy)
-![PyPI - Version](https://img.shields.io/pypi/v/databpy)
-![example workflow](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
-![example workflow](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
+[![pypi](https://img.shields.io/pypi/v/databpy)](https://pypi.org/project/databpy/)
+![tests](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
+![deployment](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
+
+![](docs/img/notdavid.png)
 
 A set of data-oriented wrappers around the python API of Blender.
 
+This was originally used internally inside of [Molecular Nodes](https://github.com/BradyAJohnston/MolecularNodes) but was broken out into a separate python module for re-use in other projects.
+
 ## Installation
 Available on PyPI, install with pip:
+
 ```bash
 pip install databpy
 ```
+
+::: {.callout-caution}
+
+`bpy` (Blender as a python module) is listed as an optional dependency, so that if you install `databpy` inside of Blender you won't install a redundant version of `bpy`. If you are using this outside of Blender, you will need to specifically request `bpy` with either of these methods:
+```bash
+# install wtih bpy dependency
+pip install 'databpy[bpy]'
+
+# install both packages
+pip install databpy bpy
+
+# install with all optional dependencies
+pip install 'databpy[all]'
+```
+:::
 
 ## Usage
 
@@ -28,7 +48,24 @@ db.store_named_attribute() # store a named attribute on a mesh object
 db.named_attribute()       # retrieve a named attribute from a mesh object
 ```
 
-Mostly oriented around creating mesh objects, assigning and getting back attributes from them. Currently designed around storing and retrieving `numpy` data types:
+Here's an example on how to store an attribute:
+```python
+import numpy as np
+import databpy as db
+
+coords = np.array([
+    [0, 0, 0],
+    [0, 5, 0],
+    [5, 0, 0],
+    [5, 5, 0]
+])
+
+obj = db.create_object(coords, name="Box")
+db.store_named_attribute(obj, np.array([10, 20, 31, 42]), "vals")
+```
+![image](https://github.com/user-attachments/assets/2af6046a-8d73-4881-af63-8ed175fe2136)
+
+This module is mainly used to create mesh objects and work with their attributes. It is built to store and retrieve data using NumPy arrays:
 
 ```{python}
 #| echo: false
@@ -41,9 +78,9 @@ bpy.ops.wm.read_homefile(app_template="")
 ```{python}
 import numpy as np
 import databpy as db
+np.random.seed(6)
 
 # Create a mesh object
-
 random_verts = np.random.rand(10, 3)
 
 obj = db.create_object(random_verts, name="RandomMesh")

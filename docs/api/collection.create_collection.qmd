@@ -1,6 +1,0 @@
-# collection.create_collection { #databpy.collection.create_collection }
-
-```python
-collection.create_collection(name='NewCollection', parent=None)
-```
-

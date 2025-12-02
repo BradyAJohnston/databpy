@@ -1,0 +1,26 @@
+name: Run Tests in Blender
+
+on: 
+    push:
+      branches: ["main"]
+    pull_request:
+      branches: ["*"]
+    
+jobs:
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            max-parallel: 4
+            fail-fast: false
+            matrix:
+              version: ["4.5", "5.0", "daily"]
+              os: [macos-14, ubuntu-latest, windows-latest]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: BradyAJohnston/setup-blender@v5
+              with:
+                version: ${{ matrix.version }}
+            - name: Install and Test
+              run: |
+                blender -b -P tests/python.py -- -m pip install -e ".[test]"
+                blender -b -P tests/run.py -- -vv
