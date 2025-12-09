@@ -5,6 +5,7 @@ description = "A data-oriented wrapper library for the Blender Python API"
 readme = "README.md"
 dependencies = [
     "numpy>=1.24.0,<2.0",
+    "quarto-cli>=1.8.26",
 ]
 requires-python = "~=3.11.0"
 keywords = ["blender", "python", "numpy"]
@@ -25,6 +26,7 @@ docs = ["quartodoc", "jupyter", "polars"]
 
 [tool.uv.workspace]
 members = [
+    ".",
     ".",
 ]
 
