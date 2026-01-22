@@ -4,9 +4,24 @@ from typing import Type, Literal  # type: ignore
 import bpy
 from bpy.types import Object
 import numpy as np
+import numpy.typing as npt
 import warnings
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
+PossibleAttributeTypes = (
+    bpy.types.IntAttribute
+    | bpy.types.BoolAttribute
+    | bpy.types.Int2Attribute
+    | bpy.types.FloatAttribute
+    | bpy.types.Float2Attribute
+    | bpy.types.ByteIntAttribute
+    | bpy.types.Float2Attribute
+    | bpy.types.Float4x4Attribute
+    | bpy.types.ByteColorAttribute
+    | bpy.types.FloatColorAttribute
+    | bpy.types.QuaternionAttribute
+    | bpy.types.FloatVectorAttribute
+)
 DomainNames = Literal["POINT", "EDGE", "FACE", "CORNER", "CURVE", "INSTANCE", "LAYER"]
 AttributeDataTypes = Literal[
     "FLOAT",
@@ -403,7 +418,7 @@ class Attribute:
     named_attribute : Convenience function to read attribute data
     """
 
-    def __init__(self, attribute: bpy.types.Attribute):
+    def __init__(self, attribute: PossibleAttributeTypes):
         self.attribute = attribute
 
     def __len__(self):
@@ -518,7 +533,7 @@ class Attribute:
                 f"Array shape {array.shape} cannot be reshaped to attribute shape {self.shape}"
             )
 
-        self.attribute.data.foreach_set(self.value_name, np.ravel(array))
+        self.attribute.data.foreach_set(self.value_name, np.ravel(array))  # type: ignore
 
     def as_array(self) -> np.ndarray:
         """
@@ -533,7 +548,7 @@ class Attribute:
         # initialize empty 1D array that is needed to then be filled with values
         # from the Blender attribute
         array = np.zeros(self.size, dtype=self.dtype)
-        self.attribute.data.foreach_get(self.value_name, array)
+        self.attribute.data.foreach_get(self.value_name, array)  # type: ignore
 
         # if the attribute has more than one dimension reshape the array before returning
         if self.is_1d:
@@ -563,8 +578,8 @@ def _match_atype(
 
 
 def _match_domain(
-    domain: str | AttributeDomains | None,
-) -> str:
+    domain: DomainNames | AttributeDomains | None,
+) -> DomainNames:
     if isinstance(domain, str):
         try:
             AttributeDomains[domain]  # Validate the string is a valid domain
@@ -584,8 +599,8 @@ def store_named_attribute(
     obj: bpy.types.Object,
     data: np.ndarray,
     name: str,
-    atype: str | AttributeTypes | None = None,
-    domain: str | AttributeDomains = AttributeDomains.POINT,
+    atype: AttributeDataTypes | AttributeTypes | None = None,
+    domain: DomainNames | AttributeDomains = AttributeDomains.POINT,
     overwrite: bool = True,
 ) -> bpy.types.Attribute:
     """
@@ -654,10 +669,12 @@ def store_named_attribute(
     if name == "":
         raise NamedAttributeError("Attribute name cannot be an empty string.")
 
-    attribute = obj_data.attributes.get(name)  # type: ignore
+    attribute: PossibleAttributeTypes = obj_data.attributes.get(name)  # type: ignore
     if not attribute or not overwrite:
         current_names = obj_data.attributes.keys()
-        attribute = obj_data.attributes.new(name, atype.value.type_name, domain)
+        attribute: PossibleAttributeTypes = obj_data.attributes.new(  # type: ignore
+            name, atype.value.type_name, domain
+        )
 
         if attribute is None:
             [
@@ -700,7 +717,7 @@ def store_named_attribute(
 
     # the 'foreach_set' requires a 1D array, regardless of the shape of the attribute
     # so we have to flatten it first
-    attribute.data.foreach_set(atype.value.value_name, np.ravel(data))
+    attribute.data.foreach_set(atype.value.value_name, np.ravel(data))  # type: ignore
 
     # The updating of data doesn't work 100% of the time (see:
     # https://projects.blender.org/blender/blender/issues/118507) so this resetting of a
@@ -713,8 +730,8 @@ def store_named_attribute(
     except AttributeError:
         # For non-mesh objects (Curves, PointCloud), try update() if it exists
         try:
-            obj_data.attributes["position"].data[0].vector = (
-                obj_data.attributes["position"].data[0].vector
+            obj_data.attributes["position"].data[0].vector = (  # type: ignore
+                obj_data.attributes["position"].data[0].vector  # type: ignore
             )
         except AttributeError:
             if hasattr(obj.data, "update"):
@@ -759,7 +776,7 @@ def evaluate_object(
         context = bpy.context
     _check_is_mesh(obj)
     obj.update_tag()
-    return obj.evaluated_get(context.evaluated_depsgraph_get())
+    return obj.evaluated_get(context.evaluated_depsgraph_get())  # type: ignore
 
 
 def named_attribute(
@@ -808,7 +825,7 @@ def named_attribute(
         obj = evaluate_object(obj)
 
     try:
-        attr = Attribute(obj.data.attributes[name])
+        attr = Attribute(obj.data.attributes[name])  # type: ignore
     except KeyError:
         message = f"The selected attribute '{name}' does not exist on the mesh."
         raise NamedAttributeError(message)
