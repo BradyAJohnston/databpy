@@ -12,6 +12,8 @@ from .addon import register
 from .attribute import (
     AttributeDomains,
     AttributeTypes,
+    DomainNames,
+    AttributeDataTypes,
     list_attributes,
     _check_obj_attributes,
     evaluate_object,
@@ -39,29 +41,6 @@ class LinkedObjectError(Exception):
         super().__init__(self.message)
 
 
-class ObjectDatabase:
-    def __getitem__(self, key: str) -> Object:
-        """
-        Get an object from the database using its name.
-
-        A helper for typing in development
-
-        Parameters
-        ----------
-        key : str
-            The name of the object to get.
-
-        Returns
-        -------
-        Object
-            The object from the bpy.data.objects database
-        """
-        return bpy.data.objects[key]
-
-
-bdo = ObjectDatabase()
-
-
 class ObjectTracker:
     """
     A context manager for tracking new objects in Blender.
@@ -84,7 +63,7 @@ class ObjectTracker:
         self
             The instance of the class.
         """
-        self.objects = list(bpy.context.scene.objects)
+        self.objects = list(bpy.context.scene.objects)  # type: ignore
         return self
 
     def __exit__(self, type, value, traceback):
@@ -102,7 +81,7 @@ class ObjectTracker:
             A list of new objects.
         """
         obj_names = list([o.name for o in self.objects])
-        current_objects = bpy.context.scene.objects
+        current_objects = bpy.context.scene.objects  # type: ignore
         new_objects = []
         for obj in current_objects:
             if obj.name not in obj_names:
@@ -138,7 +117,7 @@ def get_from_uuid(uuid: str) -> Object:
         The object from the bpy.data.objects collection.
     """
     for obj in bpy.data.objects:
-        if obj.uuid == uuid:
+        if obj.uuid == uuid:  # type: ignore
             return obj
 
     raise LinkedObjectError(
@@ -167,13 +146,13 @@ class BlenderObject:
             register()
 
         if isinstance(obj, Object):
-            if obj.uuid != "":
-                self._uuid = obj.uuid
+            if obj.uuid != "":  # type: ignore
+                self._uuid = obj.uuid  # type: ignore
             self.object = obj
         elif isinstance(obj, str):
             obj = bpy.data.objects[obj]
-            if obj.uuid != "":
-                self._uuid = obj.uuid
+            if obj.uuid != "":  # type: ignore
+                self._uuid = obj.uuid  # type: ignore
             self.object = obj
         elif obj is None:
             self._object_name = ""
@@ -198,7 +177,7 @@ class BlenderObject:
 
         try:
             obj = bpy.data.objects[self._object_name]
-            if obj.uuid != self.uuid:
+            if obj.uuid != self.uuid:  # type: ignore
                 obj = get_from_uuid(self.uuid)
         except KeyError:
             obj = get_from_uuid(self.uuid)
@@ -221,10 +200,10 @@ class BlenderObject:
             raise ValueError(f"{value} must be a bpy.types.Object")
 
         try:
-            value.uuid = self.uuid
+            value.uuid = self.uuid  # type: ignore
         except AttributeError:
             register()
-            value.uuid = self.uuid
+            value.uuid = self.uuid  # type: ignore
         self._object_name = value.name
 
     @property
@@ -293,8 +272,8 @@ class BlenderObject:
         self,
         data: np.ndarray,
         name: str,
-        atype: str | AttributeTypes | None = None,
-        domain: str | AttributeDomains = AttributeDomains.POINT,
+        atype: AttributeDataTypes | AttributeTypes | None = None,
+        domain: DomainNames | AttributeDomains = AttributeDomains.POINT,
     ) -> None:
         """
         Store a named attribute on the Blender object.
@@ -407,7 +386,14 @@ class BlenderObject:
 
         return np.average(self.position, axis=0)
 
-    def attributes(self):
+    def attributes(
+        self,
+    ) -> (
+        bpy.types.AttributeGroupCurves
+        | bpy.types.AttributeGroupMesh
+        | bpy.types.AttributeGroupPointCloud
+        | bpy.types.AttributeGroupGreasePencil
+    ):
         """
         Get the attributes of the Blender object.
 
@@ -416,10 +402,11 @@ class BlenderObject:
         bpy.types.Attributes
             The attributes of the Blender object.
         """
-        return self.object.data.attributes
+        _check_obj_attributes(self.object)
+        return self.object.data.attributes  # type: ignore
 
     @property
-    def vertices(self):
+    def vertices(self) -> bpy.types.MeshVertices:
         """
         Get the vertices of the Blender object.
 
@@ -428,11 +415,12 @@ class BlenderObject:
         bpy.types.Vertices
             The vertices of the Blender object.
         """
-
-        return self.object.data.vertices
+        data = self.object.data
+        assert isinstance(data, bpy.types.Mesh)
+        return data.vertices
 
     @property
-    def edges(self):
+    def edges(self) -> bpy.types.MeshEdges:
         """
         Get the edges of the Blender object.
 
@@ -441,7 +429,9 @@ class BlenderObject:
         bpy.types.Edges
             The edges of the Blender object.
         """
-        return self.object.data.edges
+        data = self.object.data
+        assert isinstance(data, bpy.types.Mesh)
+        return data.edges
 
     def transform_origin(self, matrix: Matrix) -> None:
         """
@@ -452,7 +442,7 @@ class BlenderObject:
         matrix : Matrix
             The transformation matrix to apply to the origin.
         """
-        self.object.matrix_local = matrix * self.object.matrix_world
+        self.object.matrix_local = matrix @ self.object.matrix_world
 
     def transform_points(self, matrix: Matrix) -> None:
         """
@@ -532,9 +522,9 @@ class BlenderObject:
             The positions of the selected vertices.
         """
         if mask is not None:
-            return self.position[np.logical_and(self.selected, mask)]
+            return np.array(self.position[np.logical_and(self.selected, mask)])
 
-        return self.position[self.selected]
+        return np.array(self.position[self.selected])
 
     def list_attributes(
         self, evaluate: bool = False, drop_hidden: bool = False
@@ -566,13 +556,13 @@ class BlenderObject:
         int
             The number of vertices in the Blender object.
         """
-        return len(self.object.data.vertices)
+        return len(self.vertices)
 
 
 def create_object(
     vertices: npt.ArrayLike | None = None,
     edges: npt.ArrayLike | None = None,
-    faces: np.ndarray | None = None,
+    faces: npt.ArrayLike | None = None,
     name: str = "NewObject",
     collection: bpy.types.Collection | None = None,
 ) -> Object:
@@ -616,9 +606,9 @@ def create_object(
 
 
 def create_bob(
-    vertices: np.ndarray | None = None,
-    edges: np.ndarray | None = None,
-    faces: np.ndarray | None = None,
+    vertices: npt.ArrayLike | None = None,
+    edges: npt.ArrayLike | None = None,
+    faces: npt.ArrayLike | None = None,
     name: str = "NewObject",
     collection: bpy.types.Collection | None = None,
     uuid: str | None = None,
@@ -686,6 +676,6 @@ def create_bob(
     )
     if uuid:
         bob._uuid = uuid
-        bob.object.uuid = uuid
+        bob.object.uuid = uuid  # type: ignore
 
     return bob

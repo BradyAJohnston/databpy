@@ -4,7 +4,6 @@ from .object import (
     create_object,
     create_bob,
     LinkedObjectError,
-    bdo,
 )
 from .vdb import import_vdb
 from . import nodes
@@ -33,7 +32,6 @@ __all__ = [
     "create_object",
     "create_bob",
     "LinkedObjectError",
-    "bdo",
     "import_vdb",
     "nodes",
     "utils",

@@ -1,6 +1,6 @@
 import numpy as np
 import databpy as db
-from databpy import LinkedObjectError, bdo
+from databpy import LinkedObjectError
 import bpy
 import pytest
 
@@ -28,16 +28,16 @@ def test_BlenderObject():
     with pytest.raises(LinkedObjectError):
         bob.name = "testing"
 
-    bob = db.BlenderObject(bdo["Cube"])
+    bob = db.BlenderObject(bpy.data.objects["Cube"])
     assert bob.name == "Cube"
     bob.name = "NewName"
     with pytest.raises(KeyError):
-        bdo["Cube"]
+        bpy.data.objects["Cube"]
     assert bob.name == "NewName"
 
 
 def test_set_position():
-    bob = db.BlenderObject(bdo["Cube"])
+    bob = db.BlenderObject(bpy.data.objects["Cube"])
     pos_a = bob.position
     bob.position += 10
     pos_b = bob.position
