@@ -395,7 +395,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
 <p>Basic usage:</p>
-<div id="0e1f72f8" class="cell" data-execution_count="1">
+<div id="8da96397" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -404,7 +404,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>pos[:, <span class="dv">2</span>] <span class="op">+=</span> <span class="fl">1.0</span>  <span class="co"># Automatically syncs to Blender</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Using BlenderObject for convenience:</p>
-<div id="59094ee2" class="cell" data-execution_count="2">
+<div id="8bc0f02f" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -414,57 +414,57 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stdout">
 <pre><code>Initial position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-[[0.6676551  0.8086245  0.4716688 ]
- [0.07804552 0.06285273 0.434844  ]
- [0.97494215 0.6206933  0.84272045]
- [0.19066952 0.14497949 0.37748018]
- [0.5657521  0.14959513 0.72405803]
- [0.7055982  0.3302429  0.3807215 ]
- [0.03366756 0.7883809  0.53490835]
- [0.80483407 0.65123326 0.42780322]
- [0.01679512 0.8079249  0.71494085]
- [0.9290625  0.01332502 0.6146385 ]]</code></pre>
+[[0.6093973  0.39422187 0.6651173 ]
+ [0.9921729  0.02461155 0.61580807]
+ [0.36655498 0.6314501  0.6413545 ]
+ [0.7724151  0.8248915  0.42801076]
+ [0.88746065 0.44172105 0.9132037 ]
+ [0.25930768 0.47293258 0.24199297]
+ [0.79691416 0.845296   0.73498195]
+ [0.20866944 0.26734948 0.7610739 ]
+ [0.00711028 0.6811421  0.6450538 ]
+ [0.48507512 0.37293738 0.16692607]]</code></pre>
 </div>
 </div>
-<div id="e6905fc4" class="cell" data-execution_count="3">
+<div id="a241ccb0" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bob.position[:, <span class="dv">2</span>] <span class="op">+=</span> <span class="fl">1.0</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Updated position:'</span>)</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(bob.position)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Updated position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-[[0.6676551  0.8086245  1.4716688 ]
- [0.07804552 0.06285273 1.434844  ]
- [0.97494215 0.6206933  1.8427205 ]
- [0.19066952 0.14497949 1.3774801 ]
- [0.5657521  0.14959513 1.724058  ]
- [0.7055982  0.3302429  1.3807216 ]
- [0.03366756 0.7883809  1.5349083 ]
- [0.80483407 0.65123326 1.4278033 ]
- [0.01679512 0.8079249  1.7149408 ]
- [0.9290625  0.01332502 1.6146386 ]]</code></pre>
+[[0.6093973  0.39422187 1.6651173 ]
+ [0.9921729  0.02461155 1.615808  ]
+ [0.36655498 0.6314501  1.6413546 ]
+ [0.7724151  0.8248915  1.4280107 ]
+ [0.88746065 0.44172105 1.9132037 ]
+ [0.25930768 0.47293258 1.241993  ]
+ [0.79691416 0.845296   1.734982  ]
+ [0.20866944 0.26734948 1.7610738 ]
+ [0.00711028 0.6811421  1.6450539 ]
+ [0.48507512 0.37293738 1.166926  ]]</code></pre>
 </div>
 </div>
-<div id="ca324ae9" class="cell" data-execution_count="4">
+<div id="f4b9d903" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to regular numpy array (no sync)</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'As Array:'</span>)</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(np.asarray(bob.position))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>As Array:
-[[0.6676551  0.8086245  1.4716688 ]
- [0.07804552 0.06285273 1.434844  ]
- [0.97494215 0.6206933  1.8427205 ]
- [0.19066952 0.14497949 1.3774801 ]
- [0.5657521  0.14959513 1.724058  ]
- [0.7055982  0.3302429  1.3807216 ]
- [0.03366756 0.7883809  1.5349083 ]
- [0.80483407 0.65123326 1.4278033 ]
- [0.01679512 0.8079249  1.7149408 ]
- [0.9290625  0.01332502 1.6146386 ]]</code></pre>
+[[0.6093973  0.39422187 1.6651173 ]
+ [0.9921729  0.02461155 1.615808  ]
+ [0.36655498 0.6314501  1.6413546 ]
+ [0.7724151  0.8248915  1.4280107 ]
+ [0.88746065 0.44172105 1.9132037 ]
+ [0.25930768 0.47293258 1.241993  ]
+ [0.79691416 0.845296   1.734982  ]
+ [0.20866944 0.26734948 1.7610738 ]
+ [0.00711028 0.6811421  1.6450539 ]
+ [0.48507512 0.37293738 1.166926  ]]</code></pre>
 </div>
 </div>
 <p>Working with integer attributes:</p>
-<div id="523bd583" class="cell" data-execution_count="5">
+<div id="cc335c81" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
