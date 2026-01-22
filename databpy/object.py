@@ -12,7 +12,6 @@ from .addon import register
 from .attribute import (
     AttributeDomains,
     AttributeTypes,
-    PossibleAttributeTypes,
     DomainNames,
     AttributeTypeNames,
     list_attributes,
