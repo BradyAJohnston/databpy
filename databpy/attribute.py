@@ -1,17 +1,26 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Type
+from typing import Type, Literal, Union
 import bpy
 from bpy.types import Object
 import numpy as np
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
-
-
-class NamedAttributeError(AttributeError):
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
+ObjectTypes = Union[bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
+DomainNames = Literal["POINT", "EDGE", "FACE", "CORNER", "CURVE", "INSTANCE", "LAYER"]
+AttributeDataTypes = Literal[
+    "FLOAT",
+    "FLOAT_VECTOR",
+    "FLOAT2",
+    "FLOAT_COLOR",
+    "BYTE_COLOR",
+    "QUATERNION",
+    "INT",
+    "INT8",
+    "INT32_2D",
+    "FLOAT4X4",
+    "BOOLEAN",
+]
 
 
 def _check_obj_attributes(obj: Object) -> None:
@@ -23,6 +32,12 @@ def _check_obj_attributes(obj: Object) -> None:
         )
 
 
+class NamedAttributeError(AttributeError):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
+
 def _check_is_mesh(obj: Object) -> None:
     if not isinstance(obj.data, bpy.types.Mesh):
         raise TypeError("Object must be a mesh to evaluate the modifiers")
@@ -31,10 +46,11 @@ def _check_is_mesh(obj: Object) -> None:
 def list_attributes(
     obj: Object, evaluate: bool = False, drop_hidden: bool = False
 ) -> list[str]:
+    _check_obj_attributes(obj)
     if evaluate:
-        strings = list(evaluate_object(obj).data.attributes.keys())
+        strings = list(evaluate_object(obj).data.attributes.keys())  # type: ignore
     else:
-        strings = list(obj.data.attributes.keys())
+        strings = list(obj.data.attributes.keys())  # type: ignore
 
     # return a sorted list of attribute names because there is inconsistency
     # between blender versions for the order of attributes being iterated over
@@ -269,7 +285,7 @@ class Attribute:
         int
             The number of elements in the attribute.
         """
-        return len(self.attribute.data)
+        return len(self.attribute.data)  # type: ignore
 
     @property
     def name(self) -> str:
@@ -350,7 +366,7 @@ class Attribute:
                 f"Array shape {array.shape} does not match attribute shape {self.shape}"
             )
 
-        self.attribute.data.foreach_set(self.value_name, array.reshape(-1))
+        self.attribute.data.foreach_set(self.value_name, array.reshape(-1))  # type: ignore
 
     def as_array(self) -> np.ndarray:
         """
@@ -365,7 +381,7 @@ class Attribute:
         # initialize empty 1D array that is needed to then be filled with values
         # from the Blender attribute
         array = np.zeros(self.n_values, dtype=self.dtype)
-        self.attribute.data.foreach_get(self.value_name, array)
+        self.attribute.data.foreach_get(self.value_name, array)  # type: ignore
 
         # if the attribute has more than one dimension reshape the array before returning
         if self.is_1d:
@@ -380,7 +396,7 @@ class Attribute:
 
 
 def _match_atype(
-    atype: str | AttributeTypes | None, data: np.ndarray
+    data: np.ndarray, atype: AttributeDataTypes | AttributeTypes | None = None
 ) -> AttributeTypes:
     if isinstance(atype, str):
         try:
@@ -395,8 +411,8 @@ def _match_atype(
 
 
 def _match_domain(
-    domain: str | AttributeDomains | None,
-) -> str:
+    domain: DomainNames | AttributeDomains | None,
+) -> DomainNames:
     if isinstance(domain, str):
         try:
             AttributeDomains[domain]  # Validate the string is a valid domain
@@ -416,8 +432,8 @@ def store_named_attribute(
     obj: bpy.types.Object,
     data: np.ndarray,
     name: str,
-    atype: str | AttributeTypes | None = None,
-    domain: str | AttributeDomains = AttributeDomains.POINT,
+    atype: AttributeDataTypes | AttributeTypes | None = None,
+    domain: DomainNames | AttributeDomains = AttributeDomains.POINT,
     overwrite: bool = True,
 ) -> bpy.types.Attribute:
     """
@@ -464,7 +480,7 @@ def store_named_attribute(
     ```
     """
 
-    atype = _match_atype(atype, data)
+    atype = _match_atype(data, atype)
     domain = _match_domain(domain)
 
     if isinstance(obj, bpy.types.Object):
@@ -499,18 +515,20 @@ def store_named_attribute(
             )
 
     target_atype = AttributeTypes[attribute.data_type]
-    if len(data) != len(attribute.data):
+    if len(data) != len(attribute.data):  # type: ignore
         raise NamedAttributeError(
-            f"Data length {len(data)}, dimensions {data.shape} does not equal the size of the target `{domain=}`, `{len(attribute.data)=}`, {target_atype.value.dimensions=}`"
+            f"Data length {len(data)}, dimensions {data.shape} does not equal the size "
+            f"of the target `{domain=}`, `{len(attribute.data)=}`, {target_atype.value.dimensions=}`"  # type: ignore
         )
     if target_atype != atype:
         raise NamedAttributeError(
-            f"Attribute being written to: `{attribute.name}` of type `{target_atype.value.type_name}` does not match the type for the given data: `{atype.value.type_name}`"
+            f"Attribute being written to: `{attribute.name}` of type `{target_atype.value.type_name}`"
+            f"does not match the type for the given data: `{atype.value.type_name}`"
         )
 
     # the 'foreach_set' requires a 1D array, regardless of the shape of the attribute
     # so we have to flatten it first
-    attribute.data.foreach_set(atype.value.value_name, data.reshape(-1))
+    attribute.data.foreach_set(atype.value.value_name, data.reshape(-1))  # type: ignore
 
     # The updating of data doesn't work 100% of the time (see:
     # https://projects.blender.org/blender/blender/issues/118507) so this resetting of a
@@ -562,7 +580,7 @@ def evaluate_object(
         context = bpy.context
     _check_is_mesh(obj)
     obj.update_tag()
-    return obj.evaluated_get(context.evaluated_depsgraph_get())
+    return obj.evaluated_get(context.evaluated_depsgraph_get())  # type: ignore
 
 
 def named_attribute(
@@ -610,11 +628,11 @@ def named_attribute(
 
     verbose = False
     try:
-        attr = Attribute(obj.data.attributes[name])
+        attr = Attribute(obj.data.attributes[name])  # type: ignore
     except KeyError:
         message = f"The selected attribute '{name}' does not exist on the mesh."
         if verbose:
-            message += f"Possible attributes are: {obj.data.attributes.keys()}"
+            message += f"Possible attributes are: {obj.data.attributes.keys()}"  # type: ignore
 
         raise NamedAttributeError(message)
 
@@ -652,8 +670,8 @@ def remove_named_attribute(obj: bpy.types.Object, name: str):
     """
     _check_obj_attributes(obj)
     try:
-        attr = obj.data.attributes[name]
-        obj.data.attributes.remove(attr)
+        attr = obj.data.attributes[name]  # type: ignore
+        obj.data.attributes.remove(attr)  # type: ignore
     except KeyError:
         raise NamedAttributeError(
             f"The selected attribute '{name}' does not exist on the object"
