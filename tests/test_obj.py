@@ -13,7 +13,7 @@ def test_creat_obj():
     name = "MyMesh"
     my_object = db.create_object(locations, bonds, name=name)
 
-    assert len(my_object.data.vertices) == 3
+    assert len(my_object.data.vertices) == 3  # type: ignore
     assert my_object.name == name
     assert my_object.name != "name"
 
