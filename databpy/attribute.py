@@ -1,12 +1,26 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Type
+from typing import Type, Literal  # type: ignore
 import bpy
 from bpy.types import Object
 import numpy as np
 import warnings
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
+DomainNames = Literal["POINT", "EDGE", "FACE", "CORNER", "CURVE", "INSTANCE", "LAYER"]
+AttributeDataTypes = Literal[
+    "FLOAT",
+    "FLOAT_VECTOR",
+    "FLOAT2",
+    "FLOAT_COLOR",
+    "BYTE_COLOR",
+    "QUATERNION",
+    "INT",
+    "INT8",
+    "INT32_2D",
+    "FLOAT4X4",
+    "BOOLEAN",
+]
 
 
 class NamedAttributeError(AttributeError):
@@ -41,9 +55,9 @@ def list_attributes(
     obj: Object, evaluate: bool = False, drop_hidden: bool = False
 ) -> list[str]:
     if evaluate:
-        strings = list(evaluate_object(obj).data.attributes.keys())
+        strings = list(evaluate_object(obj).data.attributes.keys())  # type: ignore
     else:
-        strings = list(obj.data.attributes.keys())
+        strings = list(obj.data.attributes.keys())  # type: ignore
 
     # return a sorted list of attribute names because there is inconsistency
     # between blender versions for the order of attributes being iterated over
@@ -64,7 +78,7 @@ class AttributeTypeInfo:
 
 @dataclass
 class AttributeDomain:
-    name: str
+    name: DomainNames
 
     def __str__(self):
         return self.name
@@ -118,7 +132,7 @@ class AttributeDomains(Enum):
 
 @dataclass
 class AttributeType:
-    type_name: str
+    type_name: AttributeDataTypes
     value_name: str
     dtype: Type
     dimensions: tuple
@@ -401,7 +415,7 @@ class Attribute:
         int
             The number of elements in the attribute.
         """
-        return len(self.attribute.data)
+        return len(self.attribute.data)  # type: ignore
 
     @property
     def name(self) -> str:
@@ -835,8 +849,8 @@ def remove_named_attribute(obj: bpy.types.Object, name: str):
     """
     _check_obj_attributes(obj)
     try:
-        attr = obj.data.attributes[name]
-        obj.data.attributes.remove(attr)
+        attr = obj.data.attributes[name]  # type: ignore
+        obj.data.attributes.remove(attr)  # type: ignore
     except KeyError:
         raise NamedAttributeError(
             f"The selected attribute '{name}' does not exist on the object"
