@@ -23,7 +23,7 @@ PossibleAttributeTypes = (
     | bpy.types.FloatVectorAttribute
 )
 DomainNames = Literal["POINT", "EDGE", "FACE", "CORNER", "CURVE", "INSTANCE", "LAYER"]
-AttributeDataTypes = Literal[
+AttributeTypeNames = Literal[
     "FLOAT",
     "FLOAT_VECTOR",
     "FLOAT2",
@@ -147,7 +147,7 @@ class AttributeDomains(Enum):
 
 @dataclass
 class AttributeType:
-    type_name: AttributeDataTypes
+    type_name: AttributeTypeNames
     value_name: str
     dtype: Type
     dimensions: tuple
@@ -599,7 +599,7 @@ def store_named_attribute(
     obj: bpy.types.Object,
     data: np.ndarray,
     name: str,
-    atype: AttributeDataTypes | AttributeTypes | None = None,
+    atype: AttributeTypeNames | AttributeTypes | None = None,
     domain: DomainNames | AttributeDomains = AttributeDomains.POINT,
     overwrite: bool = True,
 ) -> bpy.types.Attribute:

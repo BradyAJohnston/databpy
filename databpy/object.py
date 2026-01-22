@@ -12,6 +12,9 @@ from .addon import register
 from .attribute import (
     AttributeDomains,
     AttributeTypes,
+    PossibleAttributeTypes,
+    DomainNames,
+    AttributeTypeNames,
     list_attributes,
     _check_obj_attributes,
     evaluate_object,
@@ -85,7 +88,7 @@ class ObjectTracker:
         self
             The instance of the class.
         """
-        self.objects = list(bpy.context.scene.objects)
+        self.objects = list(bpy.context.scene.objects)  # type: ignore
         return self
 
     def __exit__(self, type, value, traceback):
@@ -103,7 +106,7 @@ class ObjectTracker:
             A list of new objects.
         """
         obj_names = list([o.name for o in self.objects])
-        current_objects = bpy.context.scene.objects
+        current_objects = bpy.context.scene.objects  # type: ignore
         new_objects = []
         for obj in current_objects:
             if obj.name not in obj_names:
@@ -139,7 +142,7 @@ def get_from_uuid(uuid: str) -> Object:
         The object from the bpy.data.objects collection.
     """
     for obj in bpy.data.objects:
-        if obj.uuid == uuid:
+        if obj.uuid == uuid:  # type: ignore
             return obj
 
     raise LinkedObjectError(
@@ -190,13 +193,13 @@ class BlenderObjectBase:
             register()
 
         if isinstance(obj, Object):
-            if obj.uuid != "":
-                self._uuid = obj.uuid
+            if obj.uuid != "":  # type: ignore
+                self._uuid = obj.uuid  # type: ignore
             self.object = obj
         elif isinstance(obj, str):
             obj = bpy.data.objects[obj]
-            if obj.uuid != "":
-                self._uuid = obj.uuid
+            if obj.uuid != "":  # type: ignore
+                self._uuid = obj.uuid  # type: ignore
             self.object = obj
         elif obj is None:
             self._object_name = ""
@@ -218,7 +221,7 @@ class BlenderObjectBase:
 
         try:
             obj = bpy.data.objects[self._object_name]
-            if obj.uuid != self.uuid:
+            if obj.uuid != self.uuid:  # type: ignore
                 obj = get_from_uuid(self.uuid)
         except (KeyError, MemoryError):
             obj = get_from_uuid(self.uuid)
@@ -241,10 +244,10 @@ class BlenderObjectBase:
             raise ValueError(f"{value} must be a bpy.types.Object")
 
         try:
-            value.uuid = self.uuid
+            value.uuid = self.uuid  # type: ignore
         except AttributeError:
             register()
-            value.uuid = self.uuid
+            value.uuid = self.uuid  # type: ignore
         self._object_name = value.name
 
     @property
@@ -312,8 +315,8 @@ class BlenderObjectAttribute(BlenderObjectBase):
         self,
         data: np.ndarray,
         name: str,
-        atype: str | AttributeTypes | None = None,
-        domain: str | AttributeDomains = AttributeDomains.POINT,
+        atype: AttributeTypeNames | AttributeTypes | None = None,
+        domain: DomainNames | AttributeDomains = AttributeDomains.POINT,
     ) -> None:
         """
         Store a named attribute on the Blender object.
@@ -394,7 +397,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
         bpy.types.Attributes
             The attributes of the Blender object.
         """
-        return self.data.attributes
+        return self.data.attributes  # type: ignore
 
     @property
     def position(self) -> AttributeArray:
@@ -479,7 +482,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
             return len(self.data.points)
         elif isinstance(self.data, bpy.types.Curves):
             if "position" in self.data.attributes:
-                return len(self.data.attributes["position"].data)
+                return len(self.data.attributes["position"].data)  # type: ignore
             return 0
         else:
             raise TypeError(
@@ -533,7 +536,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
             The data to store in the attribute.
         """
         if name in self.list_attributes():
-            att = Attribute(self.attributes[name])
+            att = Attribute(self.attributes[name])  # type: ignore
             self.store_named_attribute(
                 data=data, name=name, domain=att.domain, atype=att.atype
             )
@@ -1100,7 +1103,7 @@ def create_bob(
     )
     if uuid:
         bob._uuid = uuid
-        bob.object.uuid = uuid
+        bob.object.uuid = uuid  # type: ignore
     return bob
 
 
