@@ -71,3 +71,31 @@ def create_collection(
         bpy.context.scene.collection.children.unlink(coll)
 
     return coll
+
+def move_to_collection(objs: bpy.types.Object | list[bpy.types.Object], target_collection: bpy.types.Collection) -> None:
+    """
+    Move one or many objects into a target collection.
+
+    Parameters
+    ----------
+    objs : bpy.types.Object or list[bpy.types.Object]
+        A single object or list of objects to move.
+    target_collection : bpy.types.Collection
+        The collection to move the objects into.
+
+    Returns
+    -------
+    None
+        This function does not return a value.
+    """
+    # Allow single object
+    if isinstance(objs, bpy.types.Object):
+        objs = [objs]
+
+    for obj in objs:
+        # Unlink from all current collections
+        for c in obj.users_collection:
+            c.objects.unlink(obj)
+
+        # Link to target collection
+        target_collection.objects.link(obj)

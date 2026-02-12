@@ -17,7 +17,7 @@ from . import nodes
 from .nodes import utils
 from .addon import register, unregister
 from .utils import centre, lerp
-from .collection import create_collection
+from .collection import create_collection, move_to_collection
 from .array import AttributeArray
 from .attribute import (
     named_attribute,
