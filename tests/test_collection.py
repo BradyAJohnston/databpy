@@ -1,3 +1,4 @@
+from bpy.types import Collection
 import databpy as db
 import bpy
 import pytest
@@ -201,3 +202,50 @@ def test_create_collection_reuse_existing_with_different_parent():
     assert moved_child.name in parent2.children
     # Should be removed from old parent (this tests the unlinking logic)
     assert moved_child.name not in bpy.context.scene.collection.children
+
+
+def test_move_to_collection_single_object():
+    """Test moving a single object to a target collection."""
+    col = db.create_collection("TargetCol")
+    bpy.ops.mesh.primitive_cube_add()
+    cube = bpy.context.active_object
+    original_collections = list[Collection](cube.users_collection)
+
+    db.move_to_collection(cube, col)
+
+    assert cube.name in col.objects
+    for c in original_collections:
+        assert cube.name not in c.objects
+
+
+def test_move_to_collection_multiple_objects():
+    """Test moving a list of objects to a target collection."""
+    col = db.create_collection("TargetMulti")
+
+    bpy.ops.mesh.primitive_cube_add()
+    cube = bpy.context.active_object
+    bpy.ops.mesh.primitive_plane_add()
+    plane = bpy.context.active_object
+
+    db.move_to_collection([cube, plane], col)
+
+    assert cube.name in col.objects
+    assert plane.name in col.objects
+    assert cube.name not in bpy.context.scene.collection.objects
+    assert plane.name not in bpy.context.scene.collection.objects
+
+
+def test_move_to_collection_between_collections():
+    """Test moving an object from one custom collection to another."""
+    col_a = db.create_collection("ColA")
+    col_b = db.create_collection("ColB")
+
+    bpy.ops.mesh.primitive_cube_add()
+    cube = bpy.context.active_object
+
+    db.move_to_collection(cube, col_a)
+    assert cube.name in col_a.objects
+
+    db.move_to_collection(cube, col_b)
+    assert cube.name in col_b.objects
+    assert cube.name not in col_a.objects

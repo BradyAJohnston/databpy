@@ -56,6 +56,7 @@ __all__ = [
     "centre",
     "lerp",
     "create_collection",
+    "move_to_collection",
     "AttributeArray",
     "named_attribute",
     "store_named_attribute",
