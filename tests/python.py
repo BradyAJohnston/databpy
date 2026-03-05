@@ -2,11 +2,10 @@ import os
 import subprocess
 import sys
 
-argv = sys.argv
-argv = argv[argv.index("--") + 1 :]
-
 
 def main():
+    argv = sys.argv
+    argv = argv[argv.index("--") + 1 :]
     python = os.path.realpath(sys.executable)
     run = subprocess.run([python] + argv)
     if run.returncode != 0:
@@ -15,4 +14,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
