@@ -1,6 +1,6 @@
 [project]
 name = "databpy"
-version = "0.6.1"
+version = "0.6.2"
 description = "A data-oriented wrapper library for the Blender Python API"
 readme = "README.md"
 dependencies = [
@@ -42,5 +42,3 @@ databpy = { workspace = true }
 dev = [
     "databpy",
 ]
-
-
