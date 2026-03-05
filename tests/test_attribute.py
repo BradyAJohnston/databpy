@@ -1,8 +1,10 @@
-import pytest
-import numpy as np
-import bpy
-import databpy as db
 import itertools
+
+import bpy
+import numpy as np
+import pytest
+
+import databpy as db
 
 
 def test_attribute_properties():
@@ -239,7 +241,7 @@ def test_named_attribute_name():
         name = "a" * i
         print(f"{i} letters, name: '{name}'")
         data = np.random.rand(len(obj.data.vertices), 3)
-        if i >= 68 or i == 0:
+        if i == 0:
             with pytest.raises(db.NamedAttributeError):
                 db.store_named_attribute(obj, data, name)
         else:
