@@ -1,4 +1,3 @@
-import pytest
 import sys
 
 argv = sys.argv
@@ -11,6 +10,12 @@ argv = argv[argv.index("--") + 1 :]
 
 
 def main():
+    try:
+        import pytest
+    except ModuleNotFoundError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
     # run the test suite, and we have to manually return the result value if non-zero
     # value is returned for a failing test
     if len(argv) == 0:
