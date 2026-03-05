@@ -1,12 +1,12 @@
 [project]
 name = "databpy"
-version = "0.6.2"
+version = "0.7.0"
 description = "A data-oriented wrapper library for the Blender Python API"
 readme = "README.md"
 dependencies = [
-    "numpy>=1.24.0,<2.0",
+    "numpy",
 ]
-requires-python = "~=3.11.0"
+requires-python = "~=3.13.0"
 keywords = ["blender", "python", "numpy"]
 maintainers = [
     {name="Brady Johnston", email="brady.johnston@me.com"},
@@ -18,7 +18,7 @@ Repository = "https://github.com/bradyajohnston/databpy"
 Documentation = "https://bradyajohnston.github.io/databpy"
 
 [project.optional-dependencies]
-bpy = ["bpy>=4.5"]
+bpy = ["bpy>=5.1"]
 dev = [
     "fake-bpy-module",
     "polars",
