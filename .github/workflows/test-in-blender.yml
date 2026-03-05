@@ -22,5 +22,5 @@ jobs:
           version: ${{ matrix.version }}
       - name: Install and Test
         run: |
-          blender -b -P tests/python.py -- -m pip install -e ".[test]"
+          blender -b -P tests/python.py -- -m pip install -e ".[dev]"
           blender -b -P tests/run.py -- -vv
