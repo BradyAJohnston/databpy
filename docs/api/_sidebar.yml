@@ -12,6 +12,7 @@ website:
       section: Attribute
     - contents:
       - api/create_collection.qmd
+      - api/move_to_collection.qmd
       section: Collections
     - contents:
       - api/create_object.qmd
