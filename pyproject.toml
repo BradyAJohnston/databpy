@@ -34,15 +34,3 @@ dev = [
 members = [
     ".",
 ]
-
-[tool.uv.sources]
-databpy = { workspace = true }
-
-[[tool.uv.index]]
-name="dailybpy"
-url = "https://bradyajohnston.github.io/dailybpy/"
-
-[dependency-groups]
-dev = [
-    "databpy",
-]
