@@ -1,12 +1,15 @@
 project:
   type: website
   output-dir: _build
+  pre-render: _config.py
 
 filters:
   - interlinks
 
 website:
-  title: "databpy"
+  page-navigation: true
+  llms-txt: true
+  title: "databpy {{< var version >}}"
   navbar:
     left:
       - href: index.qmd

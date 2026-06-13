@@ -336,7 +336,7 @@ wheels = [
 [[package]]
 name = "databpy"
 version = "0.7.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "numpy" },
 ]
@@ -364,7 +364,7 @@ requires-dist = [
     { name = "polars", marker = "extra == 'dev'" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-cov", marker = "extra == 'dev'" },
-    { name = "quarto-cli", marker = "extra == 'dev'" },
+    { name = "quarto-cli", marker = "extra == 'dev'", specifier = ">=1.9" },
     { name = "quartodoc", marker = "extra == 'dev'" },
 ]
 provides-extras = ["bpy", "dev"]
@@ -1424,14 +1424,14 @@ wheels = [
 
 [[package]]
 name = "quarto-cli"
-version = "1.8.27"
+version = "1.9.38"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jupyter" },
     { name = "nbclient" },
     { name = "wheel" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/37/1c/91682258d62f14c7456fc5ee2a4ab70b6cdb924c0b5f6fd6a1558a1d1b44/quarto_cli-1.8.27.tar.gz", hash = "sha256:6373a0b378a97402bd856ed933d996b86d1eea3433beda5e443adb623e94a9a4", size = 4615, upload-time = "2026-01-16T09:23:04.515Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/96/c4/53b3295cf6a02cc78f2468c4929f2f22607437ac26624105c65f431b49f7/quarto_cli-1.9.38.tar.gz", hash = "sha256:bd59fdc0d868cd670ea4ebbf5997bfdfd6c81a0d9f50fe099f40f992b257ce18", size = 4630, upload-time = "2026-05-25T10:04:48.71Z" }
 
 [[package]]
 name = "quartodoc"
