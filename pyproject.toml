@@ -17,12 +17,17 @@ Homepage = "https://bradyajohnston.github.io/databpy"
 Repository = "https://github.com/bradyajohnston/databpy"
 Documentation = "https://bradyajohnston.github.io/databpy"
 
+[build-system]
+requires = ["uv_build>=0.8.15,<0.9.0"]
+build-backend = "uv_build"
+
+
 [project.optional-dependencies]
 bpy = ["bpy>=5.1"]
 dev = [
     "fake-bpy-module",
     "polars",
-    "quarto-cli",
+    "quarto-cli>=1.9",
     "quartodoc",
     "jupyter",
     "polars",
