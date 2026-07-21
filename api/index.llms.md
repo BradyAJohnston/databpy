@@ -32,6 +32,7 @@ Working with collections in Blender
 | [create_pointcloud_object](../api/create_pointcloud_object.llms.md#databpy.create_pointcloud_object) | Create a new Blender point cloud object. |
 | [create_bob](../api/create_bob.llms.md#databpy.create_bob) | Create a BlenderObject wrapper around a new Blender mesh object. |
 | [evaluate_object](../api/evaluate_object.llms.md#databpy.evaluate_object) | Return an object which has the modifiers evaluated. |
+| [GeometrySet](../api/GeometrySet.llms.md#databpy.GeometrySet) | Access the evaluated geometry of an object (`bpy.types.GeometrySet`). |
 | [BlenderObject](../api/BlenderObject.llms.md#databpy.BlenderObject) | A convenience class for working with Blender objects. |
 | [BlenderObjectAttribute](../api/BlenderObjectAttribute.llms.md#databpy.BlenderObjectAttribute) | Minimal base class for Blender objects with attribute access. |
 | [BlenderObjectBase](../api/BlenderObjectBase.llms.md#databpy.BlenderObjectBase) | Minimal base class for Blender objects with name and object access. |

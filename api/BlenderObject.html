@@ -69,7 +69,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
 <link href="../api/BlenderObjectAttribute.html" rel="next">
-<link href="../api/evaluate_object.html" rel="prev">
+<link href="../api/GeometrySet.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
@@ -79,7 +79,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-e77cb9754bf6ebb060c1b611b3c36ee1.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-52a49669da0398cd065fe5de7501cc78.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -119,7 +119,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">databpy 0.7.0</span>
+    <span class="navbar-title">databpy 0.8.0</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -139,6 +139,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li class="nav-item">
     <a class="nav-link active" href="../api/index.html" aria-current="page"> 
 <span class="menu-text">API</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../changelog.html"> 
+<span class="menu-text">Changelog</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -283,6 +287,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../api/evaluate_object.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">evaluate_object</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/GeometrySet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GeometrySet</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -960,14 +970,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td>atype</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a> or <code>AttributeType</code> or None</td>
+<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a> or <a href="../api/AttributeTypes.html#databpy.AttributeTypes">AttributeTypes</a> or None</td>
 <td>The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td>domain</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a> or <code>AttributeDomain</code></td>
-<td>The domain to store the attribute on. Defaults to Domains.POINT.</td>
+<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a> or <a href="../api/AttributeDomains.html#databpy.AttributeDomains">AttributeDomains</a></td>
+<td>The domain to store the attribute on. Defaults to AttributeDomains.POINT.</td>
 <td><code>AttributeDomains.POINT</code></td>
 </tr>
 </tbody>
@@ -986,8 +996,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td></td>
-<td><code>self</code></td>
-<td></td>
+<td><code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.Attribute.html#bpy.types.Attribute">Attribute</a></td>
+<td>The added or modified attribute.</td>
 </tr>
 </tbody>
 </table>
@@ -1401,8 +1411,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </script>
 <nav class="page-navigation column-body">
   <div class="nav-page nav-page-previous">
-      <a href="../api/evaluate_object.html" class="pagination-link" aria-label="evaluate_object">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">evaluate_object</span>
+      <a href="../api/GeometrySet.html" class="pagination-link" aria-label="GeometrySet">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">GeometrySet</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">

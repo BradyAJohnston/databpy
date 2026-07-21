@@ -288,11 +288,11 @@ Store a named attribute on the Blender object.
 |----|----|----|----|
 | data | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | The data to be stored as an attribute. | *required* |
 | name | [str](https://docs.python.org/3/library/stdtypes.html#str) | The name for the attribute. Will overwrite an already existing attribute. | *required* |
-| atype | [str](https://docs.python.org/3/library/stdtypes.html#str) or `AttributeType` or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array. | `None` |
-| domain | [str](https://docs.python.org/3/library/stdtypes.html#str) or `AttributeDomain` | The domain to store the attribute on. Defaults to Domains.POINT. | `AttributeDomains.POINT` |
+| atype | [str](https://docs.python.org/3/library/stdtypes.html#str) or [AttributeTypes](../api/AttributeTypes.llms.md#databpy.AttributeTypes) or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array. | `None` |
+| domain | [str](https://docs.python.org/3/library/stdtypes.html#str) or [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) | The domain to store the attribute on. Defaults to AttributeDomains.POINT. | `AttributeDomains.POINT` |
 
 #### Returns
 
-| Name | Type   | Description |
-|------|--------|-------------|
-|      | `self` |             |
+| Name | Type | Description |
+|----|----|----|
+|  | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Attribute](https://docs.blender.org/api/current/bpy.types.Attribute.html#bpy.types.Attribute) | The added or modified attribute. |

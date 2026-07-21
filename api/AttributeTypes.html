@@ -79,7 +79,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-e77cb9754bf6ebb060c1b611b3c36ee1.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-52a49669da0398cd065fe5de7501cc78.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -119,7 +119,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">databpy 0.7.0</span>
+    <span class="navbar-title">databpy 0.8.0</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -139,6 +139,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li class="nav-item">
     <a class="nav-link active" href="../api/index.html" aria-current="page"> 
 <span class="menu-text">API</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../changelog.html"> 
+<span class="menu-text">Changelog</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -287,6 +291,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/GeometrySet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GeometrySet</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/BlenderObject.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">BlenderObject</span></a>
   </div>
@@ -371,29 +381,39 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>2D vector of floats with dimensions (2,). Dtype: np.float32 <a href="https://docs.blender.org/api/current/bpy.types.Float2Attribute.html#bpy.types.Float2Attribute">More Info</a></td>
 </tr>
 <tr class="even">
+<td>FLOAT4</td>
+<td><code>AttributeType</code></td>
+<td>4D vector of floats with dimensions (4,). Dtype: np.float32 <a href="https://docs.blender.org/api/current/bpy.types.Float4Attribute.html#bpy.types.Float4Attribute">More Info</a></td>
+</tr>
+<tr class="odd">
 <td>FLOAT_COLOR</td>
 <td><code>AttributeType</code></td>
 <td>RGBA color values as floats with dimensions (4,). Dtype: np.float32 <a href="https://docs.blender.org/api/current/bpy.types.FloatColorAttributeValue.html#bpy.types.FloatColorAttributeValue">More Info</a></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>BYTE_COLOR</td>
 <td><code>AttributeType</code></td>
 <td>RGBA color values as unsigned 8-bit integers with dimensions (4,). Dtype: np.uint8 <a href="https://docs.blender.org/api/current/bpy.types.ByteColorAttribute.html#bpy.types.ByteColorAttribute">More Info</a></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>QUATERNION</td>
 <td><code>AttributeType</code></td>
 <td>Quaternion rotation (w, x, y, z) as floats with dimensions (4,). Dtype: np.float32 <a href="https://docs.blender.org/api/current/bpy.types.QuaternionAttribute.html#bpy.types.QuaternionAttribute">More Info</a></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>INT</td>
 <td><code>AttributeType</code></td>
 <td>Single 32-bit integer value with dimensions (1,). Dtype: np.int32 <a href="https://docs.blender.org/api/current/bpy.types.IntAttribute.html#bpy.types.IntAttribute">More Info</a></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>INT8</td>
 <td><code>AttributeType</code></td>
 <td>8-bit signed integer value with dimensions (1,). Dtype: np.int8 <a href="https://docs.blender.org/api/current/bpy.types.ByteIntAttributeValue.html#bpy.types.ByteIntAttributeValue">More Info</a></td>
+</tr>
+<tr class="even">
+<td>INT16_2D</td>
+<td><code>AttributeType</code></td>
+<td>2D vector of 16-bit signed integers with dimensions (2,). Dtype: np.int16 <a href="https://docs.blender.org/api/current/bpy.types.Short2Attribute.html#bpy.types.Short2Attribute">More Info</a></td>
 </tr>
 <tr class="odd">
 <td>INT32_2D</td>
@@ -409,6 +429,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>BOOLEAN</td>
 <td><code>AttributeType</code></td>
 <td>Single boolean value with dimensions (1,). Dtype: bool <a href="https://docs.blender.org/api/current/bpy.types.BoolAttribute.html#bpy.types.BoolAttribute">More Info</a></td>
+</tr>
+<tr class="even">
+<td>STRING</td>
+<td><code>AttributeType</code></td>
+<td>Text string value with dimensions (1,). Dtype: np.str_. Stored by Blender as bytes, and read/written per-element as <code>foreach_get</code>/<code>foreach_set</code> do not support string properties. Experimental: string attributes are not yet properly supported within Geometry Nodes, so using them raises a warning for now. <a href="https://docs.blender.org/api/current/bpy.types.StringAttribute.html#bpy.types.StringAttribute">More Info</a></td>
 </tr>
 </tbody>
 </table>

@@ -79,7 +79,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-e77cb9754bf6ebb060c1b611b3c36ee1.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-52a49669da0398cd065fe5de7501cc78.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -119,7 +119,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">databpy 0.7.0</span>
+    <span class="navbar-title">databpy 0.8.0</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -139,6 +139,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li class="nav-item">
     <a class="nav-link active" href="../api/index.html" aria-current="page"> 
 <span class="menu-text">API</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../changelog.html"> 
+<span class="menu-text">Changelog</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -287,6 +291,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/GeometrySet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GeometrySet</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/BlenderObject.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">BlenderObject</span></a>
   </div>
@@ -366,7 +376,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="supported-types" class="level2 doc-section doc-section-supported-types">
 <h2 class="doc-section doc-section-supported-types anchored" data-anchor-id="supported-types">Supported Types</h2>
-<p>Works with all Blender attribute types: - Float types: FLOAT, FLOAT2, FLOAT_VECTOR, FLOAT_COLOR, FLOAT4X4, QUATERNION - Integer types: INT (int32), INT8, INT32_2D - Boolean: BOOLEAN - Color: BYTE_COLOR (uint8)</p>
+<p>Works with all Blender attribute types: - Float types: FLOAT, FLOAT2, FLOAT4, FLOAT_VECTOR, FLOAT_COLOR, FLOAT4X4, QUATERNION - Integer types: INT (int32), INT8, INT16_2D, INT32_2D - Boolean: BOOLEAN - Color: BYTE_COLOR (uint8) - String: STRING (synced per-element as strings don’t support <code>foreach_set</code>)</p>
 </section>
 <section id="attributes" class="level2 doc-section doc-section-attributes">
 <h2 class="doc-section doc-section-attributes anchored" data-anchor-id="attributes">Attributes</h2>
@@ -405,7 +415,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
 <p>Basic usage:</p>
-<div id="05d9572b" class="cell" data-execution_count="1">
+<div id="ec40365d" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -414,7 +424,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>pos[:, <span class="dv">2</span>] <span class="op">+=</span> <span class="fl">1.0</span>  <span class="co"># Automatically syncs to Blender</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Using BlenderObject for convenience:</p>
-<div id="129de04a" class="cell" data-execution_count="2">
+<div id="5cd80fbc" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -424,57 +434,57 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stdout">
 <pre><code>Initial position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-[[0.06377091 0.09359733 0.67478794]
- [0.6988725  0.10491922 0.01401361]
- [0.98690426 0.29901287 0.08069805]
- [0.3708576  0.92906326 0.0813432 ]
- [0.00927019 0.08940405 0.30155545]
- [0.90240526 0.56417406 0.03736033]
- [0.20558009 0.44272622 0.801336  ]
- [0.06851536 0.8951075  0.9979343 ]
- [0.25077438 0.630213   0.5364185 ]
- [0.63291085 0.05065865 0.0564781 ]]</code></pre>
+[[0.29318    0.99019444 0.1346354 ]
+ [0.19220234 0.89007443 0.03713289]
+ [0.12052336 0.48876375 0.80600643]
+ [0.0521957  0.299532   0.41330963]
+ [0.21266584 0.76043934 0.7533772 ]
+ [0.07490475 0.9887004  0.48241824]
+ [0.17699857 0.87481    0.38601896]
+ [0.39374748 0.40176523 0.44612154]
+ [0.36357155 0.6508813  0.7646437 ]
+ [0.8914737  0.47748503 0.2784503 ]]</code></pre>
 </div>
 </div>
-<div id="b8ebc464" class="cell" data-execution_count="3">
+<div id="c8192b8c" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bob.position[:, <span class="dv">2</span>] <span class="op">+=</span> <span class="fl">1.0</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Updated position:'</span>)</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(bob.position)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Updated position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-[[0.06377091 0.09359733 1.674788  ]
- [0.6988725  0.10491922 1.0140136 ]
- [0.98690426 0.29901287 1.080698  ]
- [0.3708576  0.92906326 1.0813432 ]
- [0.00927019 0.08940405 1.3015554 ]
- [0.90240526 0.56417406 1.0373603 ]
- [0.20558009 0.44272622 1.801336  ]
- [0.06851536 0.8951075  1.9979343 ]
- [0.25077438 0.630213   1.5364184 ]
- [0.63291085 0.05065865 1.0564781 ]]</code></pre>
+[[0.29318    0.99019444 1.1346354 ]
+ [0.19220234 0.89007443 1.0371329 ]
+ [0.12052336 0.48876375 1.8060064 ]
+ [0.0521957  0.299532   1.4133096 ]
+ [0.21266584 0.76043934 1.7533772 ]
+ [0.07490475 0.9887004  1.4824183 ]
+ [0.17699857 0.87481    1.386019  ]
+ [0.39374748 0.40176523 1.4461216 ]
+ [0.36357155 0.6508813  1.7646437 ]
+ [0.8914737  0.47748503 1.2784503 ]]</code></pre>
 </div>
 </div>
-<div id="535b2cc6" class="cell" data-execution_count="4">
+<div id="7a4e2636" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to regular numpy array (no sync)</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'As Array:'</span>)</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(np.asarray(bob.position))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>As Array:
-[[0.06377091 0.09359733 1.674788  ]
- [0.6988725  0.10491922 1.0140136 ]
- [0.98690426 0.29901287 1.080698  ]
- [0.3708576  0.92906326 1.0813432 ]
- [0.00927019 0.08940405 1.3015554 ]
- [0.90240526 0.56417406 1.0373603 ]
- [0.20558009 0.44272622 1.801336  ]
- [0.06851536 0.8951075  1.9979343 ]
- [0.25077438 0.630213   1.5364184 ]
- [0.63291085 0.05065865 1.0564781 ]]</code></pre>
+[[0.29318    0.99019444 1.1346354 ]
+ [0.19220234 0.89007443 1.0371329 ]
+ [0.12052336 0.48876375 1.8060064 ]
+ [0.0521957  0.299532   1.4133096 ]
+ [0.21266584 0.76043934 1.7533772 ]
+ [0.07490475 0.9887004  1.4824183 ]
+ [0.17699857 0.87481    1.386019  ]
+ [0.39374748 0.40176523 1.4461216 ]
+ [0.36357155 0.6508813  1.7646437 ]
+ [0.8914737  0.47748503 1.2784503 ]]</code></pre>
 </div>
 </div>
 <p>Working with integer attributes:</p>
-<div id="ea861724" class="cell" data-execution_count="5">
+<div id="44290c61" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
