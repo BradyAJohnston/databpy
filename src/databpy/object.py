@@ -397,7 +397,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
         bpy.types.Attributes
             The attributes of the Blender object.
         """
-        return self.data.attributes  # type: ignore
+        return self.data.attributes
 
     @property
     def position(self) -> AttributeArray:
@@ -482,7 +482,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
             return len(self.data.points)
         elif isinstance(self.data, bpy.types.Curves):
             if "position" in self.data.attributes:
-                return len(self.data.attributes["position"].data)  # type: ignore
+                return len(self.data.attributes["position"].data)
             return 0
         else:
             raise TypeError(
@@ -536,7 +536,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
             The data to store in the attribute.
         """
         if name in self.list_attributes():
-            att = Attribute(self.attributes[name])  # type: ignore
+            att = Attribute(self.attributes[name])
             self.store_named_attribute(
                 data=data, name=name, domain=att.domain, atype=att.atype
             )

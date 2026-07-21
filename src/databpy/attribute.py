@@ -400,7 +400,9 @@ def _read_string_values(attribute: bpy.types.StringAttribute) -> np.ndarray:
     return np.array([item.value.decode("utf-8") for item in attribute.data])
 
 
-def _write_string_values(attribute: bpy.types.StringAttribute, array: np.ndarray) -> None:
+def _write_string_values(
+    attribute: bpy.types.StringAttribute, array: np.ndarray
+) -> None:
     # STRING attributes don't support `foreach_set` so values are set individually.
     # Blender only accepts bytes, so unicode values are encoded first
     _warn_string_support()
@@ -495,7 +497,7 @@ class Attribute:
         int
             The number of elements in the attribute.
         """
-        return len(self.attribute.data)  # type: ignore
+        return len(self.attribute.data)
 
     @property
     def name(self) -> str:
@@ -610,11 +612,11 @@ class Attribute:
             )
 
         if self.atype == AttributeTypes.STRING:
-            _write_string_values(self.attribute, array)  # type: ignore
+            _write_string_values(self.attribute, array)
         else:
             # casting to the storage dtype lets 'foreach_set' use the fast buffer
             # protocol path instead of per-item iteration
-            self.attribute.data.foreach_set(  # type: ignore
+            self.attribute.data.foreach_set(
                 self.value_name, np.ravel(array).astype(self.dtype, copy=False)
             )
 
@@ -631,12 +633,12 @@ class Attribute:
         """
 
         if self.atype == AttributeTypes.STRING:
-            return _read_string_values(self.attribute)  # type: ignore
+            return _read_string_values(self.attribute)
 
         # initialize empty 1D array that is needed to then be filled with values
         # from the Blender attribute
         array = np.zeros(self.size, dtype=self.dtype)
-        self.attribute.data.foreach_get(self.value_name, array)  # type: ignore
+        self.attribute.data.foreach_get(self.value_name, array)
 
         # if the attribute has more than one dimension reshape the array before returning
         if self.is_1d:
@@ -748,7 +750,7 @@ def store_named_attribute(
     if name == "":
         raise NamedAttributeError("Attribute name cannot be an empty string.")
 
-    attribute: PossibleAttributeTypes | None = obj_data.attributes.get(name)  # type: ignore
+    attribute: PossibleAttributeTypes | None = obj_data.attributes.get(name)
     if not attribute or not overwrite:
         current_names = obj_data.attributes.keys()
         attribute = obj_data.attributes.new(name, atype.value.type_name, domain)  # type: ignore
@@ -758,7 +760,7 @@ def store_named_attribute(
                 obj_data.attributes.remove(obj_data.attributes[name])
                 for name in obj_data.attributes.keys()
                 if name not in current_names
-            ]  # type: ignore
+            ]
             raise NamedAttributeError(
                 f"Could not create attribute `{name}` of type `{atype.value.type_name}` on domain `{domain}`. "
                 "Potentially the attribute name is too long or there is no geometry on the object for the given domain."
@@ -843,7 +845,7 @@ def evaluate_object(
         context = bpy.context
     _check_obj_attributes(obj)
     obj.update_tag()
-    return obj.evaluated_get(context.evaluated_depsgraph_get())  # type: ignore
+    return obj.evaluated_get(context.evaluated_depsgraph_get())
 
 
 def named_attribute(
