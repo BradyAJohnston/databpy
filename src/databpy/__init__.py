@@ -19,6 +19,7 @@ from .addon import register, unregister
 from .utils import centre, lerp
 from .collection import create_collection, move_to_collection
 from .array import AttributeArray
+from .geometry import GeometrySet
 from .attribute import (
     named_attribute,
     store_named_attribute,
@@ -56,6 +57,7 @@ __all__ = [
     "create_collection",
     "move_to_collection",
     "AttributeArray",
+    "GeometrySet",
     "named_attribute",
     "store_named_attribute",
     "remove_named_attribute",

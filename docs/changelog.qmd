@@ -20,6 +20,11 @@ of the attribute typing system. Requires `bpy >= 5.2`.
     (as unicode numpy arrays) since Blender's `foreach_get`/`foreach_set` do not
     support string properties.
 
+- `GeometrySet`, for accessing all components of an object's evaluated geometry —
+  including multi-component Geometry Nodes outputs (mesh, point cloud, curves and
+  instances) that a normally evaluated object doesn't expose. Provides
+  `named_attribute()` / `list_attributes()` across components and an informative
+  `repr()` suited to snapshot testing.
 - `Attribute.storage_type`, exposing Blender 5.2's new attribute storage types
   (`"ARRAY"` or `"SINGLE"`). `SINGLE`-storage attributes (produced by Geometry
   Nodes for constant values) read transparently as full arrays.

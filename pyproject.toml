@@ -39,3 +39,8 @@ dev = [
 members = [
     ".",
 ]
+
+[dependency-groups]
+dev = [
+    "nodebpy>=520.8.0",
+]

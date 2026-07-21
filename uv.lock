@@ -369,6 +369,11 @@ dev = [
     { name = "quartodoc" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "nodebpy" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "bpy", marker = "extra == 'bpy'", specifier = ">=5.2" },
@@ -382,6 +387,9 @@ requires-dist = [
     { name = "quartodoc", marker = "extra == 'dev'" },
 ]
 provides-extras = ["bpy", "dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "nodebpy", specifier = ">=520.8.0" }]
 
 [[package]]
 name = "debugpy"
@@ -1055,6 +1063,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/83/f8/51569ac65d696c8ecbee95938f89d4abf00f47d58d48f6fbabfe8f0baefe/nest_asyncio-1.6.0.tar.gz", hash = "sha256:6f172d5449aca15afd6c646851f4e31e02c598d553a667e38cafa997cfec55fe", size = 7418, upload-time = "2024-01-21T14:25:19.227Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl", hash = "sha256:87af6efd6b5e897c81050477ef65c62e2b2f35d51703cae01aff2905b1852e1c", size = 5195, upload-time = "2024-01-21T14:25:17.223Z" },
+]
+
+[[package]]
+name = "nodebpy"
+version = "520.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/9b/647f9b5b17d24c51a964630e26269df9c058f6fca467b0875d6a24153a22/nodebpy-520.8.0.tar.gz", hash = "sha256:dd3601584be3c9542ed589cdde8775ea451f6789425bae4be1f727f3fe62b4cd", size = 299027, upload-time = "2026-07-17T18:03:51.263Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bf/9f/28800aac5b8f262a0dac0dabba32bc4a4471ad04a420c7c4aba45ba387c9/nodebpy-520.8.0-py3-none-any.whl", hash = "sha256:0af2774fa4bac8cf6b7d1dcea83af5064ece89270681c60e8a4cf0667e43caf4", size = 339914, upload-time = "2026-07-17T18:03:49.935Z" },
 ]
 
 [[package]]

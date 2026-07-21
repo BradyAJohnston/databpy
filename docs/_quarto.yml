@@ -93,6 +93,7 @@ quartodoc:
         - create_pointcloud_object
         - create_bob
         - evaluate_object
+        - GeometrySet
         - BlenderObject
         - BlenderObjectAttribute
         - BlenderObjectBase
