@@ -24,16 +24,6 @@ build-backend = "uv_build"
 
 [project.optional-dependencies]
 bpy = ["bpy>=5.2"]
-dev = [
-    "fake-bpy-module",
-    "polars",
-    "quarto-cli>=1.9",
-    "quartodoc",
-    "jupyter",
-    "polars",
-    "pytest",
-    "pytest-cov"
-    ]
 
 [tool.uv.workspace]
 members = [
@@ -42,5 +32,13 @@ members = [
 
 [dependency-groups]
 dev = [
+    "fake-bpy-module",
+    "polars",
+    "quarto-cli>=1.9",
+    "quartodoc",
+    "jupyter",
+    "polars",
+    "pytest",
+    "pytest-cov",
     "nodebpy>=520.8.0",
 ]
