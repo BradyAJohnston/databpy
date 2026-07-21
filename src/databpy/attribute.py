@@ -11,28 +11,35 @@ PossibleAttributeTypes = (
     bpy.types.IntAttribute
     | bpy.types.BoolAttribute
     | bpy.types.Int2Attribute
+    | bpy.types.Short2Attribute
     | bpy.types.FloatAttribute
     | bpy.types.Float2Attribute
+    | bpy.types.Float4Attribute
     | bpy.types.ByteIntAttribute
     | bpy.types.Float4x4Attribute
     | bpy.types.ByteColorAttribute
     | bpy.types.FloatColorAttribute
     | bpy.types.QuaternionAttribute
     | bpy.types.FloatVectorAttribute
+    | bpy.types.StringAttribute
 )
 DomainNames = Literal["POINT", "EDGE", "FACE", "CORNER", "CURVE", "INSTANCE", "LAYER"]
+StorageTypeNames = Literal["ARRAY", "SINGLE"]
 AttributeTypeNames = Literal[
     "FLOAT",
     "FLOAT_VECTOR",
     "FLOAT2",
+    "FLOAT4",
     "FLOAT_COLOR",
     "BYTE_COLOR",
     "QUATERNION",
     "INT",
     "INT8",
+    "INT16_2D",
     "INT32_2D",
     "FLOAT4X4",
     "BOOLEAN",
+    "STRING",
 ]
 
 
@@ -57,11 +64,6 @@ def _check_obj_attributes(obj: Object) -> None:
         raise TypeError(
             f"The object is not a compatible type.\n- Obj: {obj}\n- Compatible Types: {COMPATIBLE_TYPES}"
         )
-
-
-def _check_is_mesh(obj: Object) -> None:
-    if not isinstance(obj.data, bpy.types.Mesh):
-        raise TypeError("Object must be a mesh to evaluate the modifiers")
 
 
 def list_attributes(
@@ -168,6 +170,9 @@ class AttributeTypes(Enum):
     FLOAT2 : AttributeType
         2D vector of floats with dimensions (2,). Dtype: np.float32
         [More Info](https://docs.blender.org/api/current/bpy.types.Float2Attribute.html#bpy.types.Float2Attribute)
+    FLOAT4 : AttributeType
+        4D vector of floats with dimensions (4,). Dtype: np.float32
+        [More Info](https://docs.blender.org/api/current/bpy.types.Float4Attribute.html#bpy.types.Float4Attribute)
     FLOAT_COLOR : AttributeType
         RGBA color values as floats with dimensions (4,). Dtype: np.float32
         [More Info](https://docs.blender.org/api/current/bpy.types.FloatColorAttributeValue.html#bpy.types.FloatColorAttributeValue)
@@ -183,6 +188,9 @@ class AttributeTypes(Enum):
     INT8 : AttributeType
         8-bit signed integer value with dimensions (1,). Dtype: np.int8
         [More Info](https://docs.blender.org/api/current/bpy.types.ByteIntAttributeValue.html#bpy.types.ByteIntAttributeValue)
+    INT16_2D : AttributeType
+        2D vector of 16-bit signed integers with dimensions (2,). Dtype: np.int16
+        [More Info](https://docs.blender.org/api/current/bpy.types.Short2Attribute.html#bpy.types.Short2Attribute)
     INT32_2D : AttributeType
         2D vector of 32-bit integers with dimensions (2,). Dtype: np.int32
         [More Info](https://docs.blender.org/api/current/bpy.types.Int2Attribute.html#bpy.types.Int2Attribute)
@@ -192,6 +200,12 @@ class AttributeTypes(Enum):
     BOOLEAN : AttributeType
         Single boolean value with dimensions (1,). Dtype: bool
         [More Info](https://docs.blender.org/api/current/bpy.types.BoolAttribute.html#bpy.types.BoolAttribute)
+    STRING : AttributeType
+        Text string value with dimensions (1,). Dtype: np.str_. Stored by Blender as
+        bytes, and read/written per-element as `foreach_get`/`foreach_set` do not
+        support string properties. Experimental: string attributes are not yet properly
+        supported within Geometry Nodes, so using them raises a warning for now.
+        [More Info](https://docs.blender.org/api/current/bpy.types.StringAttribute.html#bpy.types.StringAttribute)
     """
 
     # CD_PROP_FLOAT (10): stored as float (MFloatProperty.f)
@@ -205,6 +219,10 @@ class AttributeTypes(Enum):
     # CD_PROP_FLOAT2 (49): stored as float[2] (blender::float2)
     FLOAT2 = AttributeType(
         type_name="FLOAT2", value_name="vector", dtype=np.float32, dimensions=(2,)
+    )
+    # CD_PROP_FLOAT4: stored as float[4] (blender::float4)
+    FLOAT4 = AttributeType(
+        type_name="FLOAT4", value_name="vector", dtype=np.float32, dimensions=(4,)
     )
     # CD_PROP_COLOR (47): stored as float[4] (MPropCol.color, ColorGeometry4f = ColorSceneLinear4f<Premultiplied>)
     # alternatively use color_srgb to get the color info in sRGB color space, otherwise linear color space
@@ -227,6 +245,10 @@ class AttributeTypes(Enum):
     INT8 = AttributeType(
         type_name="INT8", value_name="value", dtype=np.int8, dimensions=(1,)
     )
+    # CD_PROP_INT16_2D: stored as int16_t[2] (blender::short2 = VecBase<int16_t, 2>)
+    INT16_2D = AttributeType(
+        type_name="INT16_2D", value_name="value", dtype=np.int16, dimensions=(2,)
+    )
     # CD_PROP_INT32_2D (46): stored as int32_t[2] (blender::int2 = VecBase<int32_t, 2>)
     INT32_2D = AttributeType(
         type_name="INT32_2D", value_name="value", dtype=np.int32, dimensions=(2,)
@@ -239,6 +261,10 @@ class AttributeTypes(Enum):
     BOOLEAN = AttributeType(
         type_name="BOOLEAN", value_name="value", dtype=bool, dimensions=(1,)
     )
+    # CD_PROP_STRING (12): stored as MStringProperty (byte string)
+    STRING = AttributeType(
+        type_name="STRING", value_name="value", dtype=np.str_, dimensions=(1,)
+    )
 
 
 def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
@@ -247,10 +273,12 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
 
     This function matches arrays broadly to Blender attribute types while ensuring
     they are categorized correctly based on both shape and dtype. It handles:
-    - Integer types: distinguishes int8, int32, and int32_2d based on dtype and shape
+    - Integer types: distinguishes int8, int32, int16_2d and int32_2d based on dtype and shape
     - Float types: all floating point arrays map to float32-based attributes
-    - Color types: distinguishes BYTE_COLOR (uint8) from FLOAT_COLOR (float32)
+    - 4D data: uint8 maps to BYTE_COLOR, other dtypes map to the generic FLOAT4.
+      FLOAT_COLOR and QUATERNION must be explicitly requested via `atype`
     - Boolean types: maps bool arrays to BOOLEAN attributes
+    - String types: maps string arrays to STRING attributes
 
     Parameters
     ----------
@@ -300,11 +328,16 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
         # Float arrays
         elif np.issubdtype(dtype, np.floating):
             return AttributeTypes.FLOAT
+        # String arrays (unicode, bytes or numpy 2.x StringDType)
+        elif dtype.kind in ("U", "S", "T"):
+            return AttributeTypes.STRING
 
     # Handle 2D arrays (vectors, colors, matrices)
     elif shape == (n_row, 2):
-        # 2D vectors - check dtype to determine int32_2d vs float2
+        # 2D vectors - check dtype to determine int16_2d / int32_2d vs float2
         if np.issubdtype(dtype, np.integer):
+            if dtype in (np.int16, np.uint16):
+                return AttributeTypes.INT16_2D
             return AttributeTypes.INT32_2D
         elif np.issubdtype(dtype, np.floating):
             return AttributeTypes.FLOAT2
@@ -314,12 +347,12 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
         return AttributeTypes.FLOAT_VECTOR
 
     elif shape == (n_row, 4):
-        # 4D data - distinguish between BYTE_COLOR and FLOAT_COLOR based on dtype
+        # 4D data - uint8 maps to BYTE_COLOR, everything else to the generic FLOAT4.
+        # The color and quaternion types must be explicitly requested via `atype`
         if dtype == np.uint8:
             return AttributeTypes.BYTE_COLOR
         else:
-            # All other types (float32, float64, int, etc.) default to FLOAT_COLOR
-            return AttributeTypes.FLOAT_COLOR
+            return AttributeTypes.FLOAT4
 
     # Handle 3D arrays (matrices)
     elif shape == (n_row, 4, 4):
@@ -327,6 +360,52 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
 
     # Default fallback
     return AttributeTypes.FLOAT
+
+
+def _trigger_data_update(obj_data) -> None:
+    # The updating of data doesn't work 100% of the time (see:
+    # https://projects.blender.org/blender/blender/issues/118507) so this resetting of a
+    # single vertex is the current fix. Not great as I can see it breaking when we are
+    # missing a vertex - but for now we shouldn't be dealing with any situations where this
+    # is the case For now we will set a single vert to it's own position, which triggers a
+    # proper refresh of the object data.
+    try:
+        obj_data.vertices[0].co = obj_data.vertices[0].co
+    except AttributeError:
+        # For non-mesh objects (Curves, PointCloud), try update() if it exists
+        try:
+            obj_data.attributes["position"].data[0].vector = (
+                obj_data.attributes["position"].data[0].vector
+            )
+        except AttributeError:
+            if hasattr(obj_data, "update"):
+                obj_data.update()
+
+
+def _warn_string_support() -> None:
+    # STRING attributes are accessible through the Python API but aren't yet properly
+    # supported in Geometry Nodes, so treat their use as experimental for now
+    warnings.warn(
+        "String attributes can be read and written through the Python API but are not "
+        "yet properly supported within Geometry Nodes. Support may change in future "
+        "Blender / databpy versions.",
+        stacklevel=4,
+    )
+
+
+def _read_string_values(attribute: bpy.types.StringAttribute) -> np.ndarray:
+    # STRING attributes don't support `foreach_get` so values are read individually.
+    # Blender stores byte strings, which are decoded to a unicode string array
+    _warn_string_support()
+    return np.array([item.value.decode("utf-8") for item in attribute.data])
+
+
+def _write_string_values(attribute: bpy.types.StringAttribute, array: np.ndarray) -> None:
+    # STRING attributes don't support `foreach_set` so values are set individually.
+    # Blender only accepts bytes, so unicode values are encoded first
+    _warn_string_support()
+    for item, value in zip(attribute.data, np.ravel(array)):
+        item.value = value.encode("utf-8") if isinstance(value, str) else bytes(value)
 
 
 class Attribute:
@@ -470,6 +549,17 @@ class Attribute:
         return self.atype.value.type_name
 
     @property
+    def storage_type(self) -> StorageTypeNames:
+        """
+        Returns how Blender stores the attribute internally (new in Blender 5.2).
+
+        'ARRAY' is a full array of values, while 'SINGLE' is a single value for the
+        entire domain (which can appear on evaluated geometry from Geometry Nodes).
+        Reading is transparent either way - `data` exposes the full domain length.
+        """
+        return self.attribute.storage_type
+
+    @property
     def shape(self) -> tuple[int, ...]:
         """Returns the full shape of the attribute array including element dimensions."""
         return (len(self), *self.atype.value.dimensions)
@@ -519,7 +609,16 @@ class Attribute:
                 f"Array shape {array.shape} cannot be reshaped to attribute shape {self.shape}"
             )
 
-        self.attribute.data.foreach_set(self.value_name, np.ravel(array))  # type: ignore
+        if self.atype == AttributeTypes.STRING:
+            _write_string_values(self.attribute, array)  # type: ignore
+        else:
+            # casting to the storage dtype lets 'foreach_set' use the fast buffer
+            # protocol path instead of per-item iteration
+            self.attribute.data.foreach_set(  # type: ignore
+                self.value_name, np.ravel(array).astype(self.dtype, copy=False)
+            )
+
+        _trigger_data_update(self.attribute.id_data)
 
     def as_array(self) -> np.ndarray:
         """
@@ -530,6 +629,9 @@ class Attribute:
         np.ndarray
             Array containing the attribute data with appropriate shape and dtype.
         """
+
+        if self.atype == AttributeTypes.STRING:
+            return _read_string_values(self.attribute)  # type: ignore
 
         # initialize empty 1D array that is needed to then be filled with values
         # from the Blender attribute
@@ -690,27 +792,17 @@ def store_named_attribute(
             f"Attribute being written to: `{attribute.name}` of type `{target_atype.value.type_name}` does not match the type for the given data: `{atype.value.type_name}`"
         )
 
-    # the 'foreach_set' requires a 1D array, regardless of the shape of the attribute
-    # so we have to flatten it first
-    attribute.data.foreach_set(atype.value.value_name, np.ravel(data))  # type: ignore
+    if atype == AttributeTypes.STRING:
+        _write_string_values(attribute, data)  # type: ignore
+    else:
+        # the 'foreach_set' requires a 1D array, regardless of the shape of the attribute
+        # so we have to flatten it first. Casting to the attribute's storage dtype lets
+        # 'foreach_set' use the fast buffer protocol path instead of per-item iteration
+        attribute.data.foreach_set(  # type: ignore
+            atype.value.value_name, np.ravel(data).astype(atype.value.dtype, copy=False)
+        )
 
-    # The updating of data doesn't work 100% of the time (see:
-    # https://projects.blender.org/blender/blender/issues/118507) so this resetting of a
-    # single vertex is the current fix. Not great as I can see it breaking when we are
-    # missing a vertex - but for now we shouldn't be dealing with any situations where this
-    # is the case For now we will set a single vert to it's own position, which triggers a
-    # proper refresh of the object data.
-    try:
-        obj_data.vertices[0].co = obj.data.vertices[0].co  # type: ignore
-    except AttributeError:
-        # For non-mesh objects (Curves, PointCloud), try update() if it exists
-        try:
-            obj_data.attributes["position"].data[0].vector = (  # type: ignore
-                obj_data.attributes["position"].data[0].vector  # type: ignore
-            )
-        except AttributeError:
-            if hasattr(obj.data, "update"):
-                obj_data.update()  # type: ignore
+    _trigger_data_update(obj_data)
 
     return attribute
 
@@ -749,7 +841,7 @@ def evaluate_object(
     """
     if context is None:
         context = bpy.context
-    _check_is_mesh(obj)
+    _check_obj_attributes(obj)
     obj.update_tag()
     return obj.evaluated_get(context.evaluated_depsgraph_get())  # type: ignore
 
@@ -795,8 +887,6 @@ def named_attribute(
     _check_obj_attributes(obj)
 
     if evaluate:
-        _check_is_mesh(obj)
-
         obj = evaluate_object(obj)
 
     try:

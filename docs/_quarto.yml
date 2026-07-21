@@ -18,6 +18,8 @@ website:
         text: Attributes
       - href: api/index.qmd
         text: API
+      - href: changelog.qmd
+        text: Changelog
     tools:
       - icon: github
         href: https://github.com/BradyAJohnston/databpy

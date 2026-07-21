@@ -316,7 +316,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
         name: str,
         atype: AttributeTypeNames | AttributeTypes | None = None,
         domain: DomainNames | AttributeDomains = AttributeDomains.POINT,
-    ) -> None:
+    ) -> bpy.types.Attribute:
         """
         Store a named attribute on the Blender object.
 
@@ -332,9 +332,14 @@ class BlenderObjectAttribute(BlenderObjectBase):
             input array.
         domain : str or AttributeDomains, optional
             The domain to store the attribute on. Defaults to AttributeDomains.POINT.
+
+        Returns
+        -------
+        bpy.types.Attribute
+            The added or modified attribute.
         """
         self._check_obj()
-        attr.store_named_attribute(
+        return attr.store_named_attribute(
             self.object, data=data, name=name, atype=atype, domain=domain
         )
 
@@ -535,7 +540,8 @@ class BlenderObjectAttribute(BlenderObjectBase):
             self.store_named_attribute(
                 data=data, name=name, domain=att.domain, atype=att.atype
             )
-        self.store_named_attribute(data=data, name=name)
+        else:
+            self.store_named_attribute(data=data, name=name)
 
     def _check_obj(self) -> None:
         _check_obj_attributes(self.object)

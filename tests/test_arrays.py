@@ -560,3 +560,42 @@ def test_position_array_integration():
     tracked_pos += 0.5
     updated = tracked_bob.named_attribute("position")
     assert np.all(updated >= 0.5)
+
+
+def test_operations_return_plain_arrays():
+    """Results of operations like `pos + 1` are plain arrays detached from Blender."""
+    obj = db.create_object(np.random.rand(10, 3), name="TestOps")
+    pos = AttributeArray(obj, "position")
+    before = db.named_attribute(obj, "position")
+
+    result = pos + 1.0
+    assert not isinstance(result, AttributeArray)
+    assert isinstance(result, np.ndarray)
+
+    # modifying the result must not write back to Blender
+    result[:] = 0.0
+    np.testing.assert_array_equal(db.named_attribute(obj, "position"), before)
+
+
+def test_copies_are_detached():
+    """Copies of an AttributeArray no longer sync back to Blender (and don't warn)."""
+    import warnings
+
+    obj = db.create_object(np.random.rand(10, 3), name="TestCopy")
+    pos = AttributeArray(obj, "position")
+    before = db.named_attribute(obj, "position")
+
+    copied = pos.copy()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        copied[0] = [9.0, 9.0, 9.0]
+    np.testing.assert_array_equal(db.named_attribute(obj, "position"), before)
+
+    # fancy indexing also produces a detached copy
+    masked = pos[np.arange(10) < 5]
+    masked[0] = [5.0, 5.0, 5.0]
+    np.testing.assert_array_equal(db.named_attribute(obj, "position"), before)
+
+    # while true views remain connected and continue to sync
+    pos[0] = [1.0, 2.0, 3.0]
+    np.testing.assert_allclose(db.named_attribute(obj, "position")[0], [1.0, 2.0, 3.0])

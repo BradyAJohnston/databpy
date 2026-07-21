@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from .attribute import Attribute, store_named_attribute
 import bpy
@@ -25,10 +27,11 @@ class AttributeArray(np.ndarray):
     Supported Types
     ---------------
     Works with all Blender attribute types:
-    - Float types: FLOAT, FLOAT2, FLOAT_VECTOR, FLOAT_COLOR, FLOAT4X4, QUATERNION
-    - Integer types: INT (int32), INT8, INT32_2D
+    - Float types: FLOAT, FLOAT2, FLOAT4, FLOAT_VECTOR, FLOAT_COLOR, FLOAT4X4, QUATERNION
+    - Integer types: INT (int32), INT8, INT16_2D, INT32_2D
     - Boolean: BOOLEAN
     - Color: BYTE_COLOR (uint8)
+    - String: STRING (synced per-element as strings don't support `foreach_set`)
 
     Attributes
     ----------
@@ -127,11 +130,33 @@ class AttributeArray(np.ndarray):
         if obj is None:
             return
 
-        self._blender_object = getattr(obj, "_blender_object", None)
-        self._attribute = getattr(obj, "_attribute", None)
-        self._attr_name = getattr(obj, "_attr_name", None)
-        # Preserve reference to the root array for syncing
-        self._root = getattr(obj, "_root", self)
+        # only views that still share memory with the source stay connected to
+        # Blender; copies (e.g. `pos.copy()`, `pos[mask]`) become detached arrays
+        # that no longer sync
+        if np.may_share_memory(self, obj):
+            self._blender_object = getattr(obj, "_blender_object", None)
+            self._attribute = getattr(obj, "_attribute", None)
+            self._attr_name = getattr(obj, "_attr_name", None)
+            # Preserve reference to the root array for syncing
+            self._root = getattr(obj, "_root", self)
+        else:
+            self._blender_object = None
+            self._attribute = None
+            self._attr_name = None
+            self._root = self
+
+    def __array_wrap__(self, out_arr, context=None, return_scalar=False):
+        """Return plain numpy arrays from operations like `pos + 1`.
+
+        Only in-place operations (`pos += 1`) keep the AttributeArray type and
+        its connection to Blender - other operation results are new arrays that
+        should not sync back.
+        """
+        if out_arr is self:
+            return out_arr
+        if return_scalar:
+            return out_arr[()]
+        return np.asarray(out_arr)
 
     def __setitem__(self, key, value):
         """Set item and sync changes back to Blender."""
@@ -184,9 +209,11 @@ class AttributeArray(np.ndarray):
         API requiring the full array. For large meshes, consider batching
         multiple modifications before triggering a sync.
         """
-        if self._blender_object is None:
-            import warnings
+        if self._attribute is None:
+            # a detached copy with no linked attribute; nothing to sync
+            return
 
+        if self._blender_object is None:
             warnings.warn(
                 "AttributeArray has lost its Blender object reference. "
                 "Changes will not be synced back to Blender. This can happen "
@@ -265,7 +292,8 @@ class AttributeArray(np.ndarray):
         attr_name = getattr(self, "_attr_name", "Unknown")
         domain = getattr(self._attribute, "domain", None)
         domain_name = domain.name if domain else "Unknown"
-        atype = getattr(self._attribute, "atype", "Unknown")
+        atype = getattr(self._attribute, "atype", None)
+        type_name = atype.value if atype is not None else "Unknown"
 
         # Get object info
         obj_name = "Unknown"
@@ -285,6 +313,6 @@ class AttributeArray(np.ndarray):
 
         return (
             f"AttributeArray(name='{attr_name}', object='{obj_name}', mesh='{obj_type}', "
-            f"domain={domain_name}, type={atype.value}, shape={self.shape}, dtype={self.dtype})\n"
+            f"domain={domain_name}, type={type_name}, shape={self.shape}, dtype={self.dtype})\n"
             f"{array_repr}"
         )

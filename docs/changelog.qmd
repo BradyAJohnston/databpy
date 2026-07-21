@@ -1,0 +1,110 @@
+---
+title: Changelog
+toc: true
+---
+
+## 0.8.0 (unreleased)
+
+Support for the new attribute types introduced in Blender 5.2, alongside a cleanup
+of the attribute typing system. Requires `bpy >= 5.2`.
+
+### Added
+
+- Support for the new Blender 5.2 attribute types:
+  - `FLOAT4` — 4D float vectors ([`Float4Attribute`](https://docs.blender.org/api/current/bpy.types.Float4Attribute.html))
+  - `INT16_2D` — 2D 16-bit signed integer vectors ([`Short2Attribute`](https://docs.blender.org/api/current/bpy.types.Short2Attribute.html))
+  - `STRING` — text strings ([`StringAttribute`](https://docs.blender.org/api/current/bpy.types.StringAttribute.html)).
+    String support is *experimental* and raises a warning when used: string
+    attributes are accessible through the Python API but are not yet properly
+    supported within Geometry Nodes. Values are read and written per-element
+    (as unicode numpy arrays) since Blender's `foreach_get`/`foreach_set` do not
+    support string properties.
+
+- `Attribute.storage_type`, exposing Blender 5.2's new attribute storage types
+  (`"ARRAY"` or `"SINGLE"`). `SINGLE`-storage attributes (produced by Geometry
+  Nodes for constant values) read transparently as full arrays.
+- `named_attribute(evaluate=True)` and `evaluate_object()` now work for Curves and
+  PointCloud objects, not just meshes.
+- `BlenderObject.store_named_attribute()` now returns the created or modified
+  attribute (previously returned `None`).
+
+### Changed
+
+- Results of `AttributeArray` operations (e.g. `pos + 1`, comparisons) are now
+  plain `numpy.ndarray`s, and copies (`pos.copy()`, boolean-mask indexing) are
+  detached from Blender — neither syncs back on modification. True views
+  (slices, column access) remain connected and continue to auto-sync.
+- Data is cast to the attribute's storage dtype before writing, letting Blender's
+  `foreach_set` use its fast buffer path instead of per-element iteration
+  (a significant speedup for the common case of passing float64 arrays).
+- **Breaking**: attribute type guessing for `(n, 4)` float arrays now maps to the
+  generic `FLOAT4` type instead of `FLOAT_COLOR`. To store colors or quaternions,
+  explicitly request them with e.g. `store_named_attribute(..., atype="FLOAT_COLOR")`.
+  `(n, 4)` `uint8` arrays still map to `BYTE_COLOR`.
+- Attribute type guessing for `(n, 2)` `int16` / `uint16` arrays now maps to
+  `INT16_2D` (other integer widths still map to `INT32_2D`), and string arrays
+  map to `STRING`.
+- Requires `bpy >= 5.2` (previously `>= 5.1`).
+- Improved type hints throughout the attribute module: precise `Literal` types for
+  attribute type and domain names, `tuple[int, ...]` shapes, and an immutable
+  `AttributeType` dataclass.
+
+### Fixed
+
+- Setting an existing attribute with dictionary syntax (`bob["color"] = data`) no
+  longer performs a second, redundant write with a re-guessed attribute type,
+  which could raise a type mismatch error for color and quaternion attributes.
+- `Attribute.from_array()` now triggers the same object-data refresh workaround as
+  `store_named_attribute()`, so writes through the low-level interface update
+  reliably in the viewport.
+- `repr()` of an `AttributeArray` that has lost its attribute reference no longer
+  raises an error.
+
+### Removed
+
+- **Breaking**: removed the unused legacy `AttributeTypeInfo` and `AttributeDomain`
+  classes from the public API. Use the `AttributeTypes` and `AttributeDomains`
+  enums instead.
+
+## 0.7.0 (2026-03-05)
+
+- Updated dependencies for Blender 5.1 ([#69](https://github.com/BradyAJohnston/databpy/pull/69)).
+
+## 0.6.2 (2026-03-05)
+
+- Improved typing for the attribute module ([#67](https://github.com/BradyAJohnston/databpy/pull/67)).
+- Added `move_to_collection()` for moving objects from one collection into another
+  ([#62](https://github.com/BradyAJohnston/databpy/pull/62), thanks [\@kolibril13](https://github.com/kolibril13)).
+
+## 0.6.0 (2025-11-25)
+
+- Refactored object classes around a more minimal `BlenderObjectBase`
+  ([#61](https://github.com/BradyAJohnston/databpy/pull/61),
+  [#63](https://github.com/BradyAJohnston/databpy/pull/63)).
+
+## 0.5.1 (2025-11-06)
+
+- General cleanup ([#58](https://github.com/BradyAJohnston/databpy/pull/58)).
+- Improved deduplication method ([#60](https://github.com/BradyAJohnston/databpy/pull/60)).
+
+## 0.5.0 (2025-10-25)
+
+- Better point cloud and curves support ([#57](https://github.com/BradyAJohnston/databpy/pull/57)).
+- Requires Blender >= 4.5 for compatibility with point cloud support.
+
+## 0.4.2 (2025-10-24)
+
+- Internal improvements and cleanup ([#56](https://github.com/BradyAJohnston/databpy/pull/56)).
+- Deprecated `Attribute.n_values` in favor of `Attribute.size`.
+
+## 0.4.1 (2025-10-21)
+
+- Fixed `AttributeArray.__str__` ([#55](https://github.com/BradyAJohnston/databpy/pull/55)).
+
+## 0.4.0 (2025-10-21)
+
+- Fixed integer attribute returns to be `int32` ([#54](https://github.com/BradyAJohnston/databpy/pull/54)).
+
+---
+
+For older releases, see the [GitHub releases page](https://github.com/BradyAJohnston/databpy/releases).

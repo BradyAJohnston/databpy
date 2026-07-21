@@ -147,16 +147,6 @@ def test_check_obj():
         db.attribute._check_obj_attributes,
         bpy.data.objects["Light"],
     )
-    assert pytest.raises(
-        TypeError,
-        db.attribute._check_is_mesh,
-        bpy.data.objects["Light"],
-    )
-    assert pytest.raises(
-        TypeError,
-        db.attribute._check_is_mesh,
-        bpy.data.objects["Camera"],
-    )
 
 
 def test_guess_attribute_type():
@@ -185,9 +175,8 @@ def test_guess_atype():
         db.attribute.AttributeTypes.FLOAT_VECTOR
         == db.attribute.guess_atype_from_array(np.zeros((10, 3)))
     )
-    assert (
-        db.attribute.AttributeTypes.FLOAT_COLOR
-        == db.attribute.guess_atype_from_array(np.zeros((10, 4)))
+    assert db.attribute.AttributeTypes.FLOAT4 == db.attribute.guess_atype_from_array(
+        np.zeros((10, 4))
     )
     assert db.attribute.AttributeTypes.FLOAT4X4 == db.attribute.guess_atype_from_array(
         np.zeros((10, 4, 4))
@@ -209,21 +198,132 @@ def test_guess_atype():
     assert db.attribute.AttributeTypes.INT32_2D == db.attribute.guess_atype_from_array(
         np.zeros((10, 2), dtype=np.int32)
     )
+    assert db.attribute.AttributeTypes.INT16_2D == db.attribute.guess_atype_from_array(
+        np.zeros((10, 2), dtype=np.int16)
+    )
 
-    # Test color types - distinguishes byte vs float based on dtype
+    # Test 4D types - uint8 maps to BYTE_COLOR, floats map to the generic FLOAT4
     assert (
         db.attribute.AttributeTypes.BYTE_COLOR
         == db.attribute.guess_atype_from_array(np.zeros((10, 4), dtype=np.uint8))
     )
-    assert (
-        db.attribute.AttributeTypes.FLOAT_COLOR
-        == db.attribute.guess_atype_from_array(np.zeros((10, 4), dtype=np.float32))
+    assert db.attribute.AttributeTypes.FLOAT4 == db.attribute.guess_atype_from_array(
+        np.zeros((10, 4), dtype=np.float32)
     )
 
     # Test boolean
     assert db.attribute.AttributeTypes.BOOLEAN == db.attribute.guess_atype_from_array(
         np.zeros(10, dtype=bool)
     )
+
+    # Test string
+    assert db.attribute.AttributeTypes.STRING == db.attribute.guess_atype_from_array(
+        np.array(["a", "b", "c"])
+    )
+    assert db.attribute.AttributeTypes.STRING == db.attribute.guess_atype_from_array(
+        np.array([b"a", b"b", b"c"])
+    )
+
+
+def test_float4_attribute():
+    obj = db.create_object(np.random.rand(4, 3), name="TestObject")
+    data = np.random.rand(4, 4).astype(np.float32)
+    # (n, 4) float arrays are guessed as the generic FLOAT4, while FLOAT_COLOR and
+    # QUATERNION must be explicitly requested
+    att = db.store_named_attribute(obj, data, "test_float4")
+    assert att.data_type == "FLOAT4"
+    np.testing.assert_array_equal(db.named_attribute(obj, "test_float4"), data)
+
+    att = db.store_named_attribute(obj, data, "test_color", atype="FLOAT_COLOR")
+    assert att.data_type == "FLOAT_COLOR"
+
+
+def test_int16_2d_attribute():
+    obj = db.create_object(np.random.rand(4, 3), name="TestObject")
+    data = np.array([[1, 2], [3, 4], [5, 6], [-7, -8]], dtype=np.int16)
+    att = db.store_named_attribute(obj, data, "test_short2")
+    assert att.data_type == "INT16_2D"
+    result = db.named_attribute(obj, "test_short2")
+    assert result.dtype == np.int16
+    np.testing.assert_array_equal(result, data)
+
+
+def test_setitem_preserves_existing_type():
+    bob = db.create_bob(np.random.rand(5, 3), name="TestObject")
+    color = np.random.rand(5, 4)
+    bob.store_named_attribute(color, "col", atype="FLOAT_COLOR")
+    # updating via dictionary syntax must keep the existing attribute type rather
+    # than re-guessing from the array (which would give FLOAT4)
+    bob["col"] = color * 0.5
+    assert bob.object.data.attributes["col"].data_type == "FLOAT_COLOR"
+    np.testing.assert_allclose(
+        db.named_attribute(bob.object, "col"), (color * 0.5).astype(np.float32)
+    )
+
+
+def test_bob_store_named_attribute_returns_attribute():
+    bob = db.create_bob(np.random.rand(5, 3), name="TestObject")
+    att = bob.store_named_attribute(np.arange(5), "test_return")
+    assert isinstance(att, bpy.types.Attribute)
+    assert att.name == "test_return"
+
+
+def test_storage_type():
+    obj = db.create_object(np.random.rand(4, 3), name="TestObject")
+    att = db.store_named_attribute(obj, np.arange(4), "test_int")
+    assert db.Attribute(att).storage_type == "ARRAY"
+
+    # a constant value stored via geometry nodes uses SINGLE storage on the
+    # evaluated geometry, which still reads transparently as a full array
+    tree = bpy.data.node_groups.new("test_gn", "GeometryNodeTree")
+    tree.interface.new_socket(
+        "Geometry", in_out="INPUT", socket_type="NodeSocketGeometry"
+    )
+    tree.interface.new_socket(
+        "Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry"
+    )
+    n_in = tree.nodes.new("NodeGroupInput")
+    n_out = tree.nodes.new("NodeGroupOutput")
+    store = tree.nodes.new("GeometryNodeStoreNamedAttribute")
+    store.data_type = "FLOAT"
+    store.domain = "POINT"
+    store.inputs["Name"].default_value = "const_val"
+    store.inputs["Value"].default_value = 3.5
+    tree.links.new(n_in.outputs[0], store.inputs["Geometry"])
+    tree.links.new(store.outputs[0], n_out.inputs[0])
+    obj.modifiers.new("test_gn", "NODES").node_group = tree
+
+    ev = db.evaluate_object(obj)
+    assert db.Attribute(ev.data.attributes["const_val"]).storage_type == "SINGLE"
+    np.testing.assert_allclose(
+        db.named_attribute(obj, "const_val", evaluate=True), np.full(4, 3.5)
+    )
+
+
+def test_named_attribute_evaluate_pointcloud():
+    obj = db.create_pointcloud_object(np.random.rand(5, 3), name="TestPoints")
+    result = db.named_attribute(obj, "position", evaluate=True)
+    assert result.shape == (5, 3)
+
+
+def test_string_attribute():
+    obj = db.create_object(np.random.rand(3, 3), name="TestObject")
+    data = np.array(["", "hello", "üñíçødé"])
+    # string attributes are experimental (not properly supported in Geometry Nodes)
+    # so all reads and writes should raise a warning
+    with pytest.warns(UserWarning, match="String attributes"):
+        att = db.store_named_attribute(obj, data, "test_string")
+    assert att.data_type == "STRING"
+    with pytest.warns(UserWarning, match="String attributes"):
+        result = db.named_attribute(obj, "test_string")
+    assert result.tolist() == data.tolist()
+
+    # overwriting with new values through the Attribute wrapper
+    attr = db.Attribute(obj.data.attributes["test_string"])
+    with pytest.warns(UserWarning, match="String attributes"):
+        attr.from_array(np.array(["x", "y", "z"]))
+    with pytest.warns(UserWarning, match="String attributes"):
+        assert attr.as_array().tolist() == ["x", "y", "z"]
 
 
 def test_raise_error():
