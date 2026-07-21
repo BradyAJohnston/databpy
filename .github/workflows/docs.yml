@@ -21,7 +21,7 @@ jobs:
 
       - name: Build Docs
         run: |
-            uv sync --all-extras --dev
+            uv sync --all-extras
             uv pip install -e .
             cd docs
             uv run -m quartodoc build

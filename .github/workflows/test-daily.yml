@@ -20,7 +20,8 @@ jobs:
                 version: ${{ matrix.version }}
             - name: Install in Blender
               run: |
-                blender -b -P tests/python.py -- -m pip install ".[dev]"
+                blender -b -P tests/python.py -- -m pip install --upgrade pip
+                blender -b -P tests/python.py -- -m pip install . --group dev
             - name: Run Tests
               run: |
                 blender -b -P tests/run.py -- -vv tests --cov --cov-report=xml

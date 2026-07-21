@@ -13,7 +13,7 @@ jobs:
       max-parallel: 4
       fail-fast: false
       matrix:
-        version: ["5.1", "5.2", "daily"]
+        version: ["5.2", "daily"]
         os: [macos-14, ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
@@ -22,5 +22,6 @@ jobs:
           version: ${{ matrix.version }}
       - name: Install and Test
         run: |
-          blender -b -P tests/python.py -- -m pip install -e ".[dev]"
+          blender -b -P tests/python.py -- -m pip install --upgrade pip
+          blender -b -P tests/python.py -- -m pip install -e . --group dev
           blender -b -P tests/run.py -- -vv

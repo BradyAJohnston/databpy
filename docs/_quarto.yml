@@ -18,6 +18,8 @@ website:
         text: Attributes
       - href: api/index.qmd
         text: API
+      - href: changelog.qmd
+        text: Changelog
     tools:
       - icon: github
         href: https://github.com/BradyAJohnston/databpy
@@ -91,6 +93,7 @@ quartodoc:
         - create_pointcloud_object
         - create_bob
         - evaluate_object
+        - GeometrySet
         - BlenderObject
         - BlenderObjectAttribute
         - BlenderObjectBase

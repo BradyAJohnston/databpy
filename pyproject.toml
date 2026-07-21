@@ -1,6 +1,6 @@
 [project]
 name = "databpy"
-version = "0.7.0"
+version = "0.8.0"
 description = "A data-oriented wrapper library for the Blender Python API"
 readme = "README.md"
 dependencies = [
@@ -23,7 +23,14 @@ build-backend = "uv_build"
 
 
 [project.optional-dependencies]
-bpy = ["bpy>=5.1"]
+bpy = ["bpy>=5.2"]
+
+[tool.uv.workspace]
+members = [
+    ".",
+]
+
+[dependency-groups]
 dev = [
     "fake-bpy-module",
     "polars",
@@ -32,10 +39,6 @@ dev = [
     "jupyter",
     "polars",
     "pytest",
-    "pytest-cov"
-    ]
-
-[tool.uv.workspace]
-members = [
-    ".",
+    "pytest-cov",
+    "nodebpy>=520.8.0",
 ]

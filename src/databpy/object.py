@@ -316,7 +316,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
         name: str,
         atype: AttributeTypeNames | AttributeTypes | None = None,
         domain: DomainNames | AttributeDomains = AttributeDomains.POINT,
-    ) -> None:
+    ) -> bpy.types.Attribute:
         """
         Store a named attribute on the Blender object.
 
@@ -326,19 +326,20 @@ class BlenderObjectAttribute(BlenderObjectBase):
             The data to be stored as an attribute.
         name : str
             The name for the attribute. Will overwrite an already existing attribute.
-        atype : str or AttributeType or None, optional
+        atype : str or AttributeTypes or None, optional
             The attribute type to store the data as. Either string or selection from the
             AttributeTypes enum. None will attempt to infer the attribute type from the
             input array.
-        domain : str or AttributeDomain, optional
-            The domain to store the attribute on. Defaults to Domains.POINT.
+        domain : str or AttributeDomains, optional
+            The domain to store the attribute on. Defaults to AttributeDomains.POINT.
 
         Returns
         -------
-        self
+        bpy.types.Attribute
+            The added or modified attribute.
         """
         self._check_obj()
-        attr.store_named_attribute(
+        return attr.store_named_attribute(
             self.object, data=data, name=name, atype=atype, domain=domain
         )
 
@@ -396,7 +397,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
         bpy.types.Attributes
             The attributes of the Blender object.
         """
-        return self.data.attributes  # type: ignore
+        return self.data.attributes
 
     @property
     def position(self) -> AttributeArray:
@@ -481,7 +482,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
             return len(self.data.points)
         elif isinstance(self.data, bpy.types.Curves):
             if "position" in self.data.attributes:
-                return len(self.data.attributes["position"].data)  # type: ignore
+                return len(self.data.attributes["position"].data)
             return 0
         else:
             raise TypeError(
@@ -535,11 +536,12 @@ class BlenderObjectAttribute(BlenderObjectBase):
             The data to store in the attribute.
         """
         if name in self.list_attributes():
-            att = Attribute(self.attributes[name])  # type: ignore
+            att = Attribute(self.attributes[name])
             self.store_named_attribute(
                 data=data, name=name, domain=att.domain, atype=att.atype
             )
-        self.store_named_attribute(data=data, name=name)
+        else:
+            self.store_named_attribute(data=data, name=name)
 
     def _check_obj(self) -> None:
         _check_obj_attributes(self.object)
