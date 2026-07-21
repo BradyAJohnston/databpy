@@ -326,16 +326,12 @@ class BlenderObjectAttribute(BlenderObjectBase):
             The data to be stored as an attribute.
         name : str
             The name for the attribute. Will overwrite an already existing attribute.
-        atype : str or AttributeType or None, optional
+        atype : str or AttributeTypes or None, optional
             The attribute type to store the data as. Either string or selection from the
             AttributeTypes enum. None will attempt to infer the attribute type from the
             input array.
-        domain : str or AttributeDomain, optional
-            The domain to store the attribute on. Defaults to Domains.POINT.
-
-        Returns
-        -------
-        self
+        domain : str or AttributeDomains, optional
+            The domain to store the attribute on. Defaults to AttributeDomains.POINT.
         """
         self._check_obj()
         attr.store_named_attribute(

@@ -27,10 +27,8 @@ from .attribute import (
     evaluate_object,
     Attribute,
     AttributeType,
-    AttributeTypeInfo,
     AttributeTypes,
     AttributeDomains,
-    AttributeDomain,
     NamedAttributeError,
     AttributeMismatchError,
 )
@@ -65,10 +63,8 @@ __all__ = [
     "evaluate_object",
     "Attribute",
     "AttributeType",
-    "AttributeTypeInfo",
     "AttributeTypes",
     "AttributeDomains",
-    "AttributeDomain",
     "NamedAttributeError",
     "AttributeMismatchError",
 ]

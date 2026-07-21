@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Type, Literal  # type: ignore
+from typing import Literal
 import bpy
 from bpy.types import Object
 import numpy as np
@@ -14,7 +14,6 @@ PossibleAttributeTypes = (
     | bpy.types.FloatAttribute
     | bpy.types.Float2Attribute
     | bpy.types.ByteIntAttribute
-    | bpy.types.Float2Attribute
     | bpy.types.Float4x4Attribute
     | bpy.types.ByteColorAttribute
     | bpy.types.FloatColorAttribute
@@ -83,21 +82,6 @@ def list_attributes(
     return [x for x in strings if not x.startswith(".")]
 
 
-@dataclass
-class AttributeTypeInfo:
-    dname: str
-    dtype: type
-    width: int
-
-
-@dataclass
-class AttributeDomain:
-    name: DomainNames
-
-    def __str__(self):
-        return self.name
-
-
 class AttributeMismatchError(NamedAttributeError):
     """
     Exception raised when attribute data doesn't match expected dimensions or types.
@@ -144,12 +128,15 @@ class AttributeDomains(Enum):
     LAYER = "LAYER"
 
 
-@dataclass
+ValueNames = Literal["value", "vector", "color"]
+
+
+@dataclass(frozen=True)
 class AttributeType:
     type_name: AttributeTypeNames
-    value_name: str
-    dtype: Type
-    dimensions: tuple
+    value_name: ValueNames
+    dtype: type
+    dimensions: tuple[int, ...]
 
     def __str__(self) -> str:
         return self.type_name
@@ -420,7 +407,7 @@ class Attribute:
     def __init__(self, attribute: PossibleAttributeTypes):
         self.attribute = attribute
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns the number of attribute elements.
 
@@ -450,8 +437,8 @@ class Attribute:
 
         Returns
         -------
-        AttributeType
-            The type information of the attribute.
+        AttributeTypes
+            The enum member representing the attribute's data type.
         """
         return AttributeTypes[self.attribute.data_type]
 
@@ -462,13 +449,13 @@ class Attribute:
 
         Returns
         -------
-        AttributeDomain
-            The domain of the attribute.
+        AttributeDomains
+            The enum member representing the attribute's domain.
         """
         return AttributeDomains[self.attribute.domain]
 
     @property
-    def value_name(self) -> str:
+    def value_name(self) -> ValueNames:
         """Returns the Blender property name for accessing values (e.g., 'value', 'vector', 'color')."""
         return self.atype.value.value_name
 
@@ -478,17 +465,17 @@ class Attribute:
         return self.atype.value.dimensions == (1,)
 
     @property
-    def type_name(self) -> str:
+    def type_name(self) -> AttributeTypeNames:
         """Returns the Blender attribute type name (e.g., 'FLOAT_VECTOR', 'INT', 'BOOLEAN')."""
         return self.atype.value.type_name
 
     @property
-    def shape(self) -> tuple:
+    def shape(self) -> tuple[int, ...]:
         """Returns the full shape of the attribute array including element dimensions."""
         return (len(self), *self.atype.value.dimensions)
 
     @property
-    def dtype(self) -> Type:
+    def dtype(self) -> type:
         """Returns the numpy dtype for this attribute type."""
         return self.atype.value.dtype
 
@@ -506,7 +493,7 @@ class Attribute:
     @property
     def size(self) -> int:
         """Returns the total number of scalar values in the attribute."""
-        return np.prod(self.shape, dtype=int)
+        return int(np.prod(self.shape, dtype=int))
 
     def from_array(self, array: np.ndarray) -> None:
         """
@@ -555,14 +542,14 @@ class Attribute:
         else:
             return array.reshape(self.shape)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Attribute: {}, type: {}, size: {}".format(
             self.attribute.name, self.type_name, self.shape
         )
 
 
 def _match_atype(
-    atype: str | AttributeTypes | None, data: np.ndarray
+    atype: AttributeTypeNames | AttributeTypes | None, data: np.ndarray
 ) -> AttributeTypes:
     if isinstance(atype, str):
         try:
@@ -576,21 +563,15 @@ def _match_atype(
     return atype
 
 
-def _match_domain(
-    domain: DomainNames | AttributeDomains | None,
-) -> DomainNames:
-    if isinstance(domain, str):
-        try:
-            AttributeDomains[domain]  # Validate the string is a valid domain
-            return domain
-        except KeyError:
-            raise ValueError(
-                f"Given domain {domain=} does not match any of the possible attribute domains: {list(AttributeDomains)=}"
-            )
-    if domain is None:
-        return AttributeDomains.POINT.value
+def _match_domain(domain: DomainNames | AttributeDomains) -> DomainNames:
     if isinstance(domain, AttributeDomains):
         return domain.value
+    try:
+        AttributeDomains[domain]  # Validate the string is a valid domain
+    except KeyError:
+        raise ValueError(
+            f"Given domain {domain=} does not match any of the possible attribute domains: {list(AttributeDomains)=}"
+        )
     return domain
 
 
@@ -653,10 +634,7 @@ def store_named_attribute(
     atype = _match_atype(atype, data)
     domain = _match_domain(domain)
 
-    if isinstance(obj, bpy.types.Object):
-        obj_data = obj.data
-    else:
-        obj_data = obj.data
+    obj_data = obj.data
 
     if not isinstance(
         obj_data, (bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud)
@@ -668,12 +646,10 @@ def store_named_attribute(
     if name == "":
         raise NamedAttributeError("Attribute name cannot be an empty string.")
 
-    attribute: PossibleAttributeTypes = obj_data.attributes.get(name)  # type: ignore
+    attribute: PossibleAttributeTypes | None = obj_data.attributes.get(name)  # type: ignore
     if not attribute or not overwrite:
         current_names = obj_data.attributes.keys()
-        attribute: PossibleAttributeTypes = obj_data.attributes.new(  # type: ignore
-            name, atype.value.type_name, domain
-        )
+        attribute = obj_data.attributes.new(name, atype.value.type_name, domain)  # type: ignore
 
         if attribute is None:
             [
@@ -779,7 +755,7 @@ def evaluate_object(
 
 
 def named_attribute(
-    obj: bpy.types.Object, name="position", evaluate=False
+    obj: bpy.types.Object, name: str = "position", evaluate: bool = False
 ) -> np.ndarray:
     """
     Get the named attribute data from the object.
@@ -832,7 +808,7 @@ def named_attribute(
     return attr.as_array()
 
 
-def remove_named_attribute(obj: bpy.types.Object, name: str):
+def remove_named_attribute(obj: bpy.types.Object, name: str) -> None:
     """
     Remove a named attribute from an object.
 
