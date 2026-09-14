@@ -1,5 +1,6 @@
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import bpy
@@ -7,11 +8,14 @@ import pytest
 
 import databpy as db
 from databpy.nodes import (
+    MaintainConnections,
     NodeGroupCreationError,
     custom_string_iswitch,
     input_socket,
     new_socket,
+    set_socket_value,
     socket_value,
+    swap_tree,
     tree_interface,
 )
 
@@ -216,3 +220,92 @@ def test_append_from_blend(suffix):
         assert socket_value(input_socket(iswitch, 2)) == "B"
         assert socket_value(input_socket(iswitch, 3)) == "C"
         assert socket_value(input_socket(iswitch, 4)) == "D"
+
+
+def test_tree_interface_missing():
+    """A tree without an interface raises a clear error instead of AttributeError."""
+    fake_tree: Any = SimpleNamespace(interface=None, name="fake")
+    with pytest.raises(NodeGroupCreationError, match="has no interface"):
+        tree_interface(fake_tree)
+
+
+def test_socket_value_without_default():
+    """Sockets without a default value (e.g. Geometry) raise a TypeError."""
+    tree = db.nodes.new_tree()
+    geometry_out = db.nodes.get_input(tree).outputs["Geometry"]
+    with pytest.raises(TypeError, match="no default value"):
+        socket_value(geometry_out)
+    with pytest.raises(TypeError, match="no default value"):
+        set_socket_value(geometry_out, 1.0)
+
+
+def test_maintain_connections_requires_group_node():
+    tree = db.nodes.new_tree()
+    group = db.nodes.new_tree("Group")
+    input_node = db.nodes.get_input(tree)
+    with pytest.raises(TypeError, match="GeometryNodeGroup"):
+        MaintainConnections(input_node)
+    with pytest.raises(TypeError, match="GeometryNodeGroup"):
+        swap_tree(input_node, group)
+
+
+def test_new_tree_fallback():
+    tree = db.nodes.new_tree("FallbackTest")
+    # requesting the same name again returns the existing tree
+    assert db.nodes.new_tree("FallbackTest") == tree
+
+    # a name clash with a non-geometry node tree is an error rather than
+    # silently returning the wrong tree type
+    bpy.data.node_groups.new("ShaderClash", "ShaderNodeTree")
+    with pytest.raises(NodeGroupCreationError, match="not a GeometryNodeTree"):
+        db.nodes.new_tree("ShaderClash")
+
+
+def test_swap_tree():
+    tree = db.nodes.new_tree()
+    group1 = db.nodes.new_tree("SwapGroup1")
+    group2 = db.nodes.new_tree("SwapGroup2")
+    node = _new_group_node(tree)
+    node.node_tree = group1
+    swap_tree(node, group2)
+    assert node.node_tree == group2
+    assert node.name == "SwapGroup2"
+
+
+def test_maintain_connections_material_and_missing_outputs():
+    """Material values are restored and removed output links are skipped."""
+    tree = db.nodes.new_tree()
+
+    group1 = db.nodes.new_tree("MatGroup1")
+    new_socket(group1, "Material", in_out="INPUT", socket_type="NodeSocketMaterial")
+    new_socket(group1, "Extra", in_out="OUTPUT", socket_type="NodeSocketFloat")
+
+    group2 = db.nodes.new_tree("MatGroup2")
+    new_socket(group2, "Material", in_out="INPUT", socket_type="NodeSocketMaterial")
+    # a panel exercises skipping non-socket interface items on defaults reset
+    tree_interface(group2).new_panel("TestPanel")
+
+    node = _new_group_node(tree)
+    node.node_tree = group1
+
+    material = bpy.data.materials.new("TestMaterial")
+    set_socket_value(input_socket(node, "Material"), material)
+
+    # link the extra output so there is an output link that can't be rebuilt
+    # after swapping to a tree without that socket
+    math_node = tree.nodes.new("ShaderNodeMath")
+    tree.links.new(node.outputs["Extra"], math_node.inputs[0])
+    assert node.outputs["Extra"].is_linked
+
+    with MaintainConnections(node):
+        node.node_tree = group2
+
+    # the material survives the swap, the removed output is simply skipped
+    assert socket_value(input_socket(node, "Material")) == material
+    assert "Extra" not in node.outputs
+
+    # swapping to a group without a material slot silently drops the material
+    group3 = db.nodes.new_tree("MatGroup3")
+    with MaintainConnections(node):
+        node.node_tree = group3
+    assert "Material" not in node.inputs

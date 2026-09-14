@@ -570,3 +570,12 @@ def test_attribute_from_array_reshaping():
     result = attr.as_array()
     assert result.shape == (3, 3)
     np.testing.assert_array_equal(result, flat_data.reshape(3, 3))
+
+
+def test_store_named_attribute_unsupported_domain():
+    # meshes don't support the CURVE domain, which should raise the library's
+    # own error type rather than leaking Blender's RuntimeError
+    obj = db.create_object(np.zeros((4, 3)), name="TestBadDomain")
+    with pytest.raises(db.NamedAttributeError, match="Could not create attribute"):
+        db.store_named_attribute(obj, np.arange(4), "bad_domain", domain="CURVE")
+    assert "bad_domain" not in db.list_attributes(obj)

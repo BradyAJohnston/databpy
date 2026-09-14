@@ -799,7 +799,11 @@ def store_named_attribute(
     existing_attribute = obj_data.attributes.get(name)
     if existing_attribute is None or not overwrite:
         current_names = obj_data.attributes.keys()
-        new_attribute = obj_data.attributes.new(name, atype.value.type_name, domain)
+        try:
+            new_attribute = obj_data.attributes.new(name, atype.value.type_name, domain)
+        except RuntimeError:
+            # e.g. a domain that isn't supported by this geometry type
+            new_attribute = None
 
         if new_attribute is None:
             # remove any attributes that were created as part of the failed attempt

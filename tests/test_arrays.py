@@ -600,3 +600,11 @@ def test_copies_are_detached():
     # while true views remain connected and continue to sync
     pos[0] = [1.0, 2.0, 3.0]
     np.testing.assert_allclose(db.named_attribute(obj, "position")[0], [1.0, 2.0, 3.0])
+
+
+def test_repr_appends_dtype_when_omitted():
+    """Boolean reprs omit the dtype by default, so it gets appended explicitly."""
+    bob = create_bob(np.random.rand(4, 3))
+    bob.store_named_attribute(np.array([True, False, True, False]), "flags")
+    flags = AttributeArray(bob.object, "flags")
+    assert "dtype=bool" in repr(flags)

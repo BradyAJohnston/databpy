@@ -1132,18 +1132,19 @@ def create_bob(
         A wrapped Blender mesh object.
     """
 
-    bob = BlenderObject(
-        create_mesh_object(
-            vertices=vertices,
-            edges=edges,
-            faces=faces,
-            name=name,
-            collection=collection,
-        )
+    obj = create_mesh_object(
+        vertices=vertices,
+        edges=edges,
+        faces=faces,
+        name=name,
+        collection=collection,
     )
+    bob = BlenderObject(obj)
     if uuid:
+        # update the stored uuid on the object first: the `bob.object` lookup
+        # matches by uuid, so it must be set before changing `bob._uuid`
+        set_uuid(obj, uuid)
         bob._uuid = uuid
-        set_uuid(bob.object, uuid)
     return bob
 
 
