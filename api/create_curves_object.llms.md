@@ -16,8 +16,8 @@ Create a new Blender curves object (new Curves type, not legacy Curve).
 | Name | Type | Description | Default |
 |----|----|----|----|
 | positions | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | The control point positions as a numpy array with shape (N, 3). If None, creates an empty curves object. Defaults to None. | `None` |
-| curve_sizes | [list](https://docs.python.org/3/library/stdtypes.html#list)\[[int](https://docs.python.org/3/library/functions.html#int)\] \| [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | Number of points in each curve. For example, \[4, 5, 6\] creates 3 curves with 4, 5, and 6 control points respectively. Total must equal len(positions). If None, creates an empty curves object. Defaults to None. | `None` |
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | The name of the object. Defaults to ‘Curves’. | `'Curves'` |
+| curve_sizes | [list](https://docs.python.org/3/builtins/stdtypes.html#list)\[[int](https://docs.python.org/3/builtins/functions.html#int)\] \| [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | Number of points in each curve. For example, \[4, 5, 6\] creates 3 curves with 4, 5, and 6 control points respectively. Total must equal len(positions). If None, creates an empty curves object. Defaults to None. | `None` |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name of the object. Defaults to ‘Curves’. | `'Curves'` |
 | collection | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Collection](https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection) | The collection to link the object to. Defaults to None. | `None` |
 
 ## Returns
@@ -30,7 +30,7 @@ Create a new Blender curves object (new Curves type, not legacy Curve).
 
 | Name | Type | Description |
 |----|----|----|
-|  | [ValueError](https://docs.python.org/3/library/exceptions.html#ValueError) | If positions and curve_sizes lengths don’t match. |
+|  | [ValueError](https://docs.python.org/3/builtins/exceptions.html#ValueError) | If positions and curve_sizes lengths don’t match. |
 
 ## Examples
 

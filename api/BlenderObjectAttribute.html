@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.38">
+<meta name="generator" content="quarto-1.10.18">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -12,10 +12,13 @@
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
 */
-code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
@@ -76,10 +79,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-52a49669da0398cd065fe5de7501cc78.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-039f23d1a6e0d3c48782766f4605ed2f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -119,7 +122,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">databpy 0.8.0</span>
+    <span class="navbar-title">databpy 0.9.0</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -321,6 +324,160 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
       </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Utilities</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/require.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">require</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/require_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">require_data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/mesh_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">mesh_data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/curves_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">curves_data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/pointcloud_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pointcloud_data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/volume_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">volume_data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/active_scene.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">active_scene</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/active_object.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">active_object</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/centre.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">centre</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/lerp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">lerp</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Nodes</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.new_tree.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.new_tree</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.swap_tree.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.swap_tree</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.custom_string_iswitch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.custom_string_iswitch</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.append_from_blend.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.append_from_blend</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.new_socket.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.new_socket</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.tree_interface.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.tree_interface</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.input_socket.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.input_socket</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.output_socket.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.output_socket</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.socket_value.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.socket_value</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.set_socket_value.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.set_socket_value</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.MaintainConnections.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.MaintainConnections</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.DuplicatePrevention.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.DuplicatePrevention</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
     </ul>
     </div>
 </nav>
@@ -455,13 +612,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>evaluate</td>
-<td><a href="https://docs.python.org/3/library/functions.html#bool">bool</a></td>
+<td><a href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></td>
 <td>Whether to first evaluate the modifiers on the object before listing the available attributes.</td>
 <td><code>False</code></td>
 </tr>
 <tr class="even">
 <td>drop_hidden</td>
-<td><a href="https://docs.python.org/3/library/functions.html#bool">bool</a></td>
+<td><a href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></td>
 <td>Whether to drop hidden attributes (those starting with a dot). Defaults to False.</td>
 <td><code>False</code></td>
 </tr>
@@ -481,7 +638,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td></td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str">str</a>] | None</td>
+<td><a href="https://docs.python.org/3/builtins/stdtypes.html#list">list</a>[<a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>] | None</td>
 <td>A list of attribute names if the molecule object exists, None otherwise.</td>
 </tr>
 </tbody>
@@ -507,13 +664,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>name</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
+<td><a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></td>
 <td>Name of the attribute to get.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="even">
 <td>evaluate</td>
-<td><a href="https://docs.python.org/3/library/functions.html#bool">bool</a></td>
+<td><a href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></td>
 <td>Whether to evaluate the object before reading the attribute (default is False).</td>
 <td><code>False</code></td>
 </tr>
@@ -558,7 +715,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>name</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
+<td><a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></td>
 <td>The name of the attribute to remove.</td>
 <td><em>required</em></td>
 </tr>
@@ -595,19 +752,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td>name</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a></td>
+<td><a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></td>
 <td>The name for the attribute. Will overwrite an already existing attribute.</td>
 <td><em>required</em></td>
 </tr>
 <tr class="odd">
 <td>atype</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a> or <a href="../api/AttributeTypes.html#databpy.AttributeTypes">AttributeTypes</a> or None</td>
+<td><a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a> or <a href="../api/AttributeTypes.html#databpy.AttributeTypes">AttributeTypes</a> or None</td>
 <td>The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td>domain</td>
-<td><a href="https://docs.python.org/3/library/stdtypes.html#str">str</a> or <a href="../api/AttributeDomains.html#databpy.AttributeDomains">AttributeDomains</a></td>
+<td><a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a> or <a href="../api/AttributeDomains.html#databpy.AttributeDomains">AttributeDomains</a></td>
 <td>The domain to store the attribute on. Defaults to AttributeDomains.POINT.</td>
 <td><code>AttributeDomains.POINT</code></td>
 </tr>

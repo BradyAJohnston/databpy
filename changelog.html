@@ -2,20 +2,23 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.38">
+<meta name="generator" content="quarto-1.10.18">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Changelog – databpy 0.8.0</title>
+<title>Changelog – databpy 0.9.0</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
 */
-code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
@@ -39,10 +42,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-52a49669da0398cd065fe5de7501cc78.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-039f23d1a6e0d3c48782766f4605ed2f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -82,7 +85,7 @@ ul.task-list li input[type="checkbox"] {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">databpy 0.8.0</span>
+    <span class="navbar-title">databpy 0.9.0</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -124,15 +127,16 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-  <li><a href="#unreleased" id="toc-unreleased" class="nav-link active" data-scroll-target="#unreleased">0.8.0 (unreleased)</a></li>
-  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section">0.7.0 (2026-03-05)</a></li>
-  <li><a href="#section-1" id="toc-section-1" class="nav-link" data-scroll-target="#section-1">0.6.2 (2026-03-05)</a></li>
-  <li><a href="#section-2" id="toc-section-2" class="nav-link" data-scroll-target="#section-2">0.6.0 (2025-11-25)</a></li>
-  <li><a href="#section-3" id="toc-section-3" class="nav-link" data-scroll-target="#section-3">0.5.1 (2025-11-06)</a></li>
-  <li><a href="#section-4" id="toc-section-4" class="nav-link" data-scroll-target="#section-4">0.5.0 (2025-10-25)</a></li>
-  <li><a href="#section-5" id="toc-section-5" class="nav-link" data-scroll-target="#section-5">0.4.2 (2025-10-24)</a></li>
-  <li><a href="#section-6" id="toc-section-6" class="nav-link" data-scroll-target="#section-6">0.4.1 (2025-10-21)</a></li>
-  <li><a href="#section-7" id="toc-section-7" class="nav-link" data-scroll-target="#section-7">0.4.0 (2025-10-21)</a></li>
+  <li><a href="#unreleased" id="toc-unreleased" class="nav-link active" data-scroll-target="#unreleased">0.9.0 (unreleased)</a></li>
+  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section">0.8.0 (2026-07-21)</a></li>
+  <li><a href="#section-1" id="toc-section-1" class="nav-link" data-scroll-target="#section-1">0.7.0 (2026-03-05)</a></li>
+  <li><a href="#section-2" id="toc-section-2" class="nav-link" data-scroll-target="#section-2">0.6.2 (2026-03-05)</a></li>
+  <li><a href="#section-3" id="toc-section-3" class="nav-link" data-scroll-target="#section-3">0.6.0 (2025-11-25)</a></li>
+  <li><a href="#section-4" id="toc-section-4" class="nav-link" data-scroll-target="#section-4">0.5.1 (2025-11-06)</a></li>
+  <li><a href="#section-5" id="toc-section-5" class="nav-link" data-scroll-target="#section-5">0.5.0 (2025-10-25)</a></li>
+  <li><a href="#section-6" id="toc-section-6" class="nav-link" data-scroll-target="#section-6">0.4.2 (2025-10-24)</a></li>
+  <li><a href="#section-7" id="toc-section-7" class="nav-link" data-scroll-target="#section-7">0.4.1 (2025-10-21)</a></li>
+  <li><a href="#section-8" id="toc-section-8" class="nav-link" data-scroll-target="#section-8">0.4.0 (2025-10-21)</a></li>
   </ul>
 </nav>
     </div>
@@ -159,10 +163,48 @@ ul.task-list li input[type="checkbox"] {
 
 
 <section id="unreleased" class="level2">
-<h2 class="anchored" data-anchor-id="unreleased">0.8.0 (unreleased)</h2>
-<p>Support for the new attribute types introduced in Blender 5.2, alongside a cleanup of the attribute typing system. Requires <code>bpy &gt;= 5.2</code>.</p>
+<h2 class="anchored" data-anchor-id="unreleased">0.9.0 (unreleased)</h2>
+<p>A full static-typing pass over the package and test suite. The code base now passes <a href="https://docs.astral.sh/ty/">ty</a> with zero errors and zero suppression comments (every <code># type: ignore</code> has been removed), and ty runs in CI alongside ruff. Blender API values that are typed as <code>Something | None</code> or as wide data-block unions are now handled through small helpers that check at runtime and narrow the type, instead of being ignored.</p>
 <section id="added" class="level3">
 <h3 class="anchored" data-anchor-id="added">Added</h3>
+<ul>
+<li>Typed narrowing helpers, exported from the top-level <code>databpy</code> namespace:
+<ul>
+<li><code>require()</code> — return a value, raising <code>ValueError</code> if it is <code>None</code></li>
+<li><code>require_data()</code>, <code>mesh_data()</code>, <code>curves_data()</code>, <code>pointcloud_data()</code>, <code>volume_data()</code> — return <code>Object.data</code> checked to be the expected data-block type, raising <code>TypeError</code> otherwise</li>
+<li><code>active_scene()</code> and <code>active_object()</code> — non-optional accessors for <code>bpy.context.scene</code> / <code>bpy.context.active_object</code></li>
+</ul></li>
+<li>Node helpers in <code>databpy.nodes</code> for the optional-heavy node APIs: <code>tree_interface()</code>, <code>new_socket()</code>, <code>input_socket()</code>, <code>output_socket()</code>, <code>socket_value()</code> and <code>set_socket_value()</code>.</li>
+<li><code>databpy.object.get_uuid()</code> / <code>set_uuid()</code> for the dynamically registered <code>uuid</code> property on <code>bpy.types.Object</code>.</li>
+<li>Type checking with ty in CI (new <code>typecheck</code> job in the lint workflow), with <code>ty</code> and <code>ruff</code> added as locked dev dependencies.</li>
+<li>API documentation sections for the new utility and node helpers.</li>
+</ul>
+</section>
+<section id="changed" class="level3">
+<h3 class="anchored" data-anchor-id="changed">Changed</h3>
+<ul>
+<li><strong>Breaking</strong>: invalid-type errors now consistently raise <code>TypeError</code> (some previously raised <code>ValueError</code> or <code>AttributeError</code>): <code>utils.path_resolve()</code>, <code>attribute.guess_atype_from_array()</code>, <code>BlenderObject.__getitem__()</code> with a non-string key, assigning a non-<code>Object</code> to <code>BlenderObjectBase.object</code>, and the deprecated <code>vertices</code> / <code>edges</code> properties on non-mesh objects.</li>
+<li>Object creation functions (<code>create_object()</code>, <code>create_mesh_object()</code>, <code>create_curves_object()</code>, <code>create_pointcloud_object()</code>, <code>create_bob()</code> and the <code>BlenderObject.from_*()</code> classmethods) are now typed to accept any array-like (lists and tuples always worked at runtime).</li>
+<li><code>utils.lerp()</code> accepts scalars and array-likes, converting to numpy arrays internally (the documented list example now actually works).</li>
+<li><code>Attribute()</code> accepts any <code>bpy.types.Attribute</code> and validates it against the supported concrete attribute types, raising <code>NamedAttributeError</code> for unsupported ones.</li>
+<li><code>nodes.new_tree()</code> is typed as returning a <code>GeometryNodeTree</code> and raises <code>NodeGroupCreationError</code> if an existing node group with the requested name is not a geometry node tree.</li>
+<li><code>nodes.MaintainConnections</code> and <code>nodes.swap_tree()</code> raise <code>TypeError</code> when given a node that is not a <code>GeometryNodeGroup</code>.</li>
+<li><code>custom_string_iswitch()</code> catches specific exception types during node group creation (rather than a blind <code>except Exception</code>) and chains the original error onto the raised <code>NodeGroupCreationError</code>.</li>
+</ul>
+</section>
+<section id="fixed" class="level3">
+<h3 class="anchored" data-anchor-id="fixed">Fixed</h3>
+<ul>
+<li><code>from databpy import utils</code> was shadowed by <code>databpy.nodes.utils</code> in the package namespace, so static analysis (and potentially import order) resolved <code>databpy.utils</code> to the wrong module.</li>
+<li>Docs builds failed with the latest griffe (quartodoc 0.11.1 is incompatible with griffe 2.x); griffe is now pinned to <code>&lt;2</code> in the dev dependencies.</li>
+</ul>
+</section>
+</section>
+<section id="section" class="level2">
+<h2 class="anchored" data-anchor-id="section">0.8.0 (2026-07-21)</h2>
+<p>Support for the new attribute types introduced in Blender 5.2, alongside a cleanup of the attribute typing system. Requires <code>bpy &gt;= 5.2</code>.</p>
+<section id="added-1" class="level3">
+<h3 class="anchored" data-anchor-id="added-1">Added</h3>
 <ul>
 <li>Support for the new Blender 5.2 attribute types:
 <ul>
@@ -176,8 +218,8 @@ ul.task-list li input[type="checkbox"] {
 <li><code>BlenderObject.store_named_attribute()</code> now returns the created or modified attribute (previously returned <code>None</code>).</li>
 </ul>
 </section>
-<section id="changed" class="level3">
-<h3 class="anchored" data-anchor-id="changed">Changed</h3>
+<section id="changed-1" class="level3">
+<h3 class="anchored" data-anchor-id="changed-1">Changed</h3>
 <ul>
 <li>Results of <code>AttributeArray</code> operations (e.g.&nbsp;<code>pos + 1</code>, comparisons) are now plain <code>numpy.ndarray</code>s, and copies (<code>pos.copy()</code>, boolean-mask indexing) are detached from Blender — neither syncs back on modification. True views (slices, column access) remain connected and continue to auto-sync.</li>
 <li>Data is cast to the attribute’s storage dtype before writing, letting Blender’s <code>foreach_set</code> use its fast buffer path instead of per-element iteration (a significant speedup for the common case of passing float64 arrays).</li>
@@ -187,8 +229,8 @@ ul.task-list li input[type="checkbox"] {
 <li>Improved type hints throughout the attribute module: precise <code>Literal</code> types for attribute type and domain names, <code>tuple[int, ...]</code> shapes, and an immutable <code>AttributeType</code> dataclass.</li>
 </ul>
 </section>
-<section id="fixed" class="level3">
-<h3 class="anchored" data-anchor-id="fixed">Fixed</h3>
+<section id="fixed-1" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-1">Fixed</h3>
 <ul>
 <li>Setting an existing attribute with dictionary syntax (<code>bob["color"] = data</code>) no longer performs a second, redundant write with a re-guessed attribute type, which could raise a type mismatch error for color and quaternion attributes.</li>
 <li><code>Attribute.from_array()</code> now triggers the same object-data refresh workaround as <code>store_named_attribute()</code>, so writes through the low-level interface update reliably in the viewport.</li>
@@ -202,54 +244,54 @@ ul.task-list li input[type="checkbox"] {
 </ul>
 </section>
 </section>
-<section id="section" class="level2">
-<h2 class="anchored" data-anchor-id="section">0.7.0 (2026-03-05)</h2>
+<section id="section-1" class="level2">
+<h2 class="anchored" data-anchor-id="section-1">0.7.0 (2026-03-05)</h2>
 <ul>
 <li>Updated dependencies for Blender 5.1 (<a href="https://github.com/BradyAJohnston/databpy/pull/69">#69</a>).</li>
 </ul>
 </section>
-<section id="section-1" class="level2">
-<h2 class="anchored" data-anchor-id="section-1">0.6.2 (2026-03-05)</h2>
+<section id="section-2" class="level2">
+<h2 class="anchored" data-anchor-id="section-2">0.6.2 (2026-03-05)</h2>
 <ul>
 <li>Improved typing for the attribute module (<a href="https://github.com/BradyAJohnston/databpy/pull/67">#67</a>).</li>
 <li>Added <code>move_to_collection()</code> for moving objects from one collection into another (<a href="https://github.com/BradyAJohnston/databpy/pull/62">#62</a>, thanks <a href="https://github.com/kolibril13">@kolibril13</a>).</li>
 </ul>
 </section>
-<section id="section-2" class="level2">
-<h2 class="anchored" data-anchor-id="section-2">0.6.0 (2025-11-25)</h2>
+<section id="section-3" class="level2">
+<h2 class="anchored" data-anchor-id="section-3">0.6.0 (2025-11-25)</h2>
 <ul>
 <li>Refactored object classes around a more minimal <code>BlenderObjectBase</code> (<a href="https://github.com/BradyAJohnston/databpy/pull/61">#61</a>, <a href="https://github.com/BradyAJohnston/databpy/pull/63">#63</a>).</li>
 </ul>
 </section>
-<section id="section-3" class="level2">
-<h2 class="anchored" data-anchor-id="section-3">0.5.1 (2025-11-06)</h2>
+<section id="section-4" class="level2">
+<h2 class="anchored" data-anchor-id="section-4">0.5.1 (2025-11-06)</h2>
 <ul>
 <li>General cleanup (<a href="https://github.com/BradyAJohnston/databpy/pull/58">#58</a>).</li>
 <li>Improved deduplication method (<a href="https://github.com/BradyAJohnston/databpy/pull/60">#60</a>).</li>
 </ul>
 </section>
-<section id="section-4" class="level2">
-<h2 class="anchored" data-anchor-id="section-4">0.5.0 (2025-10-25)</h2>
+<section id="section-5" class="level2">
+<h2 class="anchored" data-anchor-id="section-5">0.5.0 (2025-10-25)</h2>
 <ul>
 <li>Better point cloud and curves support (<a href="https://github.com/BradyAJohnston/databpy/pull/57">#57</a>).</li>
 <li>Requires Blender &gt;= 4.5 for compatibility with point cloud support.</li>
 </ul>
 </section>
-<section id="section-5" class="level2">
-<h2 class="anchored" data-anchor-id="section-5">0.4.2 (2025-10-24)</h2>
+<section id="section-6" class="level2">
+<h2 class="anchored" data-anchor-id="section-6">0.4.2 (2025-10-24)</h2>
 <ul>
 <li>Internal improvements and cleanup (<a href="https://github.com/BradyAJohnston/databpy/pull/56">#56</a>).</li>
 <li>Deprecated <code>Attribute.n_values</code> in favor of <code>Attribute.size</code>.</li>
 </ul>
 </section>
-<section id="section-6" class="level2">
-<h2 class="anchored" data-anchor-id="section-6">0.4.1 (2025-10-21)</h2>
+<section id="section-7" class="level2">
+<h2 class="anchored" data-anchor-id="section-7">0.4.1 (2025-10-21)</h2>
 <ul>
 <li>Fixed <code>AttributeArray.__str__</code> (<a href="https://github.com/BradyAJohnston/databpy/pull/55">#55</a>).</li>
 </ul>
 </section>
-<section id="section-7" class="level2">
-<h2 class="anchored" data-anchor-id="section-7">0.4.0 (2025-10-21)</h2>
+<section id="section-8" class="level2">
+<h2 class="anchored" data-anchor-id="section-8">0.4.0 (2025-10-21)</h2>
 <ul>
 <li>Fixed integer attribute returns to be <code>int32</code> (<a href="https://github.com/BradyAJohnston/databpy/pull/54">#54</a>).</li>
 </ul>

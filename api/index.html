@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.38">
+<meta name="generator" content="quarto-1.10.18">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -12,10 +12,13 @@
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
 */
-code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
@@ -40,10 +43,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-52a49669da0398cd065fe5de7501cc78.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-039f23d1a6e0d3c48782766f4605ed2f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -83,7 +86,7 @@ ul.task-list li input[type="checkbox"] {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">databpy 0.8.0</span>
+    <span class="navbar-title">databpy 0.9.0</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -285,6 +288,160 @@ ul.task-list li input[type="checkbox"] {
 </li>
       </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Utilities</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/require.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">require</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/require_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">require_data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/mesh_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">mesh_data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/curves_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">curves_data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/pointcloud_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">pointcloud_data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/volume_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">volume_data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/active_scene.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">active_scene</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/active_object.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">active_object</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/centre.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">centre</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/lerp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">lerp</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Nodes</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.new_tree.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.new_tree</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.swap_tree.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.swap_tree</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.custom_string_iswitch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.custom_string_iswitch</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.append_from_blend.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.append_from_blend</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.new_socket.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.new_socket</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.tree_interface.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.tree_interface</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.input_socket.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.input_socket</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.output_socket.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.output_socket</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.socket_value.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.socket_value</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.set_socket_value.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.set_socket_value</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.MaintainConnections.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.MaintainConnections</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/nodes.DuplicatePrevention.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">nodes.DuplicatePrevention</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
     </ul>
     </div>
 </nav>
@@ -300,6 +457,8 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#attribute" id="toc-attribute" class="nav-link" data-scroll-target="#attribute">Attribute</a></li>
   <li><a href="#collections" id="toc-collections" class="nav-link" data-scroll-target="#collections">Collections</a></li>
   <li><a href="#objects" id="toc-objects" class="nav-link" data-scroll-target="#objects">Objects</a></li>
+  <li><a href="#utilities" id="toc-utilities" class="nav-link" data-scroll-target="#utilities">Utilities</a></li>
+  <li><a href="#nodes" id="toc-nodes" class="nav-link" data-scroll-target="#nodes">Nodes</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -407,6 +566,110 @@ ul.task-list li input[type="checkbox"] {
 <tr class="odd">
 <td><a href="../api/LinkedObjectError.html#databpy.LinkedObjectError">LinkedObjectError</a></td>
 <td>Error raised when a Python object doesn’t have a linked object in the 3D scene.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="utilities" class="level2">
+<h2 class="anchored" data-anchor-id="utilities">Utilities</h2>
+<p>Typed helpers that check for None or narrow data-block types, plus general utilities</p>
+<table class="caption-top table">
+<tbody>
+<tr class="odd">
+<td><a href="../api/require.html#databpy.require">require</a></td>
+<td>Return the given value, raising an error if it is None.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/require_data.html#databpy.require_data">require_data</a></td>
+<td>Return the object’s data-block, checked to be of the given type.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/mesh_data.html#databpy.mesh_data">mesh_data</a></td>
+<td>Return the object’s data-block, checked to be a <code>Mesh</code>.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/curves_data.html#databpy.curves_data">curves_data</a></td>
+<td>Return the object’s data-block, checked to be a <code>Curves</code>.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/pointcloud_data.html#databpy.pointcloud_data">pointcloud_data</a></td>
+<td>Return the object’s data-block, checked to be a <code>PointCloud</code>.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/volume_data.html#databpy.volume_data">volume_data</a></td>
+<td>Return the object’s data-block, checked to be a <code>Volume</code>.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/active_scene.html#databpy.active_scene">active_scene</a></td>
+<td>Return the active scene, raising an error if there is none.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/active_object.html#databpy.active_object">active_object</a></td>
+<td>Return the active object, raising an error if there is none.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/centre.html#databpy.centre">centre</a></td>
+<td>Calculate the weighted centroid of the vectors.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/lerp.html#databpy.lerp">lerp</a></td>
+<td>Linearly interpolate between two values.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="nodes" class="level2">
+<h2 class="anchored" data-anchor-id="nodes">Nodes</h2>
+<p>Helpers for building and manipulating geometry node trees</p>
+<table class="caption-top table">
+<tbody>
+<tr class="odd">
+<td><a href="../api/nodes.new_tree.html#databpy.nodes.new_tree">nodes.new_tree</a></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><a href="../api/nodes.swap_tree.html#databpy.nodes.swap_tree">nodes.swap_tree</a></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><a href="../api/nodes.custom_string_iswitch.html#databpy.nodes.custom_string_iswitch">nodes.custom_string_iswitch</a></td>
+<td>Creates a node group containing a <code>Index Switch</code> node with all the given values.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/nodes.append_from_blend.html#databpy.nodes.append_from_blend">nodes.append_from_blend</a></td>
+<td>Append a Geometry Nodes node tree from the given .blend file</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/nodes.new_socket.html#databpy.nodes.new_socket">nodes.new_socket</a></td>
+<td>Create a new input or output socket on the interface of the node tree.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/nodes.tree_interface.html#databpy.nodes.tree_interface">nodes.tree_interface</a></td>
+<td>Return the interface of a node tree, raising an error if it has none.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/nodes.input_socket.html#databpy.nodes.input_socket">nodes.input_socket</a></td>
+<td>Get an input socket of a node by index or name.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/nodes.output_socket.html#databpy.nodes.output_socket">nodes.output_socket</a></td>
+<td>Get an output socket of a node by index or name.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/nodes.socket_value.html#databpy.nodes.socket_value">nodes.socket_value</a></td>
+<td>Return the default value of a socket.</td>
+</tr>
+<tr class="even">
+<td><a href="../api/nodes.set_socket_value.html#databpy.nodes.set_socket_value">nodes.set_socket_value</a></td>
+<td>Set the default value of a socket.</td>
+</tr>
+<tr class="odd">
+<td><a href="../api/nodes.MaintainConnections.html#databpy.nodes.MaintainConnections">nodes.MaintainConnections</a></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><a href="../api/nodes.DuplicatePrevention.html#databpy.nodes.DuplicatePrevention">nodes.DuplicatePrevention</a></td>
+<td>Context manager to cleanup duplicated node trees when appending node groups</td>
 </tr>
 </tbody>
 </table>

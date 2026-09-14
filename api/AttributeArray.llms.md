@@ -27,7 +27,7 @@ Works with all Blender attribute types: - Float types: FLOAT, FLOAT2, FLOAT4, FL
 |----|----|----|
 | \_blender_object | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Object](https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object) | Reference to the Blender object for syncing changes. |
 | \_attribute | `Attribute` | The underlying Attribute instance with type information. |
-| \_attr_name | [str](https://docs.python.org/3/library/stdtypes.html#str) | Name of the attribute being wrapped. |
+| \_attr_name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Name of the attribute being wrapped. |
 | \_root | [AttributeArray](../api/AttributeArray.llms.md#databpy.AttributeArray) | Reference to the root array for handling views/slices correctly. |
 
 ## Examples
@@ -56,16 +56,16 @@ print(bob.position)  # Returns an AttributeArray
 
     Initial position:
     AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-    [[0.29318    0.99019444 0.1346354 ]
-     [0.19220234 0.89007443 0.03713289]
-     [0.12052336 0.48876375 0.80600643]
-     [0.0521957  0.299532   0.41330963]
-     [0.21266584 0.76043934 0.7533772 ]
-     [0.07490475 0.9887004  0.48241824]
-     [0.17699857 0.87481    0.38601896]
-     [0.39374748 0.40176523 0.44612154]
-     [0.36357155 0.6508813  0.7646437 ]
-     [0.8914737  0.47748503 0.2784503 ]]
+    [[0.8159451  0.22164091 0.6054767 ]
+     [0.11721323 0.5914382  0.3725798 ]
+     [0.47905883 0.6434982  0.13499004]
+     [0.32528788 0.4538986  0.16545187]
+     [0.05203167 0.78007096 0.49389982]
+     [0.81381613 0.3698646  0.01598053]
+     [0.9621401  0.828609   0.8728848 ]
+     [0.68874955 0.5318719  0.20737469]
+     [0.8270615  0.25852    0.6461827 ]
+     [0.7300434  0.74786454 0.0328449 ]]
 
 ``` python
 bob.position[:, 2] += 1.0
@@ -75,16 +75,16 @@ print(bob.position)
 
     Updated position:
     AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-    [[0.29318    0.99019444 1.1346354 ]
-     [0.19220234 0.89007443 1.0371329 ]
-     [0.12052336 0.48876375 1.8060064 ]
-     [0.0521957  0.299532   1.4133096 ]
-     [0.21266584 0.76043934 1.7533772 ]
-     [0.07490475 0.9887004  1.4824183 ]
-     [0.17699857 0.87481    1.386019  ]
-     [0.39374748 0.40176523 1.4461216 ]
-     [0.36357155 0.6508813  1.7646437 ]
-     [0.8914737  0.47748503 1.2784503 ]]
+    [[0.8159451  0.22164091 1.6054766 ]
+     [0.11721323 0.5914382  1.3725798 ]
+     [0.47905883 0.6434982  1.13499   ]
+     [0.32528788 0.4538986  1.1654519 ]
+     [0.05203167 0.78007096 1.4938998 ]
+     [0.81381613 0.3698646  1.0159805 ]
+     [0.9621401  0.828609   1.8728848 ]
+     [0.68874955 0.5318719  1.2073747 ]
+     [0.8270615  0.25852    1.6461828 ]
+     [0.7300434  0.74786454 1.0328449 ]]
 
 ``` python
 # Convert to regular numpy array (no sync)
@@ -93,16 +93,16 @@ print(np.asarray(bob.position))
 ```
 
     As Array:
-    [[0.29318    0.99019444 1.1346354 ]
-     [0.19220234 0.89007443 1.0371329 ]
-     [0.12052336 0.48876375 1.8060064 ]
-     [0.0521957  0.299532   1.4133096 ]
-     [0.21266584 0.76043934 1.7533772 ]
-     [0.07490475 0.9887004  1.4824183 ]
-     [0.17699857 0.87481    1.386019  ]
-     [0.39374748 0.40176523 1.4461216 ]
-     [0.36357155 0.6508813  1.7646437 ]
-     [0.8914737  0.47748503 1.2784503 ]]
+    [[0.8159451  0.22164091 1.6054766 ]
+     [0.11721323 0.5914382  1.3725798 ]
+     [0.47905883 0.6434982  1.13499   ]
+     [0.32528788 0.4538986  1.1654519 ]
+     [0.05203167 0.78007096 1.4938998 ]
+     [0.81381613 0.3698646  1.0159805 ]
+     [0.9621401  0.828609   1.8728848 ]
+     [0.68874955 0.5318719  1.2073747 ]
+     [0.8270615  0.25852    1.6461828 ]
+     [0.7300434  0.74786454 1.0328449 ]]
 
 Working with integer attributes:
 

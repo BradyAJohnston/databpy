@@ -48,7 +48,7 @@ Calculate the weighted or unweighted centroid of the object’s positions.
 
 | Name | Type | Description | Default |
 |----|----|----|----|
-| weight | [str](https://docs.python.org/3/library/stdtypes.html#str) \| [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) \| None | The weights or indices for calculating the centroid: - If str: Name of attribute to use as weights - If np.ndarray with float dtype: Weights for each position - If np.ndarray with int dtype: Indices of positions to include - If None: Use all positions equally weighted Defaults to None. | `None` |
+| weight | [str](https://docs.python.org/3/builtins/stdtypes.html#str) \| [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) \| None | The weights or indices for calculating the centroid: - If str: Name of attribute to use as weights - If np.ndarray with float dtype: Weights for each position - If np.ndarray with int dtype: Indices of positions to include - If None: Use all positions equally weighted Defaults to None. | `None` |
 
 #### Returns
 
@@ -88,8 +88,8 @@ Create a BlenderObject from curves data.
 | Name | Type | Description | Default |
 |----|----|----|----|
 | positions | `ndarray` or None | Control point positions with shape (N, 3). Default is None. | `None` |
-| curve_sizes | [list](https://docs.python.org/3/library/stdtypes.html#list)\[[int](https://docs.python.org/3/library/functions.html#int)\] \| [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) or None | Number of points in each curve. Default is None. | `None` |
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | Name of the created object. Default is “Curves”. | `'Curves'` |
+| curve_sizes | [list](https://docs.python.org/3/builtins/stdtypes.html#list)\[[int](https://docs.python.org/3/builtins/functions.html#int)\] \| [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) or None | Number of points in each curve. Default is None. | `None` |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Name of the created object. Default is “Curves”. | `'Curves'` |
 | collection | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Collection](https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection) or None | Blender collection to link the object to. Default is None. | `None` |
 
 #### Returns
@@ -131,7 +131,7 @@ Create a BlenderObject from mesh data.
 | vertices | `ndarray` or None | Array of vertex coordinates with shape (N, 3). Default is None. | `None` |
 | edges | `ndarray` or None | Array of edge indices. Default is None. | `None` |
 | faces | `ndarray` or None | Array of face indices. Default is None. | `None` |
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | Name of the created object. Default is “Mesh”. | `'Mesh'` |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Name of the created object. Default is “Mesh”. | `'Mesh'` |
 | collection | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Collection](https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection) or None | Blender collection to link the object to. Default is None. | `None` |
 
 #### Returns
@@ -168,7 +168,7 @@ Create a BlenderObject from point cloud data.
 | Name | Type | Description | Default |
 |----|----|----|----|
 | positions | `ndarray` or None | Point positions with shape (N, 3). Default is None. | `None` |
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | Name of the created object. Default is “PointCloud”. | `'PointCloud'` |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Name of the created object. Default is “PointCloud”. | `'PointCloud'` |
 | collection | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Collection](https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection) or None | Blender collection to link the object to. Default is None. | `None` |
 
 #### Returns
@@ -201,14 +201,14 @@ Returns a list of attribute names for the object.
 
 | Name | Type | Description | Default |
 |----|----|----|----|
-| evaluate | [bool](https://docs.python.org/3/library/functions.html#bool) | Whether to first evaluate the modifiers on the object before listing the available attributes. | `False` |
-| drop_hidden | [bool](https://docs.python.org/3/library/functions.html#bool) | Whether to drop hidden attributes (those starting with a dot). Defaults to False. | `False` |
+| evaluate | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to first evaluate the modifiers on the object before listing the available attributes. | `False` |
+| drop_hidden | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to drop hidden attributes (those starting with a dot). Defaults to False. | `False` |
 
 #### Returns
 
 | Name | Type | Description |
 |----|----|----|
-|  | [list](https://docs.python.org/3/library/stdtypes.html#list)\[[str](https://docs.python.org/3/library/stdtypes.html#str)\] \| None | A list of attribute names if the molecule object exists, None otherwise. |
+|  | [list](https://docs.python.org/3/builtins/stdtypes.html#list)\[[str](https://docs.python.org/3/builtins/stdtypes.html#str)\] \| None | A list of attribute names if the molecule object exists, None otherwise. |
 
 ### named_attribute
 
@@ -224,8 +224,8 @@ Optionally, evaluate the object before reading the named attribute
 
 | Name | Type | Description | Default |
 |----|----|----|----|
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | Name of the attribute to get. | *required* |
-| evaluate | [bool](https://docs.python.org/3/library/functions.html#bool) | Whether to evaluate the object before reading the attribute (default is False). | `False` |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Name of the attribute to get. | *required* |
+| evaluate | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to evaluate the object before reading the attribute (default is False). | `False` |
 
 #### Returns
 
@@ -267,7 +267,7 @@ Remove a named attribute from the object.
 
 | Name | Type | Description | Default |
 |----|----|----|----|
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | The name of the attribute to remove. | *required* |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name of the attribute to remove. | *required* |
 
 ### store_named_attribute
 
@@ -287,9 +287,9 @@ Store a named attribute on the Blender object.
 | Name | Type | Description | Default |
 |----|----|----|----|
 | data | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | The data to be stored as an attribute. | *required* |
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | The name for the attribute. Will overwrite an already existing attribute. | *required* |
-| atype | [str](https://docs.python.org/3/library/stdtypes.html#str) or [AttributeTypes](../api/AttributeTypes.llms.md#databpy.AttributeTypes) or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array. | `None` |
-| domain | [str](https://docs.python.org/3/library/stdtypes.html#str) or [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) | The domain to store the attribute on. Defaults to AttributeDomains.POINT. | `AttributeDomains.POINT` |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name for the attribute. Will overwrite an already existing attribute. | *required* |
+| atype | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeTypes](../api/AttributeTypes.llms.md#databpy.AttributeTypes) or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array. | `None` |
+| domain | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) | The domain to store the attribute on. Defaults to AttributeDomains.POINT. | `AttributeDomains.POINT` |
 
 #### Returns
 

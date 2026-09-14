@@ -11,8 +11,8 @@ Get the named attribute data from the object.
 | Name | Type | Description | Default |
 |----|----|----|----|
 | obj | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Object](https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object) | The Blender object. | *required* |
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | The name of the attribute, by default ‘position’. | `'position'` |
-| evaluate | [bool](https://docs.python.org/3/library/functions.html#bool) | Whether to evaluate modifiers before reading, by default False. | `False` |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name of the attribute, by default ‘position’. | `'position'` |
+| evaluate | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to evaluate modifiers before reading, by default False. | `False` |
 
 ## Returns
 
@@ -24,7 +24,7 @@ Get the named attribute data from the object.
 
 | Name | Type | Description |
 |----|----|----|
-|  | [AttributeError](https://docs.python.org/3/library/exceptions.html#AttributeError) | If the named attribute does not exist on the mesh. |
+|  | [AttributeError](https://docs.python.org/3/builtins/exceptions.html#AttributeError) | If the named attribute does not exist on the mesh. |
 
 ## Examples
 

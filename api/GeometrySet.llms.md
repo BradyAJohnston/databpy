@@ -83,7 +83,7 @@ Get the attribute-holding components present in the evaluated geometry.
 
 | Name | Type | Description |
 |----|----|----|
-|  | [dict](https://docs.python.org/3/library/stdtypes.html#dict)\[`GeometryComponents`, `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[ID](https://docs.blender.org/api/current/bpy.types.ID.html#bpy.types.ID)\] | A mapping of component names to their data-blocks, containing only the components that are present and contain geometry. Blender can include empty components (e.g. a 0-vertex mesh) in the evaluated geometry, which are excluded here - access the `mesh` etc. properties directly if you need them. |
+|  | [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)\[`GeometryComponents`, `AttributeDataBlock`\] | A mapping of component names to their data-blocks, containing only the components that are present and contain geometry. Blender can include empty components (e.g. a 0-vertex mesh) in the evaluated geometry, which are excluded here - access the `mesh` etc. properties directly if you need them. |
 
 ### list_attributes
 
@@ -97,13 +97,13 @@ List the attribute names on each component of the evaluated geometry.
 
 | Name | Type | Description | Default |
 |----|----|----|----|
-| drop_hidden | [bool](https://docs.python.org/3/library/functions.html#bool) | Whether to drop hidden attributes (those starting with a dot). Defaults to False. | `False` |
+| drop_hidden | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to drop hidden attributes (those starting with a dot). Defaults to False. | `False` |
 
 #### Returns
 
 | Name | Type | Description |
 |----|----|----|
-|  | [dict](https://docs.python.org/3/library/stdtypes.html#dict)\[`GeometryComponents`, [list](https://docs.python.org/3/library/stdtypes.html#list)\[[str](https://docs.python.org/3/library/stdtypes.html#str)\]\] | A mapping of component names to their sorted attribute names. |
+|  | [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)\[`GeometryComponents`, [list](https://docs.python.org/3/builtins/stdtypes.html#list)\[[str](https://docs.python.org/3/builtins/stdtypes.html#str)\]\] | A mapping of component names to their sorted attribute names. |
 
 ### named_attribute
 
@@ -117,7 +117,7 @@ Get named attribute data from the evaluated geometry.
 
 | Name | Type | Description | Default |
 |----|----|----|----|
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | The name of the attribute. | *required* |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name of the attribute. | *required* |
 | component | `GeometryComponents` | The component to read the attribute from. If None, the components are searched in order (MESH, POINTCLOUD, CURVES, INSTANCES) and the first that has the attribute is used. | `None` |
 
 #### Returns

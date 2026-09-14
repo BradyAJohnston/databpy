@@ -19,10 +19,10 @@ Adds and sets the values of an attribute on the object.
 |----|----|----|----|
 | obj | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Object](https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object) | The Blender object. | *required* |
 | data | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | The attribute data as a numpy array. | *required* |
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | The name of the attribute. | *required* |
-| atype | [str](https://docs.python.org/3/library/stdtypes.html#str) or [AttributeTypes](../api/AttributeTypes.llms.md#databpy.AttributeTypes) or None | The attribute type to store the data as. If None, type is inferred from data. | `None` |
-| domain | [str](https://docs.python.org/3/library/stdtypes.html#str) or [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) | The domain of the attribute, by default ‘POINT’. | `AttributeDomains.POINT` |
-| overwrite | [bool](https://docs.python.org/3/library/functions.html#bool) | Whether to overwrite existing attribute, by default True. | `True` |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name of the attribute. | *required* |
+| atype | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeTypes](../api/AttributeTypes.llms.md#databpy.AttributeTypes) or None | The attribute type to store the data as. If None, type is inferred from data. | `None` |
+| domain | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) | The domain of the attribute, by default ‘POINT’. | `AttributeDomains.POINT` |
+| overwrite | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to overwrite existing attribute, by default True. | `True` |
 
 ## Returns
 
@@ -34,7 +34,7 @@ Adds and sets the values of an attribute on the object.
 
 | Name | Type | Description |
 |----|----|----|
-|  | [ValueError](https://docs.python.org/3/library/exceptions.html#ValueError) | If atype string doesn’t match available types. |
+|  | [ValueError](https://docs.python.org/3/builtins/exceptions.html#ValueError) | If atype string doesn’t match available types. |
 |  | `AttributeMismatchError` | If data length doesn’t match domain size. |
 
 ## Examples

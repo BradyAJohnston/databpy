@@ -37,3 +37,39 @@ Working with collections in Blender
 | [BlenderObjectAttribute](../api/BlenderObjectAttribute.llms.md#databpy.BlenderObjectAttribute) | Minimal base class for Blender objects with attribute access. |
 | [BlenderObjectBase](../api/BlenderObjectBase.llms.md#databpy.BlenderObjectBase) | Minimal base class for Blender objects with name and object access. |
 | [LinkedObjectError](../api/LinkedObjectError.llms.md#databpy.LinkedObjectError) | Error raised when a Python object doesn’t have a linked object in the 3D scene. |
+
+## Utilities
+
+Typed helpers that check for None or narrow data-block types, plus general utilities
+
+|  |  |
+|----|----|
+| [require](../api/require.llms.md#databpy.require) | Return the given value, raising an error if it is None. |
+| [require_data](../api/require_data.llms.md#databpy.require_data) | Return the object’s data-block, checked to be of the given type. |
+| [mesh_data](../api/mesh_data.llms.md#databpy.mesh_data) | Return the object’s data-block, checked to be a `Mesh`. |
+| [curves_data](../api/curves_data.llms.md#databpy.curves_data) | Return the object’s data-block, checked to be a `Curves`. |
+| [pointcloud_data](../api/pointcloud_data.llms.md#databpy.pointcloud_data) | Return the object’s data-block, checked to be a `PointCloud`. |
+| [volume_data](../api/volume_data.llms.md#databpy.volume_data) | Return the object’s data-block, checked to be a `Volume`. |
+| [active_scene](../api/active_scene.llms.md#databpy.active_scene) | Return the active scene, raising an error if there is none. |
+| [active_object](../api/active_object.llms.md#databpy.active_object) | Return the active object, raising an error if there is none. |
+| [centre](../api/centre.llms.md#databpy.centre) | Calculate the weighted centroid of the vectors. |
+| [lerp](../api/lerp.llms.md#databpy.lerp) | Linearly interpolate between two values. |
+
+## Nodes
+
+Helpers for building and manipulating geometry node trees
+
+|  |  |
+|----|----|
+| [nodes.new_tree](../api/nodes.new_tree.llms.md#databpy.nodes.new_tree) |  |
+| [nodes.swap_tree](../api/nodes.swap_tree.llms.md#databpy.nodes.swap_tree) |  |
+| [nodes.custom_string_iswitch](../api/nodes.custom_string_iswitch.llms.md#databpy.nodes.custom_string_iswitch) | Creates a node group containing a `Index Switch` node with all the given values. |
+| [nodes.append_from_blend](../api/nodes.append_from_blend.llms.md#databpy.nodes.append_from_blend) | Append a Geometry Nodes node tree from the given .blend file |
+| [nodes.new_socket](../api/nodes.new_socket.llms.md#databpy.nodes.new_socket) | Create a new input or output socket on the interface of the node tree. |
+| [nodes.tree_interface](../api/nodes.tree_interface.llms.md#databpy.nodes.tree_interface) | Return the interface of a node tree, raising an error if it has none. |
+| [nodes.input_socket](../api/nodes.input_socket.llms.md#databpy.nodes.input_socket) | Get an input socket of a node by index or name. |
+| [nodes.output_socket](../api/nodes.output_socket.llms.md#databpy.nodes.output_socket) | Get an output socket of a node by index or name. |
+| [nodes.socket_value](../api/nodes.socket_value.llms.md#databpy.nodes.socket_value) | Return the default value of a socket. |
+| [nodes.set_socket_value](../api/nodes.set_socket_value.llms.md#databpy.nodes.set_socket_value) | Set the default value of a socket. |
+| [nodes.MaintainConnections](../api/nodes.MaintainConnections.llms.md#databpy.nodes.MaintainConnections) |  |
+| [nodes.DuplicatePrevention](../api/nodes.DuplicatePrevention.llms.md#databpy.nodes.DuplicatePrevention) | Context manager to cleanup duplicated node trees when appending node groups |

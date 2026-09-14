@@ -11,13 +11,13 @@ Remove a named attribute from an object.
 | Name | Type | Description | Default |
 |----|----|----|----|
 | obj | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Object](https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object) | The Blender object. | *required* |
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | Name of the attribute to remove. | *required* |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Name of the attribute to remove. | *required* |
 
 ## Raises
 
 | Name | Type | Description |
 |----|----|----|
-|  | [AttributeError](https://docs.python.org/3/library/exceptions.html#AttributeError) | If the named attribute does not exist on the mesh. |
+|  | [AttributeError](https://docs.python.org/3/builtins/exceptions.html#AttributeError) | If the named attribute does not exist on the mesh. |
 
 ## Examples
 

@@ -17,5 +17,5 @@ Blender *internally* uses it’s own UUID / reference system but this is current
 | Name | Type | Description |
 |----|----|----|
 | object | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Object](https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object) | The wrapped Blender object. |
-| uuid | [str](https://docs.python.org/3/library/stdtypes.html#str) | Unique identifier for this object instance. |
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | Name of the Blender object. |
+| uuid | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Unique identifier for this object instance. |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Name of the Blender object. |

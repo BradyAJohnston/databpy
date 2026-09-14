@@ -56,14 +56,14 @@ Returns a list of attribute names for the object.
 
 | Name | Type | Description | Default |
 |----|----|----|----|
-| evaluate | [bool](https://docs.python.org/3/library/functions.html#bool) | Whether to first evaluate the modifiers on the object before listing the available attributes. | `False` |
-| drop_hidden | [bool](https://docs.python.org/3/library/functions.html#bool) | Whether to drop hidden attributes (those starting with a dot). Defaults to False. | `False` |
+| evaluate | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to first evaluate the modifiers on the object before listing the available attributes. | `False` |
+| drop_hidden | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to drop hidden attributes (those starting with a dot). Defaults to False. | `False` |
 
 #### Returns
 
 | Name | Type | Description |
 |----|----|----|
-|  | [list](https://docs.python.org/3/library/stdtypes.html#list)\[[str](https://docs.python.org/3/library/stdtypes.html#str)\] \| None | A list of attribute names if the molecule object exists, None otherwise. |
+|  | [list](https://docs.python.org/3/builtins/stdtypes.html#list)\[[str](https://docs.python.org/3/builtins/stdtypes.html#str)\] \| None | A list of attribute names if the molecule object exists, None otherwise. |
 
 ### named_attribute
 
@@ -79,8 +79,8 @@ Optionally, evaluate the object before reading the named attribute
 
 | Name | Type | Description | Default |
 |----|----|----|----|
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | Name of the attribute to get. | *required* |
-| evaluate | [bool](https://docs.python.org/3/library/functions.html#bool) | Whether to evaluate the object before reading the attribute (default is False). | `False` |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Name of the attribute to get. | *required* |
+| evaluate | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to evaluate the object before reading the attribute (default is False). | `False` |
 
 #### Returns
 
@@ -100,7 +100,7 @@ Remove a named attribute from the object.
 
 | Name | Type | Description | Default |
 |----|----|----|----|
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | The name of the attribute to remove. | *required* |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name of the attribute to remove. | *required* |
 
 ### store_named_attribute
 
@@ -120,9 +120,9 @@ Store a named attribute on the Blender object.
 | Name | Type | Description | Default |
 |----|----|----|----|
 | data | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | The data to be stored as an attribute. | *required* |
-| name | [str](https://docs.python.org/3/library/stdtypes.html#str) | The name for the attribute. Will overwrite an already existing attribute. | *required* |
-| atype | [str](https://docs.python.org/3/library/stdtypes.html#str) or [AttributeTypes](../api/AttributeTypes.llms.md#databpy.AttributeTypes) or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array. | `None` |
-| domain | [str](https://docs.python.org/3/library/stdtypes.html#str) or [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) | The domain to store the attribute on. Defaults to AttributeDomains.POINT. | `AttributeDomains.POINT` |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name for the attribute. Will overwrite an already existing attribute. | *required* |
+| atype | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeTypes](../api/AttributeTypes.llms.md#databpy.AttributeTypes) or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array. | `None` |
+| domain | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) | The domain to store the attribute on. Defaults to AttributeDomains.POINT. | `AttributeDomains.POINT` |
 
 #### Returns
 
