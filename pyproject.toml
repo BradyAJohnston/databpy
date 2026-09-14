@@ -34,13 +34,14 @@ members = [
 dev = [
     "fake-bpy-module",
     "polars",
-    "quarto-cli>=1.9",
+    "quarto-cli>=1.10",
     "quartodoc",
     "jupyter",
     "polars",
     "pytest",
     "pytest-cov",
-    "nodebpy>=520.8.0",
+    "nodebpy>=520.24.0",
     "ty>=0.0.80",
     "ruff>=0.16.7",
+    "griffe<2",
 ]
