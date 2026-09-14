@@ -1,9 +1,10 @@
 import warnings
+from typing import Self
 
 import bpy
 import numpy as np
 
-from .attribute import Attribute, store_named_attribute
+from .attribute import Attribute, _attribute_data, store_named_attribute
 
 
 class AttributeArray(np.ndarray):
@@ -102,7 +103,12 @@ class AttributeArray(np.ndarray):
     named_attribute : Function to read attribute data as regular arrays
     """
 
-    def __new__(cls, obj: bpy.types.Object, name: str) -> "AttributeArray":
+    _blender_object: bpy.types.Object | None
+    _attribute: Attribute | None
+    _attr_name: str | None
+    _root: np.ndarray
+
+    def __new__(cls, obj: bpy.types.Object, name: str) -> Self:
         """Create a new AttributeArray that wraps a Blender attribute.
 
         Parameters
@@ -117,7 +123,7 @@ class AttributeArray(np.ndarray):
         AttributeArray
             A numpy array subclass that syncs changes back to Blender.
         """
-        attr = Attribute(obj.data.attributes[name])
+        attr = Attribute(_attribute_data(obj).attributes[name])
         arr = np.asarray(attr.as_array()).view(cls)
         arr._blender_object = obj
         arr._attribute = attr
@@ -164,24 +170,18 @@ class AttributeArray(np.ndarray):
         super().__setitem__(key, value)
         self._sync_to_blender()
 
-    def _get_expected_components(self):
-        """Get the expected number of components for the attribute type.
-
-        Returns the total number of scalar values per element based on the
-        attribute's dimensions. For example, FLOAT_VECTOR (3,) returns 3,
-        FLOAT4X4 (4, 4) returns 16.
-        """
-        dimensions = self._attribute.atype.value.dimensions
-        return int(np.prod(dimensions))
-
-    def _ensure_correct_shape(self, data):
+    def _ensure_correct_shape(
+        self, data: np.ndarray, attribute: Attribute
+    ) -> np.ndarray:
         """Ensure data has the correct shape for Blender.
 
         Handles numpy views that may have lost dimension information and
         reshapes 1D arrays to match the expected attribute dimensions.
         """
-        expected_components = self._get_expected_components()
-        expected_dims = self._attribute.atype.value.dimensions
+        expected_dims = attribute.atype.value.dimensions
+        # the total number of scalar values per element, e.g. FLOAT_VECTOR (3,)
+        # gives 3 and FLOAT4X4 (4, 4) gives 16
+        expected_components = int(np.prod(expected_dims))
 
         # Reshape 1D to correct dimensionality if needed
         if data.ndim == 1 and len(data) % expected_components == 0:
@@ -194,10 +194,10 @@ class AttributeArray(np.ndarray):
                 return data.reshape(n_elements, *expected_dims)
 
         # Handle views that lost shape information (e.g., column slices)
-        if data.ndim != len(self._attribute.shape):
+        if data.ndim != len(attribute.shape):
             # Try to get the full array from the root
-            full_array = np.asarray(self._root).view(np.ndarray).copy()
-            if full_array.shape == self._attribute.shape:
+            full_array = np.asarray(self._root).copy()
+            if full_array.shape == attribute.shape:
                 return full_array
 
         return data
@@ -210,7 +210,9 @@ class AttributeArray(np.ndarray):
         API requiring the full array. For large meshes, consider batching
         multiple modifications before triggering a sync.
         """
-        if self._attribute is None:
+        attribute = self._attribute
+        attr_name = self._attr_name
+        if attribute is None or attr_name is None:
             # a detached copy with no linked attribute; nothing to sync
             return
 
@@ -226,20 +228,20 @@ class AttributeArray(np.ndarray):
 
         # Always sync using the root array to ensure full shape
         root = getattr(self, "_root", self)
-        data_to_sync = np.asarray(root).view(np.ndarray)
-        data_to_sync = self._ensure_correct_shape(data_to_sync)
+        data_to_sync = np.asarray(root)
+        data_to_sync = self._ensure_correct_shape(data_to_sync, attribute)
 
         # Use the attribute's actual dtype instead of hardcoding float32
-        expected_dtype = self._attribute.dtype
+        expected_dtype = attribute.dtype
         if data_to_sync.dtype != expected_dtype:
             data_to_sync = data_to_sync.astype(expected_dtype)
 
         store_named_attribute(
             self._blender_object,
             data_to_sync,
-            name=self._attr_name,
-            atype=self._attribute.atype,
-            domain=self._attribute.domain.name,
+            name=attr_name,
+            atype=attribute.atype,
+            domain=attribute.domain,
         )
 
     def _inplace_operation_with_sync(self, operation, other):
@@ -279,7 +281,7 @@ class AttributeArray(np.ndarray):
             obj_type = getattr(self._blender_object.data, "name", "Unknown")
 
         # Get array info
-        array_str = np.array_str(np.asarray(self).view(np.ndarray))
+        array_str = np.array_str(np.asarray(self))
 
         return (
             f"AttributeArray '{attr_name}' from {obj_type}('{obj_name}')"
@@ -305,7 +307,7 @@ class AttributeArray(np.ndarray):
 
         # Get array representation with explicit dtype for cross-platform consistency
         # np.array_repr() can omit dtype on Windows when it's the platform default
-        arr = np.asarray(self).view(np.ndarray)
+        arr = np.asarray(self)
         # Use np.array_repr() but then ensure dtype is always appended
         array_repr = np.array_repr(arr)
         # If dtype isn't already in the repr, add it before the closing parenthesis

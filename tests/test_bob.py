@@ -23,7 +23,7 @@ def test_set_position():
     pos_a = db.named_attribute(obj, "position")
 
     # Store new random positions
-    new_positions = np.random.randn(len(obj.data.vertices), 3)
+    new_positions = np.random.randn(len(db.mesh_data(obj).vertices), 3)
     db.store_named_attribute(obj, new_positions, "position")
     pos_b = db.named_attribute(obj, "position")
 
@@ -62,7 +62,7 @@ def test_bob():
 def test_bob_mismatch_uuid():
     bob = db.BlenderObject(bpy.data.objects["Cube"])
     obj = bob.object
-    old_uuid = obj.uuid
+    old_uuid = db.object.get_uuid(obj)
     bob = db.BlenderObject(obj)
     assert old_uuid == bob.uuid
 

@@ -87,9 +87,7 @@ obj.name
 
 Access attributes from the object's mesh.
 ```{python}
-
 db.named_attribute(obj, "position")
-
 ```
 
 

@@ -14,7 +14,7 @@ def test_creat_obj():
     name = "MyMesh"
     my_object = db.create_object(locations, bonds, name=name)
 
-    assert len(my_object.data.vertices) == 3
+    assert len(db.mesh_data(my_object).vertices) == 3
     assert my_object.name == name
     assert my_object.name != "name"
 
@@ -23,9 +23,9 @@ def test_BlenderObject():
     bob = db.BlenderObject(None)
 
     with pytest.raises(LinkedObjectError):
-        bob.object
+        _ = bob.object
     with pytest.raises(LinkedObjectError):
-        bob.name
+        _ = bob.name
     with pytest.raises(LinkedObjectError):
         bob.name = "testing"
 

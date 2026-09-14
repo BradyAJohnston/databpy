@@ -1,3 +1,5 @@
+from typing import Any
+
 import bpy
 import pytest
 from bpy.types import Collection
@@ -33,7 +35,7 @@ def test_collection():
 
 def test_collection_parent():
     db.collection.create_collection(".MN_data", parent="MolecularNodes")
-    assert ".MN_data" not in bpy.context.scene.collection.children
+    assert ".MN_data" not in db.active_scene().collection.children
 
 
 # New tests to improve coverage
@@ -43,7 +45,7 @@ def test_get_collection_existing():
     """Test _get_collection with existing collection."""
     # Create a collection first
     test_coll = bpy.data.collections.new("TestExisting")
-    bpy.context.scene.collection.children.link(test_coll)
+    db.active_scene().collection.children.link(test_coll)
 
     # Test that _get_collection returns the existing one
     retrieved = db.collection._get_collection("TestExisting")
@@ -61,7 +63,7 @@ def test_get_collection_new():
     new_coll = db.collection._get_collection("TestNew")
     assert new_coll.name == "TestNew"
     assert "TestNew" in bpy.data.collections
-    assert new_coll.name in bpy.context.scene.collection.children
+    assert new_coll.name in db.active_scene().collection.children
 
 
 def test_create_collection_default_name():
@@ -82,7 +84,7 @@ def test_create_collection_with_collection_parent():
     assert child_coll.name == "ChildCollection"
     assert child_coll.name in parent_coll.children
     # Should be unlinked from scene root
-    assert child_coll.name not in bpy.context.scene.collection.children
+    assert child_coll.name not in db.active_scene().collection.children
 
 
 def test_create_collection_with_string_parent():
@@ -96,16 +98,18 @@ def test_create_collection_with_string_parent():
     assert child_coll.name == "StringChild"
     assert child_coll.name in bpy.data.collections["StringParent"].children
     # Should be unlinked from scene root
-    assert child_coll.name not in bpy.context.scene.collection.children
+    assert child_coll.name not in db.active_scene().collection.children
 
 
 def test_create_collection_invalid_parent_type():
     """Test create_collection raises TypeError for invalid parent type."""
+    int_parent: Any = 123
     with pytest.raises(TypeError, match="Parent must be a Collection, string or None"):
-        db.collection.create_collection("TestCollection", parent=123)
+        db.collection.create_collection("TestCollection", parent=int_parent)
 
+    list_parent: Any = []
     with pytest.raises(TypeError, match="Parent must be a Collection, string or None"):
-        db.collection.create_collection("TestCollection", parent=[])
+        db.collection.create_collection("TestCollection", parent=list_parent)
 
 
 def test_create_collection_nonexistent_parent_string():
@@ -146,7 +150,7 @@ def test_create_collection_move_from_scene_to_parent():
     """Test that collection is moved from scene root to parent when parent is specified."""
     # Create collection in scene root first
     coll = db.collection.create_collection("MoveTest")
-    assert coll.name in bpy.context.scene.collection.children
+    assert coll.name in db.active_scene().collection.children
 
     # Create parent
     parent_coll = db.collection.create_collection("MoveParent")
@@ -159,14 +163,14 @@ def test_create_collection_move_from_scene_to_parent():
     # Should be in parent
     assert moved_coll.name in parent_coll.children
     # Should be removed from scene root
-    assert moved_coll.name not in bpy.context.scene.collection.children
+    assert moved_coll.name not in db.active_scene().collection.children
 
 
 def test_create_collection_none_parent_explicit():
     """Test create_collection with explicit None parent stays in scene."""
     coll = db.collection.create_collection("ExplicitNone", parent=None)
     assert coll.name == "ExplicitNone"
-    assert coll.name in bpy.context.scene.collection.children
+    assert coll.name in db.active_scene().collection.children
 
 
 def test_create_collection_nested_hierarchy():
@@ -179,9 +183,9 @@ def test_create_collection_nested_hierarchy():
     # Verify hierarchy
     assert parent.name in grandparent.children
     assert child.name in parent.children
-    assert grandparent.name in bpy.context.scene.collection.children
-    assert parent.name not in bpy.context.scene.collection.children
-    assert child.name not in bpy.context.scene.collection.children
+    assert grandparent.name in db.active_scene().collection.children
+    assert parent.name not in db.active_scene().collection.children
+    assert child.name not in db.active_scene().collection.children
 
 
 def test_create_collection_reuse_existing_with_different_parent():
@@ -202,14 +206,14 @@ def test_create_collection_reuse_existing_with_different_parent():
     # Should be in new parent
     assert moved_child.name in parent2.children
     # Should be removed from old parent (this tests the unlinking logic)
-    assert moved_child.name not in bpy.context.scene.collection.children
+    assert moved_child.name not in db.active_scene().collection.children
 
 
 def test_move_to_collection_single_object():
     """Test moving a single object to a target collection."""
     col = db.create_collection("TargetCol")
     bpy.ops.mesh.primitive_cube_add()
-    cube = bpy.context.active_object
+    cube = db.active_object()
     original_collections = list[Collection](cube.users_collection)
 
     db.move_to_collection(cube, col)
@@ -224,16 +228,16 @@ def test_move_to_collection_multiple_objects():
     col = db.create_collection("TargetMulti")
 
     bpy.ops.mesh.primitive_cube_add()
-    cube = bpy.context.active_object
+    cube = db.active_object()
     bpy.ops.mesh.primitive_plane_add()
-    plane = bpy.context.active_object
+    plane = db.active_object()
 
     db.move_to_collection([cube, plane], col)
 
     assert cube.name in col.objects
     assert plane.name in col.objects
-    assert cube.name not in bpy.context.scene.collection.objects
-    assert plane.name not in bpy.context.scene.collection.objects
+    assert cube.name not in db.active_scene().collection.objects
+    assert plane.name not in db.active_scene().collection.objects
 
 
 def test_move_to_collection_between_collections():
@@ -242,7 +246,7 @@ def test_move_to_collection_between_collections():
     col_b = db.create_collection("ColB")
 
     bpy.ops.mesh.primitive_cube_add()
-    cube = bpy.context.active_object
+    cube = db.active_object()
 
     db.move_to_collection(cube, col_a)
     assert cube.name in col_a.objects

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pytest
@@ -54,5 +55,6 @@ def test_path_resolve_path():
 
 
 def test_path_resolve_invalid():
-    with pytest.raises(ValueError):
-        utils.path_resolve(123)
+    not_a_path: Any = 123
+    with pytest.raises(TypeError):
+        utils.path_resolve(not_a_path)

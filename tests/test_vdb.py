@@ -1,3 +1,4 @@
+import importlib
 import os
 import tempfile
 from pathlib import Path
@@ -7,13 +8,16 @@ import pytest
 
 try:
     bpy.utils.expose_bundled_modules()
-    import openvdb as vdb
+    # openvdb is bundled with Blender and only importable after the call above,
+    # so it is imported dynamically rather than with a regular import statement
+    vdb = importlib.import_module("openvdb")
 
     HAS_OPENVDB = True
-except Exception:
+except (AttributeError, ImportError):
     HAS_OPENVDB = False
 
 from databpy.collection import create_collection
+from databpy.utils import active_scene, volume_data
 from databpy.vdb import import_vdb
 
 
@@ -124,7 +128,7 @@ class TestVDBImport:
         assert volume_obj in target_collection.objects.values()
 
         # Check that it's not in the default collection
-        default_collection = bpy.context.scene.collection
+        default_collection = active_scene().collection
         assert volume_obj not in default_collection.objects.values()
 
     def test_import_vdb_to_existing_collection(self, temp_vdb_file, clean_scene):
@@ -159,16 +163,16 @@ class TestVDBImport:
         volume_obj = import_vdb(temp_vdb_file)
 
         # Check volume data properties
-        volume_data = volume_obj.data
-        assert hasattr(volume_data, "grids")
+        data = volume_data(volume_obj)
+        assert hasattr(data, "grids")
 
         # Check that the volume data has the expected filepath
-        assert volume_data.filepath == str(temp_vdb_file)
+        assert data.filepath == str(temp_vdb_file)
 
         # Check that volume data has expected attributes
-        assert hasattr(volume_data, "display")
-        assert hasattr(volume_data, "render")
-        assert hasattr(volume_data, "materials")
+        assert hasattr(data, "display")
+        assert hasattr(data, "render")
+        assert hasattr(data, "materials")
 
         # Note: Due to Blender/OpenVDB version compatibility issues,
         # the grids may not always be loaded correctly in all environments.

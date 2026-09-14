@@ -43,8 +43,8 @@ class TestMeshCreation:
         edges = [(0, 1), (1, 2)]
         obj = db.create_mesh_object(vertices, edges=edges, name="EdgeMesh")
 
-        assert len(obj.data.vertices) == 3
-        assert len(obj.data.edges) == 2
+        assert len(db.mesh_data(obj).vertices) == 3
+        assert len(db.mesh_data(obj).edges) == 2
 
 
 class TestCurvesCreation:
@@ -97,8 +97,8 @@ class TestCurvesCreation:
         curve_sizes = [2, 5, 3, 5]  # 4 curves with different point counts
         obj = db.create_curves_object(positions, curve_sizes, name="MultiCurves")
 
-        assert len(obj.data.curves) == 4
-        assert len(obj.data.points) == 15
+        assert len(db.curves_data(obj).curves) == 4
+        assert len(db.curves_data(obj).points) == 15
 
     def test_create_curves_size_mismatch_error(self):
         """Test that mismatched positions and curve_sizes raises ValueError."""
@@ -154,7 +154,7 @@ class TestPointCloudCreation:
         positions = np.random.random((1000, 3)).astype(np.float32)
         obj = db.create_pointcloud_object(positions, name="LargePC")
 
-        assert len(obj.data.points) == 1000
+        assert len(db.pointcloud_data(obj).points) == 1000
 
 
 class TestBlenderObjectLen:
@@ -294,9 +294,11 @@ class TestDeprecationWarnings:
             np.random.random((5, 3)).astype(np.float32), [5]
         )
 
-        with pytest.warns(DeprecationWarning):
-            with pytest.raises(AttributeError, match="only works with Mesh"):
-                _ = bob.vertices
+        with (
+            pytest.warns(DeprecationWarning),
+            pytest.raises(TypeError, match="only works with Mesh"),
+        ):
+            _ = bob.vertices
 
     def test_edges_on_non_mesh_raises_error(self):
         """Test edges property raises error on non-mesh objects."""
@@ -304,9 +306,11 @@ class TestDeprecationWarnings:
             np.random.random((10, 3)).astype(np.float32)
         )
 
-        with pytest.warns(DeprecationWarning):
-            with pytest.raises(AttributeError, match="only works with Mesh"):
-                _ = bob.edges
+        with (
+            pytest.warns(DeprecationWarning),
+            pytest.raises(TypeError, match="only works with Mesh"),
+        ):
+            _ = bob.edges
 
 
 class TestCollectionHandling:
@@ -346,23 +350,23 @@ class TestEdgeCases:
         positions = np.random.random((10, 3)).astype(np.float32)
         obj = db.create_curves_object(positions, [10])
 
-        assert len(obj.data.curves) == 1
-        assert len(obj.data.points) == 10
+        assert len(db.curves_data(obj).curves) == 1
+        assert len(db.curves_data(obj).points) == 10
 
     def test_curves_with_single_point_curves(self):
         """Test creating multiple curves each with single point."""
         positions = np.random.random((5, 3)).astype(np.float32)
         obj = db.create_curves_object(positions, [1, 1, 1, 1, 1])
 
-        assert len(obj.data.curves) == 5
-        assert len(obj.data.points) == 5
+        assert len(db.curves_data(obj).curves) == 5
+        assert len(db.curves_data(obj).points) == 5
 
     def test_pointcloud_with_single_point(self):
         """Test creating point cloud with a single point."""
         positions = np.array([[1.0, 2.0, 3.0]], dtype=np.float32)
         obj = db.create_pointcloud_object(positions)
 
-        assert len(obj.data.points) == 1
+        assert len(db.pointcloud_data(obj).points) == 1
 
     def test_mesh_with_2d_positions_converts_to_3d(self):
         """Test that 2D positions raise an error."""
@@ -376,7 +380,7 @@ class TestEdgeCases:
         positions = [[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]
         obj = db.create_pointcloud_object(positions)
 
-        assert len(obj.data.points) == 2
+        assert len(db.pointcloud_data(obj).points) == 2
 
     def test_curves_from_list_input(self):
         """Test creating curves from list instead of numpy array."""
@@ -384,4 +388,4 @@ class TestEdgeCases:
         curve_sizes = [3]
         obj = db.create_curves_object(positions, curve_sizes)
 
-        assert len(obj.data.points) == 3
+        assert len(db.curves_data(obj).points) == 3
