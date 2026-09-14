@@ -1,23 +1,23 @@
-from uuid import uuid1
 import warnings
+from uuid import uuid1
 
 import bpy
 import numpy as np
 from bpy.types import Object
 from numpy import typing as npt
-from .array import AttributeArray
 
 from . import attribute as attr
 from .addon import register
+from .array import AttributeArray
 from .attribute import (
+    Attribute,
     AttributeDomains,
+    AttributeTypeNames,
     AttributeTypes,
     DomainNames,
-    AttributeTypeNames,
-    list_attributes,
     _check_obj_attributes,
     evaluate_object,
-    Attribute,
+    list_attributes,
 )
 from .collection import create_collection
 

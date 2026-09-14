@@ -1,8 +1,9 @@
 """Tests for Curves and PointCloud object creation and manipulation."""
 
+import bpy
 import numpy as np
 import pytest
-import bpy
+
 import databpy as db
 
 

@@ -1,6 +1,7 @@
-import numpy as np
 from pathlib import Path
+
 import bpy
+import numpy as np
 
 
 def centre(position: np.ndarray, weight: np.ndarray | None = None) -> np.ndarray:

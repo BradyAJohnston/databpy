@@ -1,10 +1,11 @@
+import warnings
 from dataclasses import dataclass
 from enum import Enum
 from typing import Literal
+
 import bpy
-from bpy.types import Object
 import numpy as np
-import warnings
+from bpy.types import Object
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
 PossibleAttributeTypes = (
@@ -92,8 +93,6 @@ class AttributeMismatchError(NamedAttributeError):
     exists but the data being written doesn't match the attribute's expected
     shape, size, or type.
     """
-
-    pass
 
 
 class AttributeDomains(Enum):
@@ -647,9 +646,7 @@ class Attribute:
             return array.reshape(self.shape)
 
     def __str__(self) -> str:
-        return "Attribute: {}, type: {}, size: {}".format(
-            self.attribute.name, self.type_name, self.shape
-        )
+        return f"Attribute: {self.attribute.name}, type: {self.type_name}, size: {self.shape}"
 
 
 def _match_atype(

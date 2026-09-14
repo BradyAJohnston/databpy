@@ -1,7 +1,9 @@
+from pathlib import Path
+
 import numpy as np
 import pytest
-from pathlib import Path
-import databpy.utils as utils
+
+from databpy import utils
 
 
 def test_centre_unweighted():

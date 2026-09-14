@@ -1,6 +1,7 @@
-import databpy as db
 import bpy
 import numpy as np
+
+import databpy as db
 
 np.random.seed(11)
 

@@ -1,8 +1,9 @@
 import warnings
 
-import numpy as np
-from .attribute import Attribute, store_named_attribute
 import bpy
+import numpy as np
+
+from .attribute import Attribute, store_named_attribute
 
 
 class AttributeArray(np.ndarray):

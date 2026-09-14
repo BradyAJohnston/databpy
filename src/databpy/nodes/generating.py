@@ -1,6 +1,8 @@
+from collections.abc import Iterable
+
 import bpy
+
 from .utils import MaintainConnections, NodeGroupCreationError, get_input, get_output
-from typing import Iterable
 
 
 def swap_tree(node: bpy.types.GeometryNode, tree: bpy.types.GeometryNodeTree) -> None:

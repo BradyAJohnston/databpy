@@ -1,6 +1,5 @@
 import bpy
 
-
 NODE_DUP_SUFFIX = r"\.\d{3}$"
 
 

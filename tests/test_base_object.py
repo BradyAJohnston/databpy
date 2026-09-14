@@ -1,7 +1,8 @@
 """Tests for BlenderObjectBase class methods."""
 
-import numpy as np
 import bpy
+import numpy as np
+
 import databpy as db
 
 

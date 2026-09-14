@@ -27,13 +27,13 @@ pip install databpy
 `bpy` (Blender as a python module) is listed as an optional dependency, so that if you install `databpy` inside of Blender you won't install a redundant version of `bpy`. If you are using this outside of Blender, you will need to specifically request `bpy` with either of these methods:
 ```bash
 # install wtih bpy dependency
-pip install 'databpy[bpy]'
+pip install "databpy[bpy]"
 
 # install both packages
 pip install databpy bpy
 
 # install with all optional dependencies
-pip install 'databpy[all]'
+pip install "databpy[all]"
 ```
 :::
 
@@ -44,8 +44,9 @@ The main use cases are to create objects, store and retrieve attributes from the
 ```python
 import databpy as db
 
-db.store_named_attribute() # store a named attribute on a mesh object
-db.named_attribute()       # retrieve a named attribute from a mesh object
+# store and retrieve attributes from a mesh, point cloud, or curves object
+db.store_named_attribute()
+db.named_attribute()
 ```
 
 Here's an example on how to store an attribute:
@@ -53,12 +54,7 @@ Here's an example on how to store an attribute:
 import numpy as np
 import databpy as db
 
-coords = np.array([
-    [0, 0, 0],
-    [0, 5, 0],
-    [5, 0, 0],
-    [5, 5, 0]
-])
+coords = np.array([[0, 0, 0], [0, 5, 0], [5, 0, 0], [5, 5, 0]]))
 
 obj = db.create_object(coords, name="Box")
 db.store_named_attribute(obj, np.array([10, 20, 31, 42]), "vals")
@@ -78,6 +74,7 @@ bpy.ops.wm.read_homefile(app_template="")
 ```{python}
 import numpy as np
 import databpy as db
+
 np.random.seed(6)
 
 # Create a mesh object
@@ -91,7 +88,7 @@ obj.name
 Access attributes from the object's mesh.
 ```{python}
 
-db.named_attribute(obj, 'position')
+db.named_attribute(obj, "position")
 
 ```
 
@@ -103,11 +100,12 @@ This is a convenience class that wraps around the `bpy.types.Object`, and provid
 This just gives us access to the `named_attribute()` and `store_named_attribute()` functions on the object class, but also provides a more intuitive way to access the object's attributes.
 
 ```{python}
-bob = db.BlenderObject(obj)       # wraps the existing object 
-bob = db.create_bob(random_verts) # creates a new object and returns it already wrapped
+# wrap an existing object or create a new one
+bob = db.BlenderObject(obj)
+bob = db.create_bob(random_verts)
 
 # these two are identical
-bob.named_attribute('position')
+bob.named_attribute("position")
 bob.position
 ```
 
