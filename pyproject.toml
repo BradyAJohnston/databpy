@@ -1,6 +1,6 @@
 [project]
 name = "databpy"
-version = "0.8.0"
+version = "0.9.0"
 description = "A data-oriented wrapper library for the Blender Python API"
 readme = "README.md"
 dependencies = [
@@ -34,11 +34,14 @@ members = [
 dev = [
     "fake-bpy-module",
     "polars",
-    "quarto-cli>=1.9",
+    "quarto-cli>=1.10",
     "quartodoc",
     "jupyter",
     "polars",
     "pytest",
     "pytest-cov",
-    "nodebpy>=520.8.0",
+    "nodebpy>=520.24.0",
+    "ty>=0.0.80",
+    "ruff>=0.16.7",
+    "griffe<2",
 ]

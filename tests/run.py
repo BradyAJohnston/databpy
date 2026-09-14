@@ -22,8 +22,10 @@ def main():
         result = pytest.main()
     else:
         result = pytest.main(argv)
-    if result.value != 0:
-        sys.exit(result.value)
+    # pytest.main returns an ExitCode enum or a plain int
+    exit_code = int(result)
+    if exit_code != 0:
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":

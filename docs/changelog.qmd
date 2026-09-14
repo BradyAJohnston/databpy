@@ -3,7 +3,67 @@ title: Changelog
 toc: true
 ---
 
-## 0.8.0 (unreleased)
+## 0.9.0 (unreleased)
+
+A full static-typing pass over the package and test suite. The code base now
+passes [ty](https://docs.astral.sh/ty/) with zero errors and zero suppression
+comments (every `# type: ignore` has been removed), and ty runs in CI alongside
+ruff. Blender API values that are typed as `Something | None` or as wide
+data-block unions are now handled through small helpers that check at runtime
+and narrow the type, instead of being ignored.
+
+### Added
+
+- Typed narrowing helpers, exported from the top-level `databpy` namespace:
+  - `require()` — return a value, raising `ValueError` if it is `None`
+  - `require_data()`, `mesh_data()`, `curves_data()`, `pointcloud_data()`,
+    `volume_data()` — return `Object.data` checked to be the expected
+    data-block type, raising `TypeError` otherwise
+  - `active_scene()` and `active_object()` — non-optional accessors for
+    `bpy.context.scene` / `bpy.context.active_object`
+- Node helpers in `databpy.nodes` for the optional-heavy node APIs:
+  `tree_interface()`, `new_socket()`, `input_socket()`, `output_socket()`,
+  `socket_value()` and `set_socket_value()`.
+- `databpy.object.get_uuid()` / `set_uuid()` for the dynamically registered
+  `uuid` property on `bpy.types.Object`.
+- Type checking with ty in CI (new `typecheck` job in the lint workflow), with
+  `ty` and `ruff` added as locked dev dependencies.
+- API documentation sections for the new utility and node helpers.
+
+### Changed
+
+- **Breaking**: invalid-type errors now consistently raise `TypeError` (some
+  previously raised `ValueError` or `AttributeError`): `utils.path_resolve()`,
+  `attribute.guess_atype_from_array()`, `BlenderObject.__getitem__()` with a
+  non-string key, assigning a non-`Object` to `BlenderObjectBase.object`, and
+  the deprecated `vertices` / `edges` properties on non-mesh objects.
+- Object creation functions (`create_object()`, `create_mesh_object()`,
+  `create_curves_object()`, `create_pointcloud_object()`, `create_bob()` and
+  the `BlenderObject.from_*()` classmethods) are now typed to accept any
+  array-like (lists and tuples always worked at runtime).
+- `utils.lerp()` accepts scalars and array-likes, converting to numpy arrays
+  internally (the documented list example now actually works).
+- `Attribute()` accepts any `bpy.types.Attribute` and validates it against the
+  supported concrete attribute types, raising `NamedAttributeError` for
+  unsupported ones.
+- `nodes.new_tree()` is typed as returning a `GeometryNodeTree` and raises
+  `NodeGroupCreationError` if an existing node group with the requested name is
+  not a geometry node tree.
+- `nodes.MaintainConnections` and `nodes.swap_tree()` raise `TypeError` when
+  given a node that is not a `GeometryNodeGroup`.
+- `custom_string_iswitch()` catches specific exception types during node group
+  creation (rather than a blind `except Exception`) and chains the original
+  error onto the raised `NodeGroupCreationError`.
+
+### Fixed
+
+- `from databpy import utils` was shadowed by `databpy.nodes.utils` in the
+  package namespace, so static analysis (and potentially import order) resolved
+  `databpy.utils` to the wrong module.
+- Docs builds failed with the latest griffe (quartodoc 0.11.1 is incompatible
+  with griffe 2.x); griffe is now pinned to `<2` in the dev dependencies.
+
+## 0.8.0 (2026-07-21)
 
 Support for the new attribute types introduced in Blender 5.2, alongside a cleanup
 of the attribute typing system. Requires `bpy >= 5.2`.

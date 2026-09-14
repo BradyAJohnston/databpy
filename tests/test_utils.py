@@ -1,5 +1,7 @@
 from pathlib import Path
+from typing import Any
 
+import bpy
 import numpy as np
 import pytest
 
@@ -54,5 +56,48 @@ def test_path_resolve_path():
 
 
 def test_path_resolve_invalid():
-    with pytest.raises(ValueError):
-        utils.path_resolve(123)
+    not_a_path: Any = 123
+    with pytest.raises(TypeError):
+        utils.path_resolve(not_a_path)
+
+
+def test_require():
+    assert utils.require(5) == 5
+    assert utils.require("value") == "value"
+    with pytest.raises(ValueError, match="got None"):
+        utils.require(None)
+    with pytest.raises(ValueError, match="custom message"):
+        utils.require(None, "custom message")
+
+
+def test_require_data():
+    cube = bpy.data.objects["Cube"]
+    camera = bpy.data.objects["Camera"]
+
+    assert utils.mesh_data(cube) == cube.data
+    assert utils.require_data(cube, bpy.types.Mesh) == cube.data
+
+    with pytest.raises(TypeError, match="expected Mesh"):
+        utils.mesh_data(camera)
+    with pytest.raises(TypeError, match="expected Curves"):
+        utils.curves_data(cube)
+    with pytest.raises(TypeError, match="expected PointCloud"):
+        utils.pointcloud_data(cube)
+    with pytest.raises(TypeError, match="expected Volume"):
+        utils.volume_data(cube)
+
+
+def test_active_scene():
+    scene = utils.active_scene()
+    assert isinstance(scene, bpy.types.Scene)
+    assert scene == bpy.context.scene
+
+
+def test_active_object():
+    view_layer = utils.require(bpy.context.view_layer)
+    view_layer.objects.active = bpy.data.objects["Cube"]
+    assert utils.active_object().name == "Cube"
+
+    view_layer.objects.active = None
+    with pytest.raises(ValueError, match="No active object"):
+        utils.active_object()

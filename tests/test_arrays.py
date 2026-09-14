@@ -289,11 +289,9 @@ class TestAttributeArray(unittest.TestCase):
         assert y_column.min() == 1.0
 
         # Test attribute error for non-existent attribute
-        try:
-            y_column.nonexistent_attribute
-            assert False, "Should have raised AttributeError"
-        except AttributeError:
-            pass
+        missing_attribute = "nonexistent_attribute"
+        with pytest.raises(AttributeError):
+            getattr(y_column, missing_attribute)
 
     def test_column_slice_array_conversion(self):
         """Test that column slices convert to arrays with optional dtype."""
@@ -334,7 +332,8 @@ class TestAttributeArray(unittest.TestCase):
 
         # Verify shape and components
         assert colors.shape == (5, 4)
-        assert colors._get_expected_components() == 4
+        assert colors._attribute is not None
+        assert colors._attribute.atype.value.dimensions == (4,)
 
         # Modify and verify sync
         colors[:, 3] = 0.5  # Set alpha to 0.5
@@ -601,3 +600,11 @@ def test_copies_are_detached():
     # while true views remain connected and continue to sync
     pos[0] = [1.0, 2.0, 3.0]
     np.testing.assert_allclose(db.named_attribute(obj, "position")[0], [1.0, 2.0, 3.0])
+
+
+def test_repr_appends_dtype_when_omitted():
+    """Boolean reprs omit the dtype by default, so it gets appended explicitly."""
+    bob = create_bob(np.random.rand(4, 3))
+    bob.store_named_attribute(np.array([True, False, True, False]), "flags")
+    flags = AttributeArray(bob.object, "flags")
+    assert "dtype=bool" in repr(flags)

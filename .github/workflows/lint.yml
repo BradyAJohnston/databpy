@@ -1,4 +1,4 @@
-name: Code Lint with Ruff
+name: Lint & Type Check
 
 on:
     push:
@@ -13,12 +13,25 @@ jobs:
       runs-on: ubuntu-latest
       steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
         with:
-          python-version: "3.13"
-      - name: Install ruff
-        run: pip install ruff
+          version: "latest"
       - name: Check code formatting
-        run: ruff format --diff
+        run: uv run ruff format --diff
       - name: Lint code base
-        run: ruff check
+        run: uv run ruff check
+
+    typecheck:
+      name: Type check with ty
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+      - name: Type check
+        run: uv run ty check

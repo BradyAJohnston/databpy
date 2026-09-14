@@ -49,9 +49,10 @@ def import_vdb(
         initial_collection = volume_obj.users_collection[0]
         initial_collection.objects.unlink(volume_obj)
 
-        target_collection = collection
         if isinstance(collection, str):
             target_collection = create_collection(collection)
+        else:
+            target_collection = collection
 
         target_collection.objects.link(volume_obj)
 

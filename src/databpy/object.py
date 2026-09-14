@@ -7,7 +7,7 @@ from bpy.types import Object
 from numpy import typing as npt
 
 from . import attribute as attr
-from .addon import register
+from .addon import UUID_PROP_NAME, register
 from .array import AttributeArray
 from .attribute import (
     Attribute,
@@ -20,6 +20,47 @@ from .attribute import (
     list_attributes,
 )
 from .collection import create_collection
+from .utils import active_scene
+
+
+def get_uuid(obj: Object) -> str:
+    """
+    Get the databpy UUID stored on an object.
+
+    The `uuid` property is registered dynamically on `bpy.types.Object` (see
+    `databpy.addon.register`), so it is accessed via `getattr` rather than as a
+    static attribute.
+
+    Parameters
+    ----------
+    obj : Object
+        The Blender object to read the UUID from.
+
+    Returns
+    -------
+    str
+        The UUID string, or an empty string if none has been set.
+    """
+    value = getattr(obj, UUID_PROP_NAME, "")
+    return value if isinstance(value, str) else ""
+
+
+def set_uuid(obj: Object, uuid: str) -> None:
+    """
+    Set the databpy UUID on an object, registering the property if needed.
+
+    Parameters
+    ----------
+    obj : Object
+        The Blender object to store the UUID on.
+    uuid : str
+        The UUID string to store.
+    """
+    try:
+        setattr(obj, UUID_PROP_NAME, uuid)
+    except AttributeError:
+        register()
+        setattr(obj, UUID_PROP_NAME, uuid)
 
 
 class LinkedObjectError(Exception):
@@ -87,7 +128,7 @@ class ObjectTracker:
         self
             The instance of the class.
         """
-        self.objects = list(bpy.context.scene.objects)  # type: ignore
+        self.objects = list(active_scene().objects)
         return self
 
     def __exit__(self, type, value, traceback):
@@ -104,8 +145,8 @@ class ObjectTracker:
         list
             A list of new objects.
         """
-        obj_names = list([o.name for o in self.objects])
-        current_objects = bpy.context.scene.objects  # type: ignore
+        obj_names = [o.name for o in self.objects]
+        current_objects = active_scene().objects
         new_objects = []
         for obj in current_objects:
             if obj.name not in obj_names:
@@ -141,7 +182,7 @@ def get_from_uuid(uuid: str) -> Object:
         The object from the bpy.data.objects collection.
     """
     for obj in bpy.data.objects:
-        if obj.uuid == uuid:  # type: ignore
+        if get_uuid(obj) == uuid:
             return obj
 
     raise LinkedObjectError(
@@ -192,13 +233,15 @@ class BlenderObjectBase:
             register()
 
         if isinstance(obj, Object):
-            if obj.uuid != "":  # type: ignore
-                self._uuid = obj.uuid  # type: ignore
+            existing_uuid = get_uuid(obj)
+            if existing_uuid != "":
+                self._uuid = existing_uuid
             self.object = obj
         elif isinstance(obj, str):
             obj = bpy.data.objects[obj]
-            if obj.uuid != "":  # type: ignore
-                self._uuid = obj.uuid  # type: ignore
+            existing_uuid = get_uuid(obj)
+            if existing_uuid != "":
+                self._uuid = existing_uuid
             self.object = obj
         elif obj is None:
             self._object_name = ""
@@ -220,7 +263,7 @@ class BlenderObjectBase:
 
         try:
             obj = bpy.data.objects[self._object_name]
-            if obj.uuid != self.uuid:  # type: ignore
+            if get_uuid(obj) != self.uuid:
                 obj = get_from_uuid(self.uuid)
         except (KeyError, MemoryError):
             obj = get_from_uuid(self.uuid)
@@ -240,13 +283,9 @@ class BlenderObjectBase:
         """
 
         if not isinstance(value, Object):
-            raise ValueError(f"{value} must be a bpy.types.Object")
+            raise TypeError(f"{value} must be a bpy.types.Object")
 
-        try:
-            value.uuid = self.uuid  # type: ignore
-        except AttributeError:
-            register()
-            value.uuid = self.uuid  # type: ignore
+        set_uuid(value, self.uuid)
         self._object_name = value.name
 
     @property
@@ -517,11 +556,11 @@ class BlenderObjectAttribute(BlenderObjectBase):
 
         Raises
         ------
-        ValueError
+        TypeError
             If name is not a string.
         """
         if not isinstance(name, str):
-            raise ValueError("Attribute name must be a string")
+            raise TypeError("Attribute name must be a string")
         return AttributeArray(self.object, name)
 
     def __setitem__(self, name: str, data: np.ndarray) -> None:
@@ -568,9 +607,9 @@ class BlenderObject(BlenderObjectAttribute):
     @classmethod
     def from_mesh(
         cls,
-        vertices: np.ndarray | None = None,
-        edges: np.ndarray | None = None,
-        faces: np.ndarray | None = None,
+        vertices: npt.ArrayLike | None = None,
+        edges: npt.ArrayLike | None = None,
+        faces: npt.ArrayLike | None = None,
         name: str = "Mesh",
         collection: bpy.types.Collection | None = None,
     ) -> "BlenderObject":
@@ -623,8 +662,8 @@ class BlenderObject(BlenderObjectAttribute):
     @classmethod
     def from_curves(
         cls,
-        positions: np.ndarray | None = None,
-        curve_sizes: list[int] | np.ndarray | None = None,
+        positions: npt.ArrayLike | None = None,
+        curve_sizes: list[int] | npt.ArrayLike | None = None,
         name: str = "Curves",
         collection: bpy.types.Collection | None = None,
     ) -> "BlenderObject":
@@ -674,7 +713,7 @@ class BlenderObject(BlenderObjectAttribute):
     @classmethod
     def from_pointcloud(
         cls,
-        positions: np.ndarray | None = None,
+        positions: npt.ArrayLike | None = None,
         name: str = "PointCloud",
         collection: bpy.types.Collection | None = None,
     ) -> "BlenderObject":
@@ -799,7 +838,7 @@ class BlenderObject(BlenderObjectAttribute):
 
         Raises
         ------
-        AttributeError
+        TypeError
             If the object is not a mesh.
         """
         warnings.warn(
@@ -810,7 +849,7 @@ class BlenderObject(BlenderObjectAttribute):
             stacklevel=2,
         )
         if not isinstance(self.data, bpy.types.Mesh):
-            raise AttributeError(
+            raise TypeError(
                 f"vertices property only works with Mesh objects, "
                 f"not {type(self.data).__name__}"
             )
@@ -832,7 +871,7 @@ class BlenderObject(BlenderObjectAttribute):
 
         Raises
         ------
-        AttributeError
+        TypeError
             If the object is not a mesh.
         """
         warnings.warn(
@@ -842,7 +881,7 @@ class BlenderObject(BlenderObjectAttribute):
             stacklevel=2,
         )
         if not isinstance(self.data, bpy.types.Mesh):
-            raise AttributeError(
+            raise TypeError(
                 f"edges property only works with Mesh objects, "
                 f"not {type(self.data).__name__}"
             )
@@ -852,7 +891,7 @@ class BlenderObject(BlenderObjectAttribute):
 def create_mesh_object(
     vertices: npt.ArrayLike | None = None,
     edges: npt.ArrayLike | None = None,
-    faces: np.ndarray | None = None,
+    faces: npt.ArrayLike | None = None,
     name: str = "Mesh",
     collection: bpy.types.Collection | None = None,
 ) -> Object:
@@ -896,8 +935,8 @@ def create_mesh_object(
 
 
 def create_curves_object(
-    positions: np.ndarray | None = None,
-    curve_sizes: list[int] | np.ndarray | None = None,
+    positions: npt.ArrayLike | None = None,
+    curve_sizes: list[int] | npt.ArrayLike | None = None,
     name: str = "Curves",
     collection: bpy.types.Collection | None = None,
 ) -> Object:
@@ -966,7 +1005,7 @@ def create_curves_object(
 
 
 def create_pointcloud_object(
-    positions: np.ndarray | None = None,
+    positions: npt.ArrayLike | None = None,
     name: str = "PointCloud",
     collection: bpy.types.Collection | None = None,
 ) -> Object:
@@ -1014,7 +1053,7 @@ def create_pointcloud_object(
         vertices=positions, edges=None, faces=None, name=name, collection=collection
     )
 
-    with bpy.context.temp_override(  # type: ignore
+    with bpy.context.temp_override(
         active_object=obj,
         selected_objects=[obj],
         selected_editable_objects=[obj],
@@ -1027,7 +1066,7 @@ def create_pointcloud_object(
 def create_object(
     vertices: npt.ArrayLike | None = None,
     edges: npt.ArrayLike | None = None,
-    faces: np.ndarray | None = None,
+    faces: npt.ArrayLike | None = None,
     name: str = "NewObject",
     collection: bpy.types.Collection | None = None,
 ) -> Object:
@@ -1056,9 +1095,9 @@ def create_object(
 
 
 def create_bob(
-    vertices: np.ndarray | None = None,
-    edges: np.ndarray | None = None,
-    faces: np.ndarray | None = None,
+    vertices: npt.ArrayLike | None = None,
+    edges: npt.ArrayLike | None = None,
+    faces: npt.ArrayLike | None = None,
     name: str = "NewObject",
     collection: bpy.types.Collection | None = None,
     uuid: str | None = None,
@@ -1093,18 +1132,19 @@ def create_bob(
         A wrapped Blender mesh object.
     """
 
-    bob = BlenderObject(
-        create_mesh_object(
-            vertices=vertices,
-            edges=edges,
-            faces=faces,
-            name=name,
-            collection=collection,
-        )
+    obj = create_mesh_object(
+        vertices=vertices,
+        edges=edges,
+        faces=faces,
+        name=name,
+        collection=collection,
     )
+    bob = BlenderObject(obj)
     if uuid:
+        # update the stored uuid on the object first: the `bob.object` lookup
+        # matches by uuid, so it must be set before changing `bob._uuid`
+        set_uuid(obj, uuid)
         bob._uuid = uuid
-        bob.object.uuid = uuid  # type: ignore
     return bob
 
 

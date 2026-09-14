@@ -1,5 +1,8 @@
+from typing import Any
+
 import bpy
 import numpy as np
+import pytest
 
 import databpy as db
 
@@ -23,7 +26,7 @@ def test_set_position():
     pos_a = db.named_attribute(obj, "position")
 
     # Store new random positions
-    new_positions = np.random.randn(len(obj.data.vertices), 3)
+    new_positions = np.random.randn(len(db.mesh_data(obj).vertices), 3)
     db.store_named_attribute(obj, new_positions, "position")
     pos_b = db.named_attribute(obj, "position")
 
@@ -62,7 +65,7 @@ def test_bob():
 def test_bob_mismatch_uuid():
     bob = db.BlenderObject(bpy.data.objects["Cube"])
     obj = bob.object
-    old_uuid = obj.uuid
+    old_uuid = db.object.get_uuid(obj)
     bob = db.BlenderObject(obj)
     assert old_uuid == bob.uuid
 
@@ -70,3 +73,39 @@ def test_bob_mismatch_uuid():
 def test_register():
     db.unregister()
     db.BlenderObject(bpy.data.objects["Cube"])
+
+
+def test_set_uuid_registers_property():
+    # after unregistering, setting a uuid re-registers the dynamic property
+    obj = bpy.data.objects["Cube"]
+    db.unregister()
+    db.object.set_uuid(obj, "test-uuid-register")
+    assert db.object.get_uuid(obj) == "test-uuid-register"
+
+
+def test_object_setter_requires_object():
+    bob = db.create_bob(np.zeros((3, 3)))
+    not_an_object: Any = 123
+    with pytest.raises(TypeError):
+        bob.object = not_an_object
+
+
+def test_create_bob_with_uuid():
+    bob = db.create_bob(np.zeros((3, 3)), uuid="my-custom-uuid")
+    assert bob.uuid == "my-custom-uuid"
+    assert db.object.get_uuid(bob.object) == "my-custom-uuid"
+
+
+def test_blender_object_from_name_keeps_uuid():
+    # wrapping by name picks up the uuid already stored on the object
+    bob = db.BlenderObject(bpy.data.objects["Cube"])
+    bob_by_name = db.BlenderObject("Cube")
+    assert bob_by_name.uuid == bob.uuid
+
+
+def test_bob_remove_named_attribute():
+    bob = db.create_bob(np.random.rand(4, 3))
+    bob.store_named_attribute(np.arange(4), "to_remove")
+    assert "to_remove" in bob.list_attributes()
+    bob.remove_named_attribute("to_remove")
+    assert "to_remove" not in bob.list_attributes()
