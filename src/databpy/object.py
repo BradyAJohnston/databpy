@@ -332,7 +332,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
         data: np.ndarray,
         name: str,
         atype: AttributeTypeNames | AttributeTypes | None = None,
-        domain: DomainNames | AttributeDomains = AttributeDomains.POINT,
+        domain: DomainNames | AttributeDomains | None = None,
     ) -> bpy.types.Attribute:
         """
         Store a named attribute on the Blender object.
@@ -345,10 +345,11 @@ class BlenderObjectAttribute(BlenderObjectBase):
             The name for the attribute. Will overwrite an already existing attribute.
         atype : str or AttributeTypes or None, optional
             The attribute type to store the data as. Either string or selection from the
-            AttributeTypes enum. None will attempt to infer the attribute type from the
-            input array.
-        domain : str or AttributeDomains, optional
-            The domain to store the attribute on. Defaults to AttributeDomains.POINT.
+            AttributeTypes enum. None uses the type of an existing attribute, otherwise
+            infers the attribute type from the input array.
+        domain : str or AttributeDomains or None, optional
+            The domain to store the attribute on. None uses the domain of an existing
+            attribute, otherwise AttributeDomains.POINT.
 
         Returns
         -------

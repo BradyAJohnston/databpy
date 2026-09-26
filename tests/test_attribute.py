@@ -192,7 +192,8 @@ def test_guess_atype():
     assert db.attribute.AttributeTypes.INT8 == db.attribute.guess_atype_from_array(
         np.zeros(10, dtype=np.int8)
     )
-    assert db.attribute.AttributeTypes.INT8 == db.attribute.guess_atype_from_array(
+    # uint8 values above 127 don't fit in the signed INT8
+    assert db.attribute.AttributeTypes.INT == db.attribute.guess_atype_from_array(
         np.zeros(10, dtype=np.uint8)
     )
     assert db.attribute.AttributeTypes.INT32_2D == db.attribute.guess_atype_from_array(
