@@ -1,11 +1,21 @@
 import functools
 import warnings
+from collections.abc import Callable
+from typing import overload
 
 REMOVAL_VERSION = "0.11.0"
 
 # depth of nested deprecated calls, so a deprecated function that internally uses
 # other deprecated functions only warns once for the user's outermost call
 _depth = 0
+
+
+@overload
+def deprecated[T: type](obj: T) -> T: ...
+
+
+@overload
+def deprecated[**P, R](obj: Callable[P, R]) -> Callable[P, R]: ...
 
 
 def deprecated(obj):

@@ -21,7 +21,9 @@ def _add_points_and_instances_nodes(obj: bpy.types.Object) -> None:
             >> tree.outputs.geometry()
         )
 
-    obj.modifiers.new("test_gn", "NODES").node_group = tree.tree
+    modifier = obj.modifiers.new("test_gn", "NODES")
+    assert isinstance(modifier, bpy.types.NodesModifier)
+    modifier.node_group = tree.tree
 
 
 def test_geometry_set_mesh():

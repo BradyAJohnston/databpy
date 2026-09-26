@@ -98,3 +98,31 @@ quartodoc:
         - BlenderObjectAttribute
         - BlenderObjectBase
         - LinkedObjectError
+    - title: Utilities
+      desc: Typed helpers that check for None or narrow data-block types, plus general utilities
+      contents:
+        - require
+        - require_data
+        - mesh_data
+        - curves_data
+        - pointcloud_data
+        - volume_data
+        - active_scene
+        - active_object
+        - centre
+        - lerp
+    - title: Nodes
+      desc: Helpers for building and manipulating geometry node trees
+      contents:
+        - nodes.new_tree
+        - nodes.swap_tree
+        - nodes.custom_string_iswitch
+        - nodes.append_from_blend
+        - nodes.new_socket
+        - nodes.tree_interface
+        - nodes.input_socket
+        - nodes.output_socket
+        - nodes.socket_value
+        - nodes.set_socket_value
+        - nodes.MaintainConnections
+        - nodes.DuplicatePrevention

@@ -4,13 +4,17 @@ import bpy
 import numpy as np
 from bpy.types import Context, Object
 
-from .attribute import Attribute, AttributeNotFoundError, NamedAttributeError
+from .attribute import (
+    Attribute,
+    AttributeDataBlock,
+    AttributeNotFoundError,
+    NamedAttributeError,
+)
 
 GeometryComponents = Literal["MESH", "POINTCLOUD", "CURVES", "INSTANCES"]
-ComponentData = bpy.types.Mesh | bpy.types.PointCloud | bpy.types.Curves
 
 
-def _is_empty(data: ComponentData) -> bool:
+def _is_empty(data: AttributeDataBlock) -> bool:
     if isinstance(data, bpy.types.Mesh):
         return len(data.vertices) == 0
     if isinstance(data, (bpy.types.PointCloud, bpy.types.Curves)):
@@ -112,20 +116,20 @@ class GeometrySet:
         """The geometries, objects or collections referenced by the instances."""
         return self.geometry.instance_references()
 
-    def components(self) -> dict[GeometryComponents, ComponentData]:
+    def components(self) -> dict[GeometryComponents, AttributeDataBlock]:
         """
         Get the attribute-holding components present in the evaluated geometry.
 
         Returns
         -------
-        dict[GeometryComponents, ComponentData]
+        dict[GeometryComponents, AttributeDataBlock]
             A mapping of component names to their data-blocks, containing only
             the components that are present and contain geometry. Blender can
             include empty components (e.g. a 0-vertex mesh) in the evaluated
             geometry, which are excluded here - access the `mesh` etc. properties
             directly if you need them.
         """
-        possible: dict[GeometryComponents, ComponentData | None] = {
+        possible: dict[GeometryComponents, AttributeDataBlock | None] = {
             "MESH": self.mesh,
             "POINTCLOUD": self.pointcloud,
             "CURVES": self.curves,
@@ -137,7 +141,7 @@ class GeometrySet:
             if data is not None and not _is_empty(data)
         }
 
-    def _get_component(self, component: GeometryComponents) -> ComponentData:
+    def _get_component(self, component: GeometryComponents) -> AttributeDataBlock:
         components = self.components()
         try:
             return components[component]
@@ -166,9 +170,9 @@ class GeometrySet:
         """
         return {
             name: sorted(
-                key
-                for key in data.attributes.keys()
-                if not (drop_hidden and key.startswith("."))
+                attribute.name
+                for attribute in data.attributes
+                if not (drop_hidden and attribute.name.startswith("."))
             )
             for name, data in self.components().items()
         }
@@ -227,10 +231,16 @@ class GeometrySet:
                     f"{len(data.vertices)} verts, {len(data.edges)} edges, "
                     f"{len(data.polygons)} faces"
                 )
+            elif "position" in data.attributes:
+                counts = f"{len(Attribute(data.attributes['position']))} points"
             else:
-                counts = f"{len(data.points)} points"
+                counts = "empty"
             attr_names = ", ".join(
-                sorted(key for key in data.attributes.keys() if not key.startswith("."))
+                sorted(
+                    attribute.name
+                    for attribute in data.attributes
+                    if not attribute.name.startswith(".")
+                )
             )
             lines.append(f"  {name}: {counts}")
             lines.append(f"    attributes: {attr_names}")

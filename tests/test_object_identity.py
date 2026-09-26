@@ -7,13 +7,12 @@ import numpy as np
 import pytest
 
 import databpy as db
-from databpy.addon import UUID_KEY
+from databpy.addon import UUID_KEY, UUID_PROP_NAME
 
 
 def _duplicate(obj: bpy.types.Object) -> bpy.types.Object:
-    dup = obj.copy()
-    assert dup is not None
-    bpy.context.scene.collection.objects.link(dup)
+    dup = db.require(obj.copy())
+    db.active_scene().collection.objects.link(dup)
     return dup
 
 
@@ -21,7 +20,7 @@ def test_uuid_stored_as_custom_property():
     bob = db.BlenderObject(bpy.data.objects["Cube"])
     assert bob.object[UUID_KEY] == bob.uuid
     # kept in sync with the deprecated registered property during the window
-    assert bob.object.uuid == bob.uuid
+    assert getattr(bob.object, UUID_PROP_NAME) == bob.uuid
 
 
 def test_survives_rename_and_geometry_changes():
@@ -53,7 +52,7 @@ def test_removed_object_raises_instead_of_retargeting():
     bpy.data.objects.remove(bob.object)
 
     with pytest.raises(db.LinkedObjectError, match="has been removed"):
-        bob.object
+        _ = bob.object
 
 
 def test_reconnects_after_file_reload(tmp_path):
@@ -105,7 +104,7 @@ def test_unpickled_wrapper_reconnects_by_uuid():
 def test_migrates_legacy_uuid():
     obj = bpy.data.objects["Cube"]
     db.addon._ensure_legacy_property()
-    obj.uuid = "legacy-uuid"
+    setattr(obj, UUID_PROP_NAME, "legacy-uuid")
     assert UUID_KEY not in obj
 
     bob = db.BlenderObject(obj)

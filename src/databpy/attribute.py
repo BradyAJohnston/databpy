@@ -12,6 +12,7 @@ from bpy.types import Object
 from .errors import DatabpyError
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
+AttributeDataBlock = bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
 PossibleAttributeTypes = (
     bpy.types.IntAttribute
     | bpy.types.BoolAttribute
@@ -80,22 +81,61 @@ class AttributeNotFoundError(NamedAttributeError, KeyError):
     """
 
 
-def _check_obj_attributes(obj: Object) -> None:
-    if not isinstance(obj, bpy.types.Object):
-        raise TypeError(f"Object must be a bpy.types.Object, not {type(obj)}")
-    if not any(isinstance(obj.data, obj_type) for obj_type in COMPATIBLE_TYPES):
+def _attribute_data(obj: Object) -> AttributeDataBlock:
+    """Return the object's data-block, checked to be a type that holds attributes."""
+    data = obj.data
+    if not isinstance(data, (bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud)):
         raise TypeError(
             f"The object is not a compatible type.\n- Obj: {obj}\n- Compatible Types: {COMPATIBLE_TYPES}"
         )
+    return data
+
+
+def _check_obj_attributes(obj: Object) -> None:
+    if not isinstance(obj, bpy.types.Object):
+        raise TypeError(f"Object must be a bpy.types.Object, not {type(obj)}")
+    _attribute_data(obj)
+
+
+def _as_typed_attribute(attribute: bpy.types.Attribute) -> PossibleAttributeTypes:
+    """Narrow a generic `Attribute` to one of the concrete attribute types.
+
+    The concrete subclasses are the ones that expose the `data` collection used
+    for reading and writing values.
+    """
+    if isinstance(
+        attribute,
+        (
+            bpy.types.IntAttribute,
+            bpy.types.BoolAttribute,
+            bpy.types.Int2Attribute,
+            bpy.types.Short2Attribute,
+            bpy.types.FloatAttribute,
+            bpy.types.Float2Attribute,
+            bpy.types.Float4Attribute,
+            bpy.types.ByteIntAttribute,
+            bpy.types.Float4x4Attribute,
+            bpy.types.ByteColorAttribute,
+            bpy.types.FloatColorAttribute,
+            bpy.types.QuaternionAttribute,
+            bpy.types.FloatVectorAttribute,
+            bpy.types.StringAttribute,
+        ),
+    ):
+        return attribute
+    raise NamedAttributeError(
+        f"Attribute '{attribute.name}' has an unsupported data type: "
+        f"{attribute.data_type}"
+    )
 
 
 def list_attributes(
     obj: Object, evaluate: bool = False, drop_hidden: bool = False
 ) -> list[str]:
     if evaluate:
-        strings = list(evaluate_object(obj).data.attributes.keys())  # type: ignore
+        strings = list(_attribute_data(evaluate_object(obj)).attributes.keys())
     else:
-        strings = list(obj.data.attributes.keys())  # type: ignore
+        strings = list(_attribute_data(obj).attributes.keys())
 
     # return a sorted list of attribute names because there is inconsistency
     # between blender versions for the order of attributes being iterated over
@@ -315,8 +355,10 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
 
     Raises
     ------
+    TypeError
+        If input is not a numpy array.
     ValueError
-        If input is not a numpy array, or no attribute type matches its shape and dtype.
+        If no attribute type matches the array's shape and dtype.
 
     Examples
     --------
@@ -329,8 +371,7 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
     """
 
     if not isinstance(array, np.ndarray):
-        # a ValueError rather than TypeError, kept for backwards compatibility
-        raise ValueError(f"`array` must be a numpy array, not {type(array)=}")  # noqa: TRY004
+        raise TypeError(f"`array` must be a numpy array, not {type(array)=}")
     if array.ndim == 0:
         raise ValueError(
             "`array` must have at least one dimension, with one row per element"
@@ -444,20 +485,29 @@ def _warn_string_support() -> None:
     )
 
 
-def _read_string_values(attribute: bpy.types.StringAttribute) -> np.ndarray:
+def _as_string_attribute(attribute: bpy.types.Attribute) -> bpy.types.StringAttribute:
+    if not isinstance(attribute, bpy.types.StringAttribute):
+        raise NamedAttributeError(
+            f"Attribute '{attribute.name}' is of type '{attribute.data_type}', "
+            "expected a STRING attribute"
+        )
+    return attribute
+
+
+def _read_string_values(attribute: bpy.types.Attribute) -> np.ndarray:
     # STRING attributes don't support `foreach_get` so values are read individually.
     # Blender stores byte strings, which are decoded to a unicode string array
     _warn_string_support()
-    return np.array([item.value.decode("utf-8") for item in attribute.data])
+    return np.array(
+        [item.value.decode("utf-8") for item in _as_string_attribute(attribute).data]
+    )
 
 
-def _write_string_values(
-    attribute: bpy.types.StringAttribute, array: np.ndarray
-) -> None:
+def _write_string_values(attribute: bpy.types.Attribute, array: np.ndarray) -> None:
     # STRING attributes don't support `foreach_set` so values are set individually.
     # Blender only accepts bytes, so unicode values are encoded first
     _warn_string_support()
-    for item, value in zip(attribute.data, np.ravel(array)):
+    for item, value in zip(_as_string_attribute(attribute).data, np.ravel(array)):
         item.value = value.encode("utf-8") if isinstance(value, str) else bytes(value)
 
 
@@ -537,9 +587,7 @@ class Attribute:
     """
 
     def __init__(self, attribute: bpy.types.Attribute):
-        # bpy collections return the base Attribute type, but every attribute is one of
-        # the concrete types that expose `data`
-        self.attribute = cast(PossibleAttributeTypes, attribute)
+        self.attribute: PossibleAttributeTypes = _as_typed_attribute(attribute)
 
     def __len__(self) -> int:
         """
@@ -667,7 +715,7 @@ class Attribute:
             )
 
         if self.atype == AttributeTypes.STRING:
-            _write_string_values(cast(bpy.types.StringAttribute, self.attribute), array)
+            _write_string_values(self.attribute, array)
         else:
             self.attribute.data.foreach_set(
                 self.value_name, _as_storage_array(array, self.atype)
@@ -686,7 +734,7 @@ class Attribute:
         """
 
         if self.atype == AttributeTypes.STRING:
-            return _read_string_values(cast(bpy.types.StringAttribute, self.attribute))
+            return _read_string_values(self.attribute)
 
         # initialize empty 1D array that is needed to then be filled with values
         # from the Blender attribute
@@ -804,11 +852,10 @@ def store_named_attribute(
     if name == "":
         raise NamedAttributeError("Attribute name cannot be an empty string.")
 
-    attribute: PossibleAttributeTypes | None = (
-        obj_data.attributes.get(name) if overwrite else None
-    )
-    if attribute is not None:
+    existing_attribute = obj_data.attributes.get(name) if overwrite else None
+    if existing_attribute is not None:
         # writing to an existing attribute keeps its type and domain
+        attribute = _as_typed_attribute(existing_attribute)
         existing_atype = AttributeTypes[attribute.data_type]
         atype = existing_atype if atype is None else _match_atype(atype, data)
         if domain is not None and _match_domain(domain) != attribute.domain:
@@ -822,18 +869,26 @@ def store_named_attribute(
         atype = _match_atype(atype, data)
         domain = _match_domain(AttributeDomains.POINT if domain is None else domain)
         current_names = obj_data.attributes.keys()
-        attribute = obj_data.attributes.new(name, atype.value.type_name, domain)  # type: ignore
+        try:
+            new_attribute = obj_data.attributes.new(name, atype.value.type_name, domain)
+        except RuntimeError:
+            # e.g. a domain that isn't supported by this geometry type
+            new_attribute = None
 
-        if attribute is None:
-            [
-                obj_data.attributes.remove(obj_data.attributes[name])
-                for name in obj_data.attributes.keys()
-                if name not in current_names
+        if new_attribute is None:
+            # remove any attributes that were created as part of the failed attempt
+            added_names = [
+                added.name
+                for added in obj_data.attributes
+                if added.name not in current_names
             ]
+            for attr_name in added_names:
+                obj_data.attributes.remove(obj_data.attributes[attr_name])
             raise NamedAttributeError(
                 f"Could not create attribute `{name}` of type `{atype.value.type_name}` on domain `{domain}`. "
                 "Potentially the attribute name is too long or there is no geometry on the object for the given domain."
             )
+        attribute = _as_typed_attribute(new_attribute)
 
     target_atype = AttributeTypes[attribute.data_type]
 
@@ -864,7 +919,7 @@ def store_named_attribute(
         )
 
     if atype == AttributeTypes.STRING:
-        _write_string_values(cast(bpy.types.StringAttribute, attribute), data)
+        _write_string_values(attribute, data)
     else:
         # the 'foreach_set' requires a 1D array, regardless of the shape of the attribute
         attribute.data.foreach_set(
@@ -959,7 +1014,7 @@ def named_attribute(
         obj = evaluate_object(obj)
 
     try:
-        attr = Attribute(obj.data.attributes[name])  # type: ignore
+        attr = Attribute(_attribute_data(obj).attributes[name])
     except KeyError:
         raise AttributeNotFoundError(
             f"The selected attribute '{name}' does not exist on the object. "
@@ -1003,14 +1058,15 @@ def remove_named_attribute(obj: bpy.types.Object, name: str) -> None:
     ```
     """
     _check_obj_attributes(obj)
+    obj_data = _attribute_data(obj)
     try:
-        attr = obj.data.attributes[name]  # type: ignore
+        attr = obj_data.attributes[name]
     except KeyError:
         raise AttributeNotFoundError(
             f"The selected attribute '{name}' does not exist on the object"
         ) from None
     try:
-        obj.data.attributes.remove(attr)  # type: ignore
+        obj_data.attributes.remove(attr)
     except RuntimeError as e:
         raise NamedAttributeError(
             f"The attribute '{name}' is required by Blender and can't be removed"

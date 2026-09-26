@@ -53,7 +53,7 @@ def test_remove_required_attribute(bob):
 def test_linked_object_error_is_databpy_error(bob):
     bpy.data.objects.remove(bob.object)
     with pytest.raises(db.DatabpyError):
-        bob.object
+        _ = bob.object
 
 
 def test_string_warning_points_at_caller(bob):

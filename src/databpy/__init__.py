@@ -1,4 +1,4 @@
-from . import nodes
+from . import collection, nodes, utils
 from .addon import register, unregister
 from .array import AttributeArray
 from .attribute import (
@@ -32,7 +32,18 @@ from .object import (
     create_object,
     create_pointcloud_object,
 )
-from .utils import centre, lerp
+from .utils import (
+    active_object,
+    active_scene,
+    centre,
+    curves_data,
+    lerp,
+    mesh_data,
+    pointcloud_data,
+    require,
+    require_data,
+    volume_data,
+)
 from .vdb import import_vdb
 
 __all__ = [
@@ -52,24 +63,33 @@ __all__ = [
     "LinkedObjectError",
     "NamedAttributeError",
     "ObjectTracker",
+    "active_object",
+    "active_scene",
     "bdo",
     "centre",
+    "collection",
     "create_bob",
     "create_collection",
     "create_curves_object",
     "create_mesh_object",
     "create_object",
     "create_pointcloud_object",
+    "curves_data",
     "evaluate_object",
     "import_vdb",
     "lerp",
     "list_attributes",
+    "mesh_data",
     "move_to_collection",
     "named_attribute",
     "nodes",
+    "pointcloud_data",
     "register",
     "remove_named_attribute",
+    "require",
+    "require_data",
     "store_named_attribute",
     "unregister",
     "utils",
+    "volume_data",
 ]

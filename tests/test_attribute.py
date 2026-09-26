@@ -1,8 +1,10 @@
 import itertools
+from typing import Any
 
 import bpy
 import numpy as np
 import pytest
+from nodebpy import geometry as g
 
 import databpy as db
 
@@ -11,7 +13,7 @@ def test_attribute_properties():
     # Create test object with known vertices
     verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
     obj = db.create_object(verts, name="TestObject")
-    att = db.Attribute(obj.data.attributes["position"])
+    att = db.Attribute(db.mesh_data(obj).attributes["position"])
     assert att.name == "position"
     assert att.type_name == "FLOAT_VECTOR"
     att = db.store_named_attribute(
@@ -24,20 +26,16 @@ def test_errores():
     # Create test object with known vertices
     verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
     obj = db.create_object(verts, name="TestObject")
-    db.Attribute(obj.data.attributes["position"])
+    db.Attribute(db.mesh_data(obj).attributes["position"])
+    fake_domain: Any = "FAKE_DOMAIN"
     with pytest.raises(ValueError):
         db.store_named_attribute(
-            obj,
-            np.random.rand(3, 3),
-            "test_attr",
-            domain="FAKE_DOMAIN",  # ty: ignore[invalid-argument-type]
+            obj, np.random.rand(3, 3), "test_attr", domain=fake_domain
         )
+    fake_type: Any = "FAKE_TYPE"
     with pytest.raises(ValueError):
         db.store_named_attribute(
-            obj,
-            np.random.rand(3, 3),
-            "test_attr",
-            atype="FAKE_TYPE",  # ty: ignore[invalid-argument-type]
+            obj, np.random.rand(3, 3), "test_attr", atype=fake_type
         )
     with pytest.raises(db.NamedAttributeError):
         db.remove_named_attribute(obj, "nonexistent_attr")
@@ -126,6 +124,7 @@ def test_named_attribute_evaluate():
 
     # Add a simple modifier (e.g., subdivision surface)
     mod = obj.modifiers.new(name="Subsurf", type="SUBSURF")
+    assert isinstance(mod, bpy.types.SubsurfModifier)
     mod.levels = 1
 
     # Test with evaluate=True
@@ -134,8 +133,9 @@ def test_named_attribute_evaluate():
 
 
 def test_obj_type_error():
+    not_an_object: Any = 123
     with pytest.raises(TypeError):
-        db.named_attribute(123, "position")  # ty: ignore[invalid-argument-type]
+        db.named_attribute(not_an_object, "position")
 
     with pytest.raises(TypeError):
         db.named_attribute(bpy.data.objects["Camera"], "position")
@@ -150,10 +150,9 @@ def test_check_obj():
 
 
 def test_guess_attribute_type():
-    # Create test object
-    np.array([[0, 0, 0], [1, 1, 1]])
-    with pytest.raises(ValueError):
-        db.attribute.guess_atype_from_array(["A", "B", "C"])  # ty: ignore[invalid-argument-type]
+    not_an_array: Any = ["A", "B", "C"]
+    with pytest.raises(TypeError):
+        db.attribute.guess_atype_from_array(not_an_array)
 
 
 def test_guess_atype():
@@ -253,7 +252,7 @@ def test_setitem_preserves_existing_type():
     # updating via dictionary syntax must keep the existing attribute type rather
     # than re-guessing from the array (which would give FLOAT4)
     bob["col"] = color * 0.5
-    assert bob.object.data.attributes["col"].data_type == "FLOAT_COLOR"
+    assert db.mesh_data(bob.object).attributes["col"].data_type == "FLOAT_COLOR"
     np.testing.assert_allclose(
         db.named_attribute(bob.object, "col"), (color * 0.5).astype(np.float32)
     )
@@ -273,30 +272,21 @@ def test_storage_type():
 
     # a constant value stored via geometry nodes uses SINGLE storage on the
     # evaluated geometry, which still reads transparently as a full array
-    tree = bpy.data.node_groups.new("test_gn", "GeometryNodeTree")
-    tree.interface.new_socket(
-        "Geometry",
-        in_out="INPUT",
-        socket_type="NodeSocketGeometry",  # ty: ignore[invalid-argument-type]
-    )
-    tree.interface.new_socket(
-        "Geometry",
-        in_out="OUTPUT",
-        socket_type="NodeSocketGeometry",  # ty: ignore[invalid-argument-type]
-    )
-    n_in = tree.nodes.new("NodeGroupInput")
-    n_out = tree.nodes.new("NodeGroupOutput")
-    store = tree.nodes.new("GeometryNodeStoreNamedAttribute")
-    store.data_type = "FLOAT"
-    store.domain = "POINT"
-    store.inputs["Name"].default_value = "const_val"
-    store.inputs["Value"].default_value = 3.5
-    tree.links.new(n_in.outputs[0], store.inputs["Geometry"])
-    tree.links.new(store.outputs[0], n_out.inputs[0])
-    obj.modifiers.new("test_gn", "NODES").node_group = tree
+    with g.tree("test_gn", arrange=None) as tree:
+        (
+            g.StoreNamedAttribute.point.float(
+                tree.inputs.geometry(), name="const_val", value=3.5
+            )
+            >> tree.outputs.geometry()
+        )
+    modifier = obj.modifiers.new("test_gn", "NODES")
+    assert isinstance(modifier, bpy.types.NodesModifier)
+    modifier.node_group = tree.tree
 
     ev = db.evaluate_object(obj)
-    assert db.Attribute(ev.data.attributes["const_val"]).storage_type == "SINGLE"
+    assert (
+        db.Attribute(db.mesh_data(ev).attributes["const_val"]).storage_type == "SINGLE"
+    )
     np.testing.assert_allclose(
         db.named_attribute(obj, "const_val", evaluate=True), np.full(4, 3.5)
     )
@@ -321,7 +311,7 @@ def test_string_attribute():
     assert result.tolist() == data.tolist()
 
     # overwriting with new values through the Attribute wrapper
-    attr = db.Attribute(obj.data.attributes["test_string"])
+    attr = db.Attribute(db.mesh_data(obj).attributes["test_string"])
     with pytest.warns(UserWarning, match="String attributes"):
         attr.from_array(np.array(["x", "y", "z"]))
     with pytest.warns(UserWarning, match="String attributes"):
@@ -342,7 +332,7 @@ def test_named_attribute_name():
     for i in range(150):
         name = "a" * i
         print(f"{i} letters, name: '{name}'")
-        data = np.random.rand(len(obj.data.vertices), 3)
+        data = np.random.rand(len(db.mesh_data(obj).vertices), 3)
         if i == 0:
             with pytest.raises(db.NamedAttributeError):
                 db.store_named_attribute(obj, data, name)
@@ -382,29 +372,19 @@ def test_list_attributes(evaluate, drop_hidden):
 
     # store a named attribute via geometry nodes as this should only show up
     # when evaluate=True
-    tree = bpy.data.node_groups.new("Geometry Nodes", "GeometryNodeTree")
-    tree.interface.new_socket(
-        "Geometry",
-        in_out="INPUT",
-        socket_type="NodeSocketGeometry",  # ty: ignore[invalid-argument-type]
-    )
-    tree.interface.new_socket(
-        "Geometry",
-        in_out="OUTPUT",
-        socket_type="NodeSocketGeometry",  # ty: ignore[invalid-argument-type]
-    )
-    tree.nodes.new("NodeGroupInput")
-    tree.nodes.new("NodeGroupOutput")
-    n = tree.nodes.new("GeometryNodeStoreNamedAttribute")
-    n.inputs["Name"].default_value = "testing"
-    n.inputs["Value"].default_value = 0.5
-    tree.links.new(tree.nodes["Group Input"].outputs["Geometry"], n.inputs["Geometry"])
-    tree.links.new(n.outputs["Geometry"], tree.nodes["Group Output"].inputs["Geometry"])
+    with g.tree("Geometry Nodes", arrange=None) as tree:
+        (
+            g.StoreNamedAttribute.point.float(
+                tree.inputs.geometry(), name="testing", value=0.5
+            )
+            >> tree.outputs.geometry()
+        )
     mod = obj.modifiers.new("db_nodes", "NODES")
-    mod.node_group = tree
+    assert isinstance(mod, bpy.types.NodesModifier)
+    mod.node_group = tree.tree
 
     for name in names:
-        data = np.random.rand(len(obj.data.vertices), 3)
+        data = np.random.rand(len(db.mesh_data(obj).vertices), 3)
         db.store_named_attribute(obj, data, name, domain="POINT", atype="FLOAT_VECTOR")
 
     attributes = db.list_attributes(obj, evaluate=evaluate, drop_hidden=drop_hidden)
@@ -445,8 +425,9 @@ def test_str_access_attribute():
     bob["test_name"][0] = 1
     assert bob["test_name"][0][0] == 1
 
-    with pytest.raises(ValueError):
-        bob[0]  # type: ignore
+    not_a_name: Any = 0
+    with pytest.raises(TypeError):
+        bob[not_a_name]
 
     values = np.zeros(3, dtype=int)
 
@@ -575,7 +556,7 @@ def test_attribute_from_array_reshaping():
     db.store_named_attribute(obj, initial_data, "test_attr_reshape")
 
     # Get the Attribute wrapper
-    attr = db.Attribute(obj.data.attributes["test_attr_reshape"])
+    attr = db.Attribute(db.mesh_data(obj).attributes["test_attr_reshape"])
 
     # Try to set with 1D array
     flat_data = np.array([10, 11, 12, 13, 14, 15, 16, 17, 18], dtype=np.float32)
@@ -585,3 +566,12 @@ def test_attribute_from_array_reshaping():
     result = attr.as_array()
     assert result.shape == (3, 3)
     np.testing.assert_array_equal(result, flat_data.reshape(3, 3))
+
+
+def test_store_named_attribute_unsupported_domain():
+    # meshes don't support the CURVE domain, which should raise the library's
+    # own error type rather than leaking Blender's RuntimeError
+    obj = db.create_object(np.zeros((4, 3)), name="TestBadDomain")
+    with pytest.raises(db.NamedAttributeError, match="Could not create attribute"):
+        db.store_named_attribute(obj, np.arange(4), "bad_domain", domain="CURVE")
+    assert "bad_domain" not in db.list_attributes(obj)

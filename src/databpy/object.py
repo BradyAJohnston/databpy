@@ -27,6 +27,7 @@ from .attribute import (
 )
 from .collection import create_collection
 from .errors import LinkedObjectError
+from .utils import active_scene
 
 
 class ObjectDatabase:
@@ -74,7 +75,7 @@ class ObjectTracker:
         self
             The instance of the class.
         """
-        self.objects = list(bpy.context.scene.objects)  # type: ignore
+        self.objects = list(active_scene().objects)
         self._existing = {obj.session_uid for obj in self.objects}
         return self
 
@@ -96,7 +97,7 @@ class ObjectTracker:
         # a rename-proof identity and the creation order
         new_objects = [
             obj
-            for obj in bpy.context.scene.objects  # type: ignore
+            for obj in active_scene().objects
             if obj.session_uid not in self._existing
         ]
         return sorted(new_objects, key=lambda obj: obj.session_uid)
@@ -213,7 +214,11 @@ class BlenderObjectBase:
         """
 
         if self._session_token == session_token():
-            obj = find_by_session_uid(self._session_uid, self._object_name)  # type: ignore
+            obj = (
+                None
+                if self._session_uid is None
+                else find_by_session_uid(self._session_uid, self._object_name)
+            )
             if obj is None:
                 raise LinkedObjectError(
                     f"The object '{self._object_name}' linked to this "
@@ -240,8 +245,7 @@ class BlenderObjectBase:
         """
 
         if not isinstance(value, Object):
-            # a ValueError rather than TypeError, kept for backwards compatibility
-            raise ValueError(f"{value} must be a bpy.types.Object")  # noqa: TRY004
+            raise TypeError(f"{value} must be a bpy.types.Object")
 
         set_uuid(value, self.uuid)
         self._link(value)
@@ -515,14 +519,13 @@ class BlenderObjectAttribute(BlenderObjectBase):
 
         Raises
         ------
-        ValueError
+        TypeError
             If name is not a string.
         AttributeNotFoundError
             If the attribute doesn't exist. This is also a KeyError.
         """
         if not isinstance(name, str):
-            # a ValueError rather than TypeError, kept for backwards compatibility
-            raise ValueError("Attribute name must be a string")  # noqa: TRY004
+            raise TypeError("Attribute name must be a string")
         return AttributeArray(self.object, name)
 
     def __setitem__(self, name: str, data: np.ndarray) -> None:
@@ -625,7 +628,7 @@ class BlenderObject(BlenderObjectAttribute):
     def from_curves(
         cls,
         positions: npt.ArrayLike | None = None,
-        curve_sizes: list[int] | np.ndarray | None = None,
+        curve_sizes: list[int] | npt.ArrayLike | None = None,
         name: str = "Curves",
         collection: bpy.types.Collection | None = None,
     ) -> "BlenderObject":
@@ -808,7 +811,7 @@ class BlenderObject(BlenderObjectAttribute):
 
         Raises
         ------
-        AttributeError
+        TypeError
             If the object is not a mesh.
         """
         warnings.warn(
@@ -819,7 +822,7 @@ class BlenderObject(BlenderObjectAttribute):
             stacklevel=2,
         )
         if not isinstance(self.data, bpy.types.Mesh):
-            raise AttributeError(  # noqa: TRY004 (deprecated property, behaviour kept)
+            raise TypeError(
                 f"vertices property only works with Mesh objects, "
                 f"not {type(self.data).__name__}"
             )
@@ -841,7 +844,7 @@ class BlenderObject(BlenderObjectAttribute):
 
         Raises
         ------
-        AttributeError
+        TypeError
             If the object is not a mesh.
         """
         warnings.warn(
@@ -851,7 +854,7 @@ class BlenderObject(BlenderObjectAttribute):
             stacklevel=2,
         )
         if not isinstance(self.data, bpy.types.Mesh):
-            raise AttributeError(  # noqa: TRY004 (deprecated property, behaviour kept)
+            raise TypeError(
                 f"edges property only works with Mesh objects, "
                 f"not {type(self.data).__name__}"
             )
@@ -918,7 +921,7 @@ def create_mesh_object(
 
 def create_curves_object(
     positions: npt.ArrayLike | None = None,
-    curve_sizes: list[int] | np.ndarray | None = None,
+    curve_sizes: list[int] | npt.ArrayLike | None = None,
     name: str = "Curves",
     collection: bpy.types.Collection | None = None,
 ) -> Object:

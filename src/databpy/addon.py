@@ -9,6 +9,11 @@ from bpy.app.handlers import persistent
 # underscore hides it from the Custom Properties panel.
 UUID_KEY = "_databpy_uuid"
 
+# databpy < 0.9 stored the uuid in a `uuid` property registered on `bpy.types.Object`.
+# It isn't part of the static type information for `Object`, so it is accessed through
+# `getattr` / `setattr` with this constant
+UUID_PROP_NAME = "uuid"
+
 LEGACY_REMOVAL_VERSION = "0.11.0"
 
 # Changes on every file load and is unique per process, so `session_uid` values cached
@@ -55,23 +60,29 @@ def _ensure_legacy_property() -> None:
     # databpy < 0.9 stored the uuid in a registered `Object.uuid` property. It is kept
     # registered (and in sync) during the deprecation window so values in existing
     # .blend files can be migrated and downstream code reading `obj.uuid` keeps working
-    if not hasattr(bpy.types.Object, "uuid"):
-        bpy.types.Object.uuid = bpy.props.StringProperty(  # type: ignore
-            name="UUID",
-            description="Unique identifier for the object",
-            default="",
-            options={"HIDDEN"},
+    if not hasattr(bpy.types.Object, UUID_PROP_NAME):
+        setattr(
+            bpy.types.Object,
+            UUID_PROP_NAME,
+            bpy.props.StringProperty(
+                name="UUID",
+                description="Unique identifier for the object",
+                default="",
+                options={"HIDDEN"},
+            ),
         )
 
 
 def get_uuid(obj: bpy.types.Object) -> str:
     """Return the persistent databpy uuid of an object, or "" if it has none."""
     value = obj.get(UUID_KEY)
-    if value is not None:
+    if isinstance(value, str):
         return value
 
     _ensure_legacy_property()
-    value = obj.uuid  # type: ignore
+    value = getattr(obj, UUID_PROP_NAME, "")
+    if not isinstance(value, str):
+        return ""
     if value:
         try:
             obj[UUID_KEY] = value
@@ -86,7 +97,7 @@ def set_uuid(obj: bpy.types.Object, value: str) -> None:
     """Set the persistent databpy uuid of an object."""
     obj[UUID_KEY] = value
     _ensure_legacy_property()
-    obj.uuid = value  # type: ignore
+    setattr(obj, UUID_PROP_NAME, value)
 
 
 def register() -> None:

@@ -1,5 +1,3 @@
-from collections.abc import Sequence
-
 import bpy
 from bpy.types import Collection
 
@@ -76,7 +74,7 @@ def create_collection(
 
 
 def move_to_collection(
-    objs: bpy.types.Object | Sequence[bpy.types.Object],
+    objs: bpy.types.Object | list[bpy.types.Object],
     target_collection: bpy.types.Collection,
 ) -> None:
     """

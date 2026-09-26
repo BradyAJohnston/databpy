@@ -21,10 +21,37 @@ website:
       - api/create_pointcloud_object.qmd
       - api/create_bob.qmd
       - api/evaluate_object.qmd
+      - api/GeometrySet.qmd
       - api/BlenderObject.qmd
       - api/BlenderObjectAttribute.qmd
       - api/BlenderObjectBase.qmd
       - api/LinkedObjectError.qmd
       section: Objects
+    - contents:
+      - api/require.qmd
+      - api/require_data.qmd
+      - api/mesh_data.qmd
+      - api/curves_data.qmd
+      - api/pointcloud_data.qmd
+      - api/volume_data.qmd
+      - api/active_scene.qmd
+      - api/active_object.qmd
+      - api/centre.qmd
+      - api/lerp.qmd
+      section: Utilities
+    - contents:
+      - api/nodes.new_tree.qmd
+      - api/nodes.swap_tree.qmd
+      - api/nodes.custom_string_iswitch.qmd
+      - api/nodes.append_from_blend.qmd
+      - api/nodes.new_socket.qmd
+      - api/nodes.tree_interface.qmd
+      - api/nodes.input_socket.qmd
+      - api/nodes.output_socket.qmd
+      - api/nodes.socket_value.qmd
+      - api/nodes.set_socket_value.qmd
+      - api/nodes.MaintainConnections.qmd
+      - api/nodes.DuplicatePrevention.qmd
+      section: Nodes
     id: api
   - id: dummy-sidebar

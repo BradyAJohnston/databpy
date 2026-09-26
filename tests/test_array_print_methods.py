@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from databpy import create_object
+from databpy import create_object, mesh_data
 from databpy.array import Attribute, AttributeArray
 
 
@@ -18,7 +18,7 @@ class TestAttributeArrayPrintMethods:
     def example_attribute(self):
         """Create a real Attribute for testing."""
         obj = create_object(np.random.rand(10, 3).astype(np.float32), name="TestCube")
-        return Attribute(obj.data.attributes["position"])
+        return Attribute(mesh_data(obj).attributes["position"])
 
     @pytest.fixture
     def sample_array(self, blender_object):

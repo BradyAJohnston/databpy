@@ -9,6 +9,7 @@ from .attribute import (
     AttributeDomains,
     AttributeNotFoundError,
     AttributeTypes,
+    _attribute_data,
     store_named_attribute,
 )
 from .errors import LinkedObjectError
@@ -170,19 +171,10 @@ class AttributeArray(np.ndarray):
 
         Raises
         ------
-        TypeError
-            If the object isn't a mesh, curves or point cloud.
         AttributeNotFoundError
             If the attribute doesn't exist on the object.
         """
-        data = obj.data
-        if not isinstance(
-            data, (bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud)
-        ):
-            raise TypeError(
-                f"AttributeArray requires a mesh, curves or point cloud object, not "
-                f"{type(data).__name__}"
-            )
+        data = _attribute_data(obj)
         try:
             attr = Attribute(data.attributes[name])
         except KeyError:

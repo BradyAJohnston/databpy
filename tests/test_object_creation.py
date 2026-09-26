@@ -9,12 +9,12 @@ import databpy as db
 
 def test_mixed_face_sizes():
     obj = db.create_object(np.random.rand(5, 3), faces=[[0, 1, 2], [1, 2, 3, 4]])
-    assert [len(face.vertices) for face in obj.data.polygons] == [3, 4]
+    assert [len(face.vertices) for face in db.mesh_data(obj).polygons] == [3, 4]
 
 
 def test_face_array():
     obj = db.create_object(np.random.rand(4, 3), faces=np.array([[0, 1, 2, 3]]))
-    assert len(obj.data.polygons) == 1
+    assert len(db.mesh_data(obj).polygons) == 1
 
 
 @pytest.mark.parametrize(
@@ -36,7 +36,7 @@ def test_pointcloud_in_unlinked_collection():
     collection = bpy.data.collections.new("Unlinked")
     obj = db.create_pointcloud_object(np.random.rand(4, 3), collection=collection)
     assert obj.type == "POINTCLOUD"
-    assert len(obj.data.points) == 4
+    assert len(db.pointcloud_data(obj).points) == 4
     assert obj.users_collection[0] == collection
 
 
@@ -51,7 +51,7 @@ def test_pointcloud_positions_and_no_orphan_mesh():
 def test_empty_pointcloud():
     obj = db.create_pointcloud_object()
     assert obj.type == "POINTCLOUD"
-    assert len(obj.data.points) == 0
+    assert len(db.pointcloud_data(obj).points) == 0
 
 
 @pytest.mark.parametrize(

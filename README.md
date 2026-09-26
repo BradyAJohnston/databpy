@@ -32,13 +32,13 @@ pip install databpy
 >
 > ``` bash
 > # install wtih bpy dependency
-> pip install 'databpy[bpy]'
+> pip install "databpy[bpy]"
 >
 > # install both packages
 > pip install databpy bpy
 >
 > # install with all optional dependencies
-> pip install 'databpy[all]'
+> pip install "databpy[all]"
 > ```
 
 ## Usage
@@ -50,8 +50,9 @@ from them. The functions are named around nodes in Geometry Nodes
 ``` python
 import databpy as db
 
-db.store_named_attribute()  # store a named attribute on a mesh object
-db.named_attribute()  # retrieve a named attribute from a mesh object
+# store and retrieve attributes from a mesh, point cloud, or curves object
+db.store_named_attribute()
+db.named_attribute()
 ```
 
 Here’s an example on how to store an attribute:
@@ -60,7 +61,7 @@ Here’s an example on how to store an attribute:
 import numpy as np
 import databpy as db
 
-coords = np.array([[0, 0, 0], [0, 5, 0], [5, 0, 0], [5, 5, 0]])
+coords = np.array([[0, 0, 0], [0, 5, 0], [5, 0, 0], [5, 5, 0]]))
 
 obj = db.create_object(coords, name="Box")
 db.store_named_attribute(obj, np.array([10, 20, 31, 42]), "vals")
@@ -115,8 +116,9 @@ This just gives us access to the `named_attribute()` and
 provides a more intuitive way to access the object’s attributes.
 
 ``` python
-bob = db.BlenderObject(obj)  # wraps the existing object
-bob = db.create_bob(random_verts)  # creates a new object and returns it already wrapped
+# wrap an existing object or create a new one
+bob = db.BlenderObject(obj)
+bob = db.create_bob(random_verts)
 
 # these two are identical
 bob.named_attribute("position")
