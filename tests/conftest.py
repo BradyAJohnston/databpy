@@ -1,8 +1,5 @@
 import bpy
 import pytest
-import databpy
-
-databpy.register()
 
 
 @pytest.fixture(autouse=True)

@@ -8,7 +8,7 @@ from numpy import typing as npt
 from .array import AttributeArray
 
 from . import attribute as attr
-from .addon import register
+from .addon import get_uuid, session_token, set_uuid
 from .attribute import (
     AttributeDomains,
     AttributeTypes,
@@ -126,7 +126,7 @@ class ObjectTracker:
         return self.new_objects()[-1]
 
 
-def get_from_uuid(uuid: str) -> Object:
+def get_from_uuid(uuid: str, name_hint: str | None = None) -> Object:
     """
     Get an object from the bpy.data.objects collection using a UUID.
 
@@ -134,37 +134,52 @@ def get_from_uuid(uuid: str) -> Object:
     ----------
     uuid : str
         The UUID of the object to get.
+    name_hint : str | None, optional
+        Preferred object name if several objects share the UUID, which happens when
+        an object has been duplicated.
 
     Returns
     -------
     Object
         The object from the bpy.data.objects collection.
     """
-    for obj in bpy.data.objects:
-        if obj.uuid == uuid:  # type: ignore
+    matches = [obj for obj in bpy.data.objects if get_uuid(obj) == uuid]
+    if not matches:
+        raise LinkedObjectError(
+            "Failed to find an object in the database with given uuid: " + uuid
+        )
+    for obj in matches:
+        if obj.name == name_hint:
             return obj
+    return matches[0]
 
-    raise LinkedObjectError(
-        "Failed to find an object in the database with given uuid: " + uuid
-    )
+
+def _get_from_session_uid(session_uid: int) -> Object | None:
+    for obj in bpy.data.objects:
+        if obj.session_uid == session_uid:
+            return obj
+    return None
 
 
 class BlenderObjectBase:
     """
     Minimal base class for Blender objects with name and object access.
 
-    This provides a minimal set of functionality to persistently track a an object in
-    Blender's database, providing access to it's name property and also the object itself.
+    This provides a minimal set of functionality to persistently track an object in
+    Blender's database, providing access to its name property and also the object itself.
     Referencing an object in the database directly can lead to ReferenceErrors as Blender
     can _without warning_ alter the database and thus the Object's place in memory.
 
-    To get around this BlenderObjectBase always looks up via the name attribute and
-    double checks with the `uuid` attribute to ensure the correct object is being returned.
-    If there is a mismatch the entite database will be searched for an object with a uuid
-    that matches and if none is found a LinkedObjectError will be raised.
+    To get around this the object is tracked in two ways:
 
-    Blender _internally_ uses it's own UUID / reference system but this is currently (and
-    frustratingly) not available to us via the Python API.
+    - Within a session, by the object's `session_uid`, which stays the same across
+      renames and internal reallocations. Duplicates of the object get a new
+      `session_uid`, so they are never mistaken for the original. If the object is
+      removed a LinkedObjectError is raised.
+    - Across sessions (after loading a .blend file, or in a new Python process), by a
+      persistent `uuid` stored on the object as a custom property. On first access in
+      a new session the object is found by its `uuid` and then tracked by its new
+      `session_uid`.
 
     Attributes
     ----------
@@ -187,21 +202,22 @@ class BlenderObjectBase:
         """
         self._uuid: str = str(uuid1())
         self._object_name: str = ""
+        self._session_uid: int | None = None
+        self._session_token: str | None = None
 
-        if not hasattr(bpy.types.Object, "uuid"):
-            register()
+        if isinstance(obj, str):
+            obj = bpy.data.objects[obj]
 
         if isinstance(obj, Object):
-            if obj.uuid != "":  # type: ignore
-                self._uuid = obj.uuid  # type: ignore
+            existing_uuid = get_uuid(obj)
+            if existing_uuid:
+                self._uuid = existing_uuid
             self.object = obj
-        elif isinstance(obj, str):
-            obj = bpy.data.objects[obj]
-            if obj.uuid != "":  # type: ignore
-                self._uuid = obj.uuid  # type: ignore
-            self.object = obj
-        elif obj is None:
-            self._object_name = ""
+
+    def _link(self, obj: Object) -> None:
+        self._object_name = obj.name
+        self._session_uid = obj.session_uid
+        self._session_token = session_token()
 
     @property
     def object(self) -> Object:
@@ -214,18 +230,23 @@ class BlenderObjectBase:
             The Blender object, or None if not found.
         """
 
-        # if we can't match a an object by name in the database, we instead try to match
-        # by the uuid. If we match by name and the uuid doesn't match, we try to find
-        # another object instead with the same uuid
+        if self._session_token == session_token():
+            # same session: the name is a fast path, the session_uid is the identity
+            obj = bpy.data.objects.get(self._object_name)
+            if obj is None or obj.session_uid != self._session_uid:
+                obj = _get_from_session_uid(self._session_uid)  # type: ignore
+                if obj is None:
+                    raise LinkedObjectError(
+                        f"The object '{self._object_name}' linked to this "
+                        f"{type(self).__name__} has been removed."
+                    )
+        else:
+            # new session (file loaded or new process), session_uid values are no longer
+            # valid so find the object again by its persistent uuid
+            obj = get_from_uuid(self.uuid, name_hint=self._object_name)
 
-        try:
-            obj = bpy.data.objects[self._object_name]
-            if obj.uuid != self.uuid:  # type: ignore
-                obj = get_from_uuid(self.uuid)
-        except (KeyError, MemoryError):
-            obj = get_from_uuid(self.uuid)
-            self._object_name = obj.name
-
+        if obj.name != self._object_name or self._session_token != session_token():
+            self._link(obj)
         return obj
 
     @object.setter
@@ -242,12 +263,8 @@ class BlenderObjectBase:
         if not isinstance(value, Object):
             raise ValueError(f"{value} must be a bpy.types.Object")
 
-        try:
-            value.uuid = self.uuid  # type: ignore
-        except AttributeError:
-            register()
-            value.uuid = self.uuid  # type: ignore
-        self._object_name = value.name
+        set_uuid(value, self.uuid)
+        self._link(value)
 
     @property
     def uuid(self) -> str:
@@ -1093,19 +1110,16 @@ def create_bob(
         A wrapped Blender mesh object.
     """
 
-    bob = BlenderObject(
-        create_mesh_object(
-            vertices=vertices,
-            edges=edges,
-            faces=faces,
-            name=name,
-            collection=collection,
-        )
+    obj = create_mesh_object(
+        vertices=vertices,
+        edges=edges,
+        faces=faces,
+        name=name,
+        collection=collection,
     )
     if uuid:
-        bob._uuid = uuid
-        bob.object.uuid = uuid  # type: ignore
-    return bob
+        set_uuid(obj, uuid)
+    return BlenderObject(obj)
 
 
 # Friendly alias for BlenderObject - commonly used variable name

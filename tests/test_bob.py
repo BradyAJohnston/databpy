@@ -1,6 +1,7 @@
 import databpy as db
 import bpy
 import numpy as np
+import pytest
 
 np.random.seed(11)
 
@@ -66,6 +67,13 @@ def test_bob_mismatch_uuid():
     assert old_uuid == bob.uuid
 
 
-def test_register():
-    db.unregister()
-    db.BlenderObject(bpy.data.objects["Cube"])
+def test_register_deprecated():
+    with pytest.warns(FutureWarning, match="no longer required"):
+        db.register()
+    bob = db.BlenderObject(bpy.data.objects["Cube"])
+
+    # unregister must not break other add-ons sharing databpy
+    with pytest.warns(FutureWarning, match="no longer does anything"):
+        db.unregister()
+    assert hasattr(bpy.types.Object, "uuid")
+    assert bob.name == "Cube"
