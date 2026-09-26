@@ -75,6 +75,7 @@ class ObjectTracker:
             The instance of the class.
         """
         self.objects = list(bpy.context.scene.objects)  # type: ignore
+        self._existing = {obj.session_uid for obj in self.objects}
         return self
 
     def __exit__(self, type, value, traceback):
@@ -89,15 +90,16 @@ class ObjectTracker:
         Returns
         -------
         list
-            A list of new objects.
+            A list of new objects, ordered from oldest to newest.
         """
-        obj_names = list([o.name for o in self.objects])
-        current_objects = bpy.context.scene.objects  # type: ignore
-        new_objects = []
-        for obj in current_objects:
-            if obj.name not in obj_names:
-                new_objects.append(obj)
-        return new_objects
+        # session_uid values increase as data-blocks are created, so they give both
+        # a rename-proof identity and the creation order
+        new_objects = [
+            obj
+            for obj in bpy.context.scene.objects  # type: ignore
+            if obj.session_uid not in self._existing
+        ]
+        return sorted(new_objects, key=lambda obj: obj.session_uid)
 
     def latest(self):
         """

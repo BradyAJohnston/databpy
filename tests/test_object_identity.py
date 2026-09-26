@@ -117,3 +117,14 @@ def test_create_bob_with_uuid():
     assert bob.uuid == "given-uuid"
     assert bob.object[UUID_KEY] == "given-uuid"
     assert len(bob) == 3
+
+
+def test_object_tracker_orders_by_creation():
+    with db.ObjectTracker() as tracker:
+        first = db.create_object(name="Zeta")
+        second = db.create_object(name="Alpha")
+        # renaming an existing object must not make it look new
+        bpy.data.objects["Cube"].name = "Renamed"
+
+    assert tracker.new_objects() == [first, second]
+    assert tracker.latest() == second

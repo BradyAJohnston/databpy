@@ -14,7 +14,6 @@ from .object import (
 )
 from .vdb import import_vdb
 from . import nodes
-from .nodes import utils
 from .addon import register, unregister
 from .utils import centre, lerp
 from .collection import create_collection, move_to_collection
