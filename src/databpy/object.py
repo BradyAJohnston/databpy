@@ -8,7 +8,13 @@ from numpy import typing as npt
 from .array import AttributeArray
 
 from . import attribute as attr
-from .addon import get_uuid, session_token, set_uuid
+from .addon import (
+    LinkedObjectError,
+    find_by_session_uid,
+    get_uuid,
+    session_token,
+    set_uuid,
+)
 from .attribute import (
     AttributeDomains,
     AttributeTypes,
@@ -20,26 +26,6 @@ from .attribute import (
     Attribute,
 )
 from .collection import create_collection
-
-
-class LinkedObjectError(Exception):
-    """
-    Error raised when a Python object doesn't have a linked object in the 3D scene.
-
-    Parameters
-    ----------
-    message : str
-        The error message describing why the linked object is missing or invalid.
-
-    Attributes
-    ----------
-    message : str
-        The error message that was passed.
-    """
-
-    def __init__(self, message: str):
-        self.message = message
-        super().__init__(self.message)
 
 
 class ObjectDatabase:
@@ -154,13 +140,6 @@ def get_from_uuid(uuid: str, name_hint: str | None = None) -> Object:
     return matches[0]
 
 
-def _get_from_session_uid(session_uid: int) -> Object | None:
-    for obj in bpy.data.objects:
-        if obj.session_uid == session_uid:
-            return obj
-    return None
-
-
 class BlenderObjectBase:
     """
     Minimal base class for Blender objects with name and object access.
@@ -231,15 +210,12 @@ class BlenderObjectBase:
         """
 
         if self._session_token == session_token():
-            # same session: the name is a fast path, the session_uid is the identity
-            obj = bpy.data.objects.get(self._object_name)
-            if obj is None or obj.session_uid != self._session_uid:
-                obj = _get_from_session_uid(self._session_uid)  # type: ignore
-                if obj is None:
-                    raise LinkedObjectError(
-                        f"The object '{self._object_name}' linked to this "
-                        f"{type(self).__name__} has been removed."
-                    )
+            obj = find_by_session_uid(self._session_uid, self._object_name)  # type: ignore
+            if obj is None:
+                raise LinkedObjectError(
+                    f"The object '{self._object_name}' linked to this "
+                    f"{type(self).__name__} has been removed."
+                )
         else:
             # new session (file loaded or new process), session_uid values are no longer
             # valid so find the object again by its persistent uuid
