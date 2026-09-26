@@ -1,3 +1,4 @@
+import itertools
 from uuid import uuid1
 import warnings
 
@@ -741,6 +742,8 @@ class BlenderObject(BlenderObjectAttribute):
         vertices, edges, faces = [
             [] if x is None else x for x in (vertices, edges, faces)
         ]
+        edges = _check_indices(edges, len(vertices), "edges")
+        faces = _check_indices(faces, len(vertices), "faces")
         self.data.clear_geometry()
         self.data.from_pydata(vertices, edges, faces)
         return self.object
@@ -756,6 +759,7 @@ class BlenderObject(BlenderObjectAttribute):
             - If str: Name of attribute to use as weights
             - If np.ndarray with float dtype: Weights for each position
             - If np.ndarray with int dtype: Indices of positions to include
+            - If np.ndarray with bool dtype: Mask of positions to include
             - If None: Use all positions equally weighted
             Defaults to None.
 
@@ -767,13 +771,19 @@ class BlenderObject(BlenderObjectAttribute):
         if isinstance(weight, str):
             weight = self.named_attribute(weight)
 
-        if isinstance(weight, np.ndarray):
-            if weight.dtype.kind == "f":
-                return np.average(self.position, weights=weight, axis=0)
-            elif weight.dtype.kind == "i":
-                return np.average(self.position[weight], axis=0)
+        if weight is None:
+            return np.average(self.position, axis=0)
 
-        return np.average(self.position, axis=0)
+        weight = np.asarray(weight)
+        if weight.dtype.kind == "f":
+            return np.average(self.position, weights=weight, axis=0)
+        elif weight.dtype.kind in "iub":
+            return np.average(self.position[weight], axis=0)
+
+        raise TypeError(
+            f"`weight` must contain float weights, integer indices or a boolean mask, "
+            f"not {weight.dtype}"
+        )
 
     @property
     def vertices(self):
@@ -843,6 +853,21 @@ class BlenderObject(BlenderObjectAttribute):
         return self.data.edges
 
 
+def _check_indices(indices, n_vertices: int, kind: str):
+    # from_pydata doesn't validate indices, and out of range values leave an invalid mesh
+    if not isinstance(indices, np.ndarray):
+        indices = [list(item) for item in indices]
+        flat = np.fromiter(itertools.chain.from_iterable(indices), dtype=np.int64)
+    else:
+        flat = indices.ravel()
+    if flat.size and (flat.min() < 0 or flat.max() >= n_vertices):
+        raise ValueError(
+            f"`{kind}` reference vertex indices outside of the {n_vertices} vertices "
+            f"(found range [{flat.min()}, {flat.max()}])"
+        )
+    return indices
+
+
 def create_mesh_object(
     vertices: npt.ArrayLike | None = None,
     edges: npt.ArrayLike | None = None,
@@ -872,16 +897,13 @@ def create_mesh_object(
         The created mesh object.
     """
 
-    def _array(a):
-        if a is None:
-            return []
-        else:
-            return np.asarray(a)
+    vertices = [] if vertices is None else np.asarray(vertices)
+    # edges and faces aren't converted to arrays, as faces can have different sizes
+    edges = _check_indices([] if edges is None else edges, len(vertices), "edges")
+    faces = _check_indices([] if faces is None else faces, len(vertices), "faces")
 
     mesh = bpy.data.meshes.new(name)
-    mesh.from_pydata(
-        vertices=_array(vertices), edges=_array(edges), faces=_array(faces)
-    )
+    mesh.from_pydata(vertices=vertices, edges=edges, faces=faces)
     obj = bpy.data.objects.new(name, mesh)
     if collection is None:
         collection = create_collection("Collection")
@@ -921,7 +943,8 @@ def create_curves_object(
     Raises
     ------
     ValueError
-        If positions and curve_sizes lengths don't match.
+        If only one of positions and curve_sizes is given, or their lengths don't
+        match.
 
     Examples
     --------
@@ -934,6 +957,11 @@ def create_curves_object(
     curves_obj = create_curves_object(positions, [3, 4])
     ```
     """
+    if (positions is None) != (curve_sizes is None):
+        raise ValueError(
+            "`positions` and `curve_sizes` must be given together, or both be None"
+        )
+
     curves_data = bpy.data.hair_curves.new(name)
     obj = bpy.data.objects.new(name, curves_data)
 
@@ -967,10 +995,6 @@ def create_pointcloud_object(
     """
     Create a new Blender point cloud object.
 
-    This function creates a point cloud by first creating a mesh with vertices
-    at the specified positions, then converting it to a point cloud using
-    Blender's convert operator.
-
     Parameters
     ----------
     positions : np.ndarray, optional
@@ -997,23 +1021,18 @@ def create_pointcloud_object(
     pc_obj = create_pointcloud_object(positions, name="MyPC")
     print(len(pc_obj.data.points))  # 100
     ```
-
-    Notes
-    -----
-    This function works by creating a temporary mesh and converting it to a
-    point cloud using `bpy.ops.object.convert(target='POINTCLOUD')`.
     """
+    pointcloud = bpy.data.pointclouds.new(name)
+    obj = bpy.data.objects.new(name, pointcloud)
 
-    obj = create_mesh_object(
-        vertices=positions, edges=None, faces=None, name=name, collection=collection
-    )
+    if collection is None:
+        collection = create_collection("Collection")
+    collection.objects.link(obj)
 
-    with bpy.context.temp_override(  # type: ignore
-        active_object=obj,
-        selected_objects=[obj],
-        selected_editable_objects=[obj],
-    ):
-        bpy.ops.object.convert(target="POINTCLOUD")
+    if positions is not None:
+        positions = np.asarray(positions)
+        pointcloud.resize(len(positions))
+        attr.store_named_attribute(obj, positions, "position")
 
     return obj
 
