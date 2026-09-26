@@ -7,7 +7,7 @@ import pytest
 
 try:
     bpy.utils.expose_bundled_modules()
-    import openvdb as vdb
+    import openvdb as vdb  # ty: ignore[unresolved-import]
 
     HAS_OPENVDB = True
 except Exception:

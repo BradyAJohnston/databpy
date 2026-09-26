@@ -102,10 +102,10 @@ def test_create_collection_with_string_parent():
 def test_create_collection_invalid_parent_type():
     """Test create_collection raises TypeError for invalid parent type."""
     with pytest.raises(TypeError, match="Parent must be a Collection, string or None"):
-        db.collection.create_collection("TestCollection", parent=123)
+        db.collection.create_collection("TestCollection", parent=123)  # ty: ignore[invalid-argument-type]
 
     with pytest.raises(TypeError, match="Parent must be a Collection, string or None"):
-        db.collection.create_collection("TestCollection", parent=[])
+        db.collection.create_collection("TestCollection", parent=[])  # ty: ignore[invalid-argument-type]
 
 
 def test_create_collection_nonexistent_parent_string():
@@ -210,6 +210,7 @@ def test_move_to_collection_single_object():
     col = db.create_collection("TargetCol")
     bpy.ops.mesh.primitive_cube_add()
     cube = bpy.context.active_object
+    assert cube is not None
     original_collections = list[Collection](cube.users_collection)
 
     db.move_to_collection(cube, col)
@@ -225,8 +226,10 @@ def test_move_to_collection_multiple_objects():
 
     bpy.ops.mesh.primitive_cube_add()
     cube = bpy.context.active_object
+    assert cube is not None
     bpy.ops.mesh.primitive_plane_add()
     plane = bpy.context.active_object
+    assert plane is not None
 
     db.move_to_collection([cube, plane], col)
 
@@ -243,6 +246,7 @@ def test_move_to_collection_between_collections():
 
     bpy.ops.mesh.primitive_cube_add()
     cube = bpy.context.active_object
+    assert cube is not None
 
     db.move_to_collection(cube, col_a)
     assert cube.name in col_a.objects

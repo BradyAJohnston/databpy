@@ -2,10 +2,11 @@ import os
 import warnings
 from dataclasses import dataclass
 from enum import Enum
-from typing import Literal
+from typing import Literal, cast
 
 import bpy
 import numpy as np
+import numpy.typing as npt
 from bpy.types import Object
 
 from .errors import DatabpyError
@@ -414,7 +415,7 @@ def _as_storage_array(data: np.ndarray, atype: AttributeTypes) -> np.ndarray:
         and data.size
         and not np.can_cast(source, target)
     ):
-        info = np.iinfo(target)
+        info = np.iinfo(cast(np.dtype[np.integer], target))
         low, high = np.min(data), np.max(data)
         if (
             (source.kind == "f" and not (np.isfinite(low) and np.isfinite(high)))
@@ -535,8 +536,10 @@ class Attribute:
     named_attribute : Convenience function to read attribute data
     """
 
-    def __init__(self, attribute: PossibleAttributeTypes):
-        self.attribute = attribute
+    def __init__(self, attribute: bpy.types.Attribute):
+        # bpy collections return the base Attribute type, but every attribute is one of
+        # the concrete types that expose `data`
+        self.attribute = cast(PossibleAttributeTypes, attribute)
 
     def __len__(self) -> int:
         """
@@ -637,7 +640,7 @@ class Attribute:
         """Returns the total number of scalar values in the attribute."""
         return int(np.prod(self.shape, dtype=int))
 
-    def from_array(self, array: np.ndarray) -> None:
+    def from_array(self, array: npt.ArrayLike) -> None:
         """
         Set the attribute data from a numpy array.
 
@@ -646,7 +649,7 @@ class Attribute:
 
         Parameters
         ----------
-        array : np.ndarray
+        array : npt.ArrayLike
             Array containing the data to set. Must have the same total number
             of elements as the attribute.
 
@@ -664,7 +667,7 @@ class Attribute:
             )
 
         if self.atype == AttributeTypes.STRING:
-            _write_string_values(self.attribute, array)
+            _write_string_values(cast(bpy.types.StringAttribute, self.attribute), array)
         else:
             self.attribute.data.foreach_set(
                 self.value_name, _as_storage_array(array, self.atype)
@@ -683,7 +686,7 @@ class Attribute:
         """
 
         if self.atype == AttributeTypes.STRING:
-            return _read_string_values(self.attribute)
+            return _read_string_values(cast(bpy.types.StringAttribute, self.attribute))
 
         # initialize empty 1D array that is needed to then be filled with values
         # from the Blender attribute
@@ -729,7 +732,7 @@ def _match_domain(domain: DomainNames | AttributeDomains) -> DomainNames:
 
 def store_named_attribute(
     obj: bpy.types.Object,
-    data: np.ndarray,
+    data: npt.ArrayLike,
     name: str,
     atype: AttributeTypeNames | AttributeTypes | None = None,
     domain: DomainNames | AttributeDomains | None = None,
@@ -861,10 +864,10 @@ def store_named_attribute(
         )
 
     if atype == AttributeTypes.STRING:
-        _write_string_values(attribute, data)  # type: ignore
+        _write_string_values(cast(bpy.types.StringAttribute, attribute), data)
     else:
         # the 'foreach_set' requires a 1D array, regardless of the shape of the attribute
-        attribute.data.foreach_set(  # type: ignore
+        attribute.data.foreach_set(
             atype.value.value_name, _as_storage_array(data, atype)
         )
 

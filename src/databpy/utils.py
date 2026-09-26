@@ -2,6 +2,7 @@ from pathlib import Path
 
 import bpy
 import numpy as np
+import numpy.typing as npt
 
 
 def centre(position: np.ndarray, weight: np.ndarray | None = None) -> np.ndarray:
@@ -24,14 +25,14 @@ def centre(position: np.ndarray, weight: np.ndarray | None = None) -> np.ndarray
     return np.average(position, weights=weight, axis=0)
 
 
-def lerp(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
+def lerp(a: npt.ArrayLike, b: npt.ArrayLike, t: float = 0.5) -> np.ndarray:
     """Linearly interpolate between two values.
 
     Parameters
     ----------
-    a : np.ndarray
+    a : npt.ArrayLike
         The starting value.
-    b : np.ndarray
+    b : npt.ArrayLike
         The ending value.
     t : float, optional
         The interpolation parameter. Default is 0.5.
@@ -55,6 +56,7 @@ def lerp(a: np.ndarray, b: np.ndarray, t: float = 0.5) -> np.ndarray:
     lerp([1, 2, 3], [4, 5, 6], 0.5)
     ```
     """
+    a, b = np.asarray(a), np.asarray(b)
     return a + (b - a) * t
 
 

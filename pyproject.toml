@@ -38,6 +38,19 @@ ignore = ["SIM118"]
 # property access inside `pytest.raises` and broad catches for optional imports
 "tests/**" = ["B018", "BLE001"]
 
+[tool.ty.src]
+# deprecated and removed in 0.11.0; the bpy stubs mark most node API results as optional
+exclude = ["src/databpy/nodes"]
+
+[[tool.ty.overrides]]
+# the bpy stubs type most lookups (`bpy.context.scene`, `bpy.data.objects.get()`,
+# `obj.data`) as optional or as a union of every data type, which tests don't narrow
+include = ["tests/**"]
+[tool.ty.overrides.rules]
+unresolved-attribute = "ignore"
+invalid-assignment = "ignore"
+invalid-return-type = "ignore"
+
 [tool.uv.workspace]
 members = [
     ".",

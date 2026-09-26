@@ -55,4 +55,4 @@ def test_path_resolve_path():
 
 def test_path_resolve_invalid():
     with pytest.raises(ValueError):
-        utils.path_resolve(123)
+        utils.path_resolve(123)  # ty: ignore[invalid-argument-type]

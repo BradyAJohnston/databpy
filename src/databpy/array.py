@@ -170,15 +170,25 @@ class AttributeArray(np.ndarray):
 
         Raises
         ------
+        TypeError
+            If the object isn't a mesh, curves or point cloud.
         AttributeNotFoundError
             If the attribute doesn't exist on the object.
         """
+        data = obj.data
+        if not isinstance(
+            data, (bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud)
+        ):
+            raise TypeError(
+                f"AttributeArray requires a mesh, curves or point cloud object, not "
+                f"{type(data).__name__}"
+            )
         try:
-            attr = Attribute(obj.data.attributes[name])
+            attr = Attribute(data.attributes[name])
         except KeyError:
             raise AttributeNotFoundError(
                 f"The attribute '{name}' does not exist on '{obj.name}'. "
-                f"Available attributes: {sorted(obj.data.attributes.keys())}"
+                f"Available attributes: {sorted(data.attributes.keys())}"
             ) from None
         arr = np.asarray(attr.as_array()).view(cls)
         arr._link = _AttributeLink(obj, attr)
@@ -323,7 +333,7 @@ class AttributeArray(np.ndarray):
         """Names of the attribute, domain, type, object and data-block for printing."""
         link = self._link
         if link is None:
-            return ("Unknown",) * 5
+            return ("Unknown", "Unknown", "Unknown", "Unknown", "Unknown")
         obj_name = obj_type = "Unknown"
         try:
             obj = link.resolve()

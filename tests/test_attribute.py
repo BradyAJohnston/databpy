@@ -27,11 +27,17 @@ def test_errores():
     db.Attribute(obj.data.attributes["position"])
     with pytest.raises(ValueError):
         db.store_named_attribute(
-            obj, np.random.rand(3, 3), "test_attr", domain="FAKE_DOMAIN"
+            obj,
+            np.random.rand(3, 3),
+            "test_attr",
+            domain="FAKE_DOMAIN",  # ty: ignore[invalid-argument-type]
         )
     with pytest.raises(ValueError):
         db.store_named_attribute(
-            obj, np.random.rand(3, 3), "test_attr", atype="FAKE_TYPE"
+            obj,
+            np.random.rand(3, 3),
+            "test_attr",
+            atype="FAKE_TYPE",  # ty: ignore[invalid-argument-type]
         )
     with pytest.raises(db.NamedAttributeError):
         db.remove_named_attribute(obj, "nonexistent_attr")
@@ -129,7 +135,7 @@ def test_named_attribute_evaluate():
 
 def test_obj_type_error():
     with pytest.raises(TypeError):
-        db.named_attribute(123, "position")
+        db.named_attribute(123, "position")  # ty: ignore[invalid-argument-type]
 
     with pytest.raises(TypeError):
         db.named_attribute(bpy.data.objects["Camera"], "position")
@@ -137,26 +143,17 @@ def test_obj_type_error():
 
 def test_check_obj():
     db.attribute._check_obj_attributes(bpy.data.objects["Cube"])
-    assert pytest.raises(
-        TypeError,
-        db.attribute._check_obj_attributes,
-        bpy.data.objects["Camera"],
-    )
-    assert pytest.raises(
-        TypeError,
-        db.attribute._check_obj_attributes,
-        bpy.data.objects["Light"],
-    )
+    with pytest.raises(TypeError):
+        db.attribute._check_obj_attributes(bpy.data.objects["Camera"])
+    with pytest.raises(TypeError):
+        db.attribute._check_obj_attributes(bpy.data.objects["Light"])
 
 
 def test_guess_attribute_type():
     # Create test object
     np.array([[0, 0, 0], [1, 1, 1]])
-    assert pytest.raises(
-        ValueError,
-        db.attribute.guess_atype_from_array,
-        ["A", "B", "C"],
-    )
+    with pytest.raises(ValueError):
+        db.attribute.guess_atype_from_array(["A", "B", "C"])  # ty: ignore[invalid-argument-type]
 
 
 def test_guess_atype():
@@ -278,10 +275,14 @@ def test_storage_type():
     # evaluated geometry, which still reads transparently as a full array
     tree = bpy.data.node_groups.new("test_gn", "GeometryNodeTree")
     tree.interface.new_socket(
-        "Geometry", in_out="INPUT", socket_type="NodeSocketGeometry"
+        "Geometry",
+        in_out="INPUT",
+        socket_type="NodeSocketGeometry",  # ty: ignore[invalid-argument-type]
     )
     tree.interface.new_socket(
-        "Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry"
+        "Geometry",
+        in_out="OUTPUT",
+        socket_type="NodeSocketGeometry",  # ty: ignore[invalid-argument-type]
     )
     n_in = tree.nodes.new("NodeGroupInput")
     n_out = tree.nodes.new("NodeGroupOutput")
@@ -383,10 +384,14 @@ def test_list_attributes(evaluate, drop_hidden):
     # when evaluate=True
     tree = bpy.data.node_groups.new("Geometry Nodes", "GeometryNodeTree")
     tree.interface.new_socket(
-        "Geometry", in_out="INPUT", socket_type="NodeSocketGeometry"
+        "Geometry",
+        in_out="INPUT",
+        socket_type="NodeSocketGeometry",  # ty: ignore[invalid-argument-type]
     )
     tree.interface.new_socket(
-        "Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry"
+        "Geometry",
+        in_out="OUTPUT",
+        socket_type="NodeSocketGeometry",  # ty: ignore[invalid-argument-type]
     )
     tree.nodes.new("NodeGroupInput")
     tree.nodes.new("NodeGroupOutput")

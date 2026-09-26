@@ -12,6 +12,7 @@ from databpy.addon import UUID_KEY
 
 def _duplicate(obj: bpy.types.Object) -> bpy.types.Object:
     dup = obj.copy()
+    assert dup is not None
     bpy.context.scene.collection.objects.link(dup)
     return dup
 

@@ -569,9 +569,9 @@ class BlenderObject(BlenderObjectAttribute):
     @classmethod
     def from_mesh(
         cls,
-        vertices: np.ndarray | None = None,
-        edges: np.ndarray | None = None,
-        faces: np.ndarray | None = None,
+        vertices: npt.ArrayLike | None = None,
+        edges: npt.ArrayLike | None = None,
+        faces: npt.ArrayLike | None = None,
         name: str = "Mesh",
         collection: bpy.types.Collection | None = None,
     ) -> "BlenderObject":
@@ -624,7 +624,7 @@ class BlenderObject(BlenderObjectAttribute):
     @classmethod
     def from_curves(
         cls,
-        positions: np.ndarray | None = None,
+        positions: npt.ArrayLike | None = None,
         curve_sizes: list[int] | np.ndarray | None = None,
         name: str = "Curves",
         collection: bpy.types.Collection | None = None,
@@ -675,7 +675,7 @@ class BlenderObject(BlenderObjectAttribute):
     @classmethod
     def from_pointcloud(
         cls,
-        positions: np.ndarray | None = None,
+        positions: npt.ArrayLike | None = None,
         name: str = "PointCloud",
         collection: bpy.types.Collection | None = None,
     ) -> "BlenderObject":
@@ -745,9 +745,8 @@ class BlenderObject(BlenderObjectAttribute):
             raise TypeError(
                 f"Object must be a mesh to create a new object from pydata, not {type(self.data)}"
             )
-        vertices, edges, faces = [
-            [] if x is None else x for x in (vertices, edges, faces)
-        ]
+        vertices = [] if vertices is None else np.asarray(vertices)
+        edges, faces = [[] if x is None else x for x in (edges, faces)]
         edges = _check_indices(edges, len(vertices), "edges")
         faces = _check_indices(faces, len(vertices), "faces")
         self.data.clear_geometry()
@@ -877,7 +876,7 @@ def _check_indices(indices, n_vertices: int, kind: str):
 def create_mesh_object(
     vertices: npt.ArrayLike | None = None,
     edges: npt.ArrayLike | None = None,
-    faces: np.ndarray | None = None,
+    faces: npt.ArrayLike | None = None,
     name: str = "Mesh",
     collection: bpy.types.Collection | None = None,
 ) -> Object:
@@ -918,7 +917,7 @@ def create_mesh_object(
 
 
 def create_curves_object(
-    positions: np.ndarray | None = None,
+    positions: npt.ArrayLike | None = None,
     curve_sizes: list[int] | np.ndarray | None = None,
     name: str = "Curves",
     collection: bpy.types.Collection | None = None,
@@ -994,7 +993,7 @@ def create_curves_object(
 
 
 def create_pointcloud_object(
-    positions: np.ndarray | None = None,
+    positions: npt.ArrayLike | None = None,
     name: str = "PointCloud",
     collection: bpy.types.Collection | None = None,
 ) -> Object:
@@ -1046,7 +1045,7 @@ def create_pointcloud_object(
 def create_object(
     vertices: npt.ArrayLike | None = None,
     edges: npt.ArrayLike | None = None,
-    faces: np.ndarray | None = None,
+    faces: npt.ArrayLike | None = None,
     name: str = "NewObject",
     collection: bpy.types.Collection | None = None,
 ) -> Object:
@@ -1075,9 +1074,9 @@ def create_object(
 
 
 def create_bob(
-    vertices: np.ndarray | None = None,
-    edges: np.ndarray | None = None,
-    faces: np.ndarray | None = None,
+    vertices: npt.ArrayLike | None = None,
+    edges: npt.ArrayLike | None = None,
+    faces: npt.ArrayLike | None = None,
     name: str = "NewObject",
     collection: bpy.types.Collection | None = None,
     uuid: str | None = None,

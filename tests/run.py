@@ -22,8 +22,8 @@ def main():
         result = pytest.main()
     else:
         result = pytest.main(argv)
-    if result.value != 0:
-        sys.exit(result.value)
+    if result != 0:
+        sys.exit(int(result))
 
 
 if __name__ == "__main__":

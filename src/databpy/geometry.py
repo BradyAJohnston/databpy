@@ -7,9 +7,10 @@ from bpy.types import Context, Object
 from .attribute import Attribute, AttributeNotFoundError, NamedAttributeError
 
 GeometryComponents = Literal["MESH", "POINTCLOUD", "CURVES", "INSTANCES"]
+ComponentData = bpy.types.Mesh | bpy.types.PointCloud | bpy.types.Curves
 
 
-def _is_empty(data: bpy.types.ID) -> bool:
+def _is_empty(data: ComponentData) -> bool:
     if isinstance(data, bpy.types.Mesh):
         return len(data.vertices) == 0
     if isinstance(data, (bpy.types.PointCloud, bpy.types.Curves)):
@@ -111,20 +112,20 @@ class GeometrySet:
         """The geometries, objects or collections referenced by the instances."""
         return self.geometry.instance_references()
 
-    def components(self) -> dict[GeometryComponents, bpy.types.ID]:
+    def components(self) -> dict[GeometryComponents, ComponentData]:
         """
         Get the attribute-holding components present in the evaluated geometry.
 
         Returns
         -------
-        dict[GeometryComponents, bpy.types.ID]
+        dict[GeometryComponents, ComponentData]
             A mapping of component names to their data-blocks, containing only
             the components that are present and contain geometry. Blender can
             include empty components (e.g. a 0-vertex mesh) in the evaluated
             geometry, which are excluded here - access the `mesh` etc. properties
             directly if you need them.
         """
-        possible: dict[GeometryComponents, bpy.types.ID | None] = {
+        possible: dict[GeometryComponents, ComponentData | None] = {
             "MESH": self.mesh,
             "POINTCLOUD": self.pointcloud,
             "CURVES": self.curves,
@@ -136,7 +137,7 @@ class GeometrySet:
             if data is not None and not _is_empty(data)
         }
 
-    def _get_component(self, component: GeometryComponents) -> bpy.types.ID:
+    def _get_component(self, component: GeometryComponents) -> ComponentData:
         components = self.components()
         try:
             return components[component]
@@ -226,10 +227,8 @@ class GeometrySet:
                     f"{len(data.vertices)} verts, {len(data.edges)} edges, "
                     f"{len(data.polygons)} faces"
                 )
-            elif "position" in data.attributes:
-                counts = f"{len(data.attributes['position'].data)} points"
             else:
-                counts = "empty"
+                counts = f"{len(data.points)} points"
             attr_names = ", ".join(
                 sorted(key for key in data.attributes.keys() if not key.startswith("."))
             )
