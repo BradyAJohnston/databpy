@@ -1,4 +1,5 @@
 import bpy
+from ._deprecation import deprecated
 
 
 NODE_DUP_SUFFIX = r"\.\d{3}$"
@@ -10,6 +11,7 @@ class NodeGroupCreationError(Exception):
         super().__init__(self.message)
 
 
+@deprecated
 def get_output(group):
     return group.nodes[
         bpy.app.translations.pgettext_data(
@@ -18,6 +20,7 @@ def get_output(group):
     ]
 
 
+@deprecated
 def get_input(group):
     return group.nodes[
         bpy.app.translations.pgettext_data(
@@ -26,6 +29,7 @@ def get_input(group):
     ]
 
 
+@deprecated
 class MaintainConnections:
     # capture input and output links, so we can rebuild the links based on name
     # and the sockets they were connected to

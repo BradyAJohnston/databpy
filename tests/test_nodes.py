@@ -7,6 +7,26 @@ import pytest
 import databpy as db
 from databpy.nodes import NodeGroupCreationError, custom_string_iswitch
 
+# the node API is deprecated, but its behaviour is still tested until removal
+pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
+
+
+@pytest.mark.filterwarnings("default::FutureWarning")
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda: db.nodes.new_tree("Deprecated"),
+        lambda: db.nodes.custom_string_iswitch("DeprecatedSwitch", ["A", "B"]),
+        lambda: db.nodes.DuplicatePrevention(),
+        lambda: db.nodes.cleanup_duplicates(),
+    ],
+)
+def test_node_api_deprecated(call):
+    # nested deprecated calls (e.g. custom_string_iswitch -> new_tree) warn only once
+    with pytest.warns(FutureWarning, match="nodebpy") as record:
+        call()
+    assert len(record) == 1
+
 
 def test_custom_string_iswitch_basic():
     """Test basic creation of string index switch node group"""

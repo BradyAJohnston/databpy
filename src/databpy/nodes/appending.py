@@ -6,9 +6,11 @@ from typing import List
 
 import bpy
 
+from ._deprecation import deprecated
 from .utils import NODE_DUP_SUFFIX
 
 
+@deprecated
 def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
     """Deduplicate node trees by remapping duplicates to their originals.
 
@@ -109,6 +111,7 @@ def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
             pass
 
 
+@deprecated
 def cleanup_duplicates(purge: bool = False):
     # Collect all node trees from node groups, excluding "NodeGroup" named ones
     node_trees = [tree for tree in bpy.data.node_groups if "NodeGroup" not in tree.name]
@@ -121,6 +124,7 @@ def cleanup_duplicates(purge: bool = False):
         bpy.ops.outliner.orphans_purge()
 
 
+@deprecated
 class DuplicatePrevention:
     "Context manager to cleanup duplicated node trees when appending node groups"
 
@@ -143,6 +147,7 @@ class DuplicatePrevention:
             print(f"De-duplication time: {end_time - self.start_time:.2f} seconds")
 
 
+@deprecated
 def append_from_blend(
     name: str, filepath: str | Path, link: bool = False
 ) -> bpy.types.NodeTree:

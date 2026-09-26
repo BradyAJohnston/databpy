@@ -1,14 +1,17 @@
 import bpy
+from ._deprecation import deprecated
 from .utils import MaintainConnections, NodeGroupCreationError, get_input, get_output
 from typing import Iterable
 
 
+@deprecated
 def swap_tree(node: bpy.types.GeometryNode, tree: bpy.types.GeometryNodeTree) -> None:
     with MaintainConnections(node):
         node.node_tree = tree  # type: ignore
         node.name = tree.name
 
 
+@deprecated
 def new_tree(
     name: str = "Geometry Nodes",
     geometry: bool = True,
@@ -38,6 +41,7 @@ def new_tree(
     return tree
 
 
+@deprecated
 def custom_string_iswitch(
     name: str, values: Iterable[str], attr_name: str = "attr_id"
 ) -> bpy.types.NodeTree:
