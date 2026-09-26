@@ -1,8 +1,9 @@
-import pytest
-import tempfile
 import os
+import tempfile
 from pathlib import Path
+
 import bpy
+import pytest
 
 try:
     bpy.utils.expose_bundled_modules()
@@ -12,8 +13,8 @@ try:
 except Exception:
     HAS_OPENVDB = False
 
-from databpy.vdb import import_vdb
 from databpy.collection import create_collection
+from databpy.vdb import import_vdb
 
 
 def create_simple_vdb(filepath: Path) -> None:

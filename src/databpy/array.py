@@ -1,4 +1,8 @@
+from typing import Self
+
+import bpy
 import numpy as np
+
 from .addon import find_by_session_uid, session_token
 from .attribute import (
     Attribute,
@@ -8,7 +12,6 @@ from .attribute import (
     store_named_attribute,
 )
 from .errors import LinkedObjectError
-import bpy
 
 
 class _AttributeLink:
@@ -150,7 +153,7 @@ class AttributeArray(np.ndarray):
     named_attribute : Function to read attribute data as regular arrays
     """
 
-    def __new__(cls, obj: bpy.types.Object, name: str) -> "AttributeArray":
+    def __new__(cls, obj: bpy.types.Object, name: str) -> Self:
         """Create a new AttributeArray that wraps a Blender attribute.
 
         Parameters

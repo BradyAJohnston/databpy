@@ -1,7 +1,8 @@
-from bpy.types import Collection
-import databpy as db
 import bpy
 import pytest
+from bpy.types import Collection
+
+import databpy as db
 
 
 def test_collection_missing():

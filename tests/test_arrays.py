@@ -1,6 +1,8 @@
-import numpy as np
 import unittest
+
+import numpy as np
 import pytest
+
 import databpy as db
 from databpy.object import AttributeArray, create_bob
 

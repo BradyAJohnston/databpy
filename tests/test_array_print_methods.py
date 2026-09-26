@@ -1,7 +1,8 @@
-import pytest
 import numpy as np
+import pytest
+
 from databpy import create_object
-from databpy.array import AttributeArray, Attribute
+from databpy.array import Attribute, AttributeArray
 
 
 class TestAttributeArrayPrintMethods:

@@ -1,7 +1,9 @@
+from collections.abc import Iterable
+
 import bpy
+
 from ._deprecation import deprecated
 from .utils import MaintainConnections, NodeGroupCreationError, get_input, get_output
-from typing import Iterable
 
 
 @deprecated
@@ -95,7 +97,7 @@ def custom_string_iswitch(
         return tree
 
     # if something broke when creating the node group, delete whatever was created
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 (cleans up, then re-raises)
         node_name = tree.name
         bpy.data.node_groups.remove(tree)
         raise NodeGroupCreationError(

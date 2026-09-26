@@ -1,8 +1,9 @@
 """Tests for Curves and PointCloud object creation and manipulation."""
 
+import bpy
 import numpy as np
 import pytest
-import bpy
+
 import databpy as db
 
 
@@ -293,9 +294,11 @@ class TestDeprecationWarnings:
             np.random.random((5, 3)).astype(np.float32), [5]
         )
 
-        with pytest.warns(DeprecationWarning):
-            with pytest.raises(AttributeError, match="only works with Mesh"):
-                _ = bob.vertices
+        with (
+            pytest.warns(DeprecationWarning),
+            pytest.raises(AttributeError, match="only works with Mesh"),
+        ):
+            _ = bob.vertices
 
     def test_edges_on_non_mesh_raises_error(self):
         """Test edges property raises error on non-mesh objects."""
@@ -303,9 +306,11 @@ class TestDeprecationWarnings:
             np.random.random((10, 3)).astype(np.float32)
         )
 
-        with pytest.warns(DeprecationWarning):
-            with pytest.raises(AttributeError, match="only works with Mesh"):
-                _ = bob.edges
+        with (
+            pytest.warns(DeprecationWarning),
+            pytest.raises(AttributeError, match="only works with Mesh"),
+        ):
+            _ = bob.edges
 
 
 class TestCollectionHandling:

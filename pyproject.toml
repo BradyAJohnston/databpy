@@ -25,6 +25,19 @@ build-backend = "uv_build"
 [project.optional-dependencies]
 bpy = ["bpy>=5.2"]
 
+[tool.ruff]
+# generated from README.qmd by quarto
+extend-exclude = ["README.md"]
+
+[tool.ruff.lint]
+# bpy collections iterate over their items rather than their names, so `.keys()` is
+# needed to get the names
+ignore = ["SIM118"]
+
+[tool.ruff.lint.per-file-ignores]
+# property access inside `pytest.raises` and broad catches for optional imports
+"tests/**" = ["B018", "BLE001"]
+
 [tool.uv.workspace]
 members = [
     ".",

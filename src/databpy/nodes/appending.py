@@ -2,7 +2,6 @@ import re
 import time
 import warnings
 from pathlib import Path
-from typing import List
 
 import bpy
 
@@ -11,7 +10,7 @@ from .utils import NODE_DUP_SUFFIX
 
 
 @deprecated
-def deduplicate_node_trees(node_trees: List[bpy.types.NodeTree]):
+def deduplicate_node_trees(node_trees: list[bpy.types.NodeTree]):
     """Deduplicate node trees by remapping duplicates to their originals.
 
     Identifies node trees with duplicate naming patterns (e.g., "NodeTree.001",
@@ -129,7 +128,7 @@ class DuplicatePrevention:
     "Context manager to cleanup duplicated node trees when appending node groups"
 
     def __init__(self, timing=False):
-        self.old_names: List[str] = []
+        self.old_names: list[str] = []
         self.start_time: float = 0.0
         self.timing = timing
 

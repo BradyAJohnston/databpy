@@ -1,6 +1,7 @@
-import numpy as np
 from pathlib import Path
+
 import bpy
+import numpy as np
 
 
 def centre(position: np.ndarray, weight: np.ndarray | None = None) -> np.ndarray:
@@ -76,6 +77,7 @@ def path_resolve(path: str | Path) -> Path:
         If the path cannot be resolved or is of invalid type.
     """
     if not isinstance(path, (str, Path)):
-        raise ValueError(f"Path must be string or Path object, got {type(path)}")
+        # a ValueError rather than TypeError, kept for backwards compatibility
+        raise ValueError(f"Path must be string or Path object, got {type(path)}")  # noqa: TRY004
 
     return Path(bpy.path.abspath(str(path))).resolve()

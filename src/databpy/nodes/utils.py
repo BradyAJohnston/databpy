@@ -1,6 +1,6 @@
 import bpy
-from ._deprecation import deprecated
 
+from ._deprecation import deprecated
 
 NODE_DUP_SUFFIX = r"\.\d{3}$"
 
@@ -80,9 +80,8 @@ class MaintainConnections:
         for item in tree.interface.items_tree:
             if item.item_type == "PANEL":
                 continue
-            if item.in_out == "INPUT":
-                if hasattr(item, "default_value"):
-                    self.node.inputs[item.identifier].default_value = item.default_value
+            if item.in_out == "INPUT" and hasattr(item, "default_value"):
+                self.node.inputs[item.identifier].default_value = item.default_value
 
         if self.material:
             try:

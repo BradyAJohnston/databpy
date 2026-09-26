@@ -1,12 +1,11 @@
 import itertools
-from uuid import uuid1
 import warnings
+from uuid import uuid1
 
 import bpy
 import numpy as np
 from bpy.types import Object
 from numpy import typing as npt
-from .array import AttributeArray
 
 from . import attribute as attr
 from .addon import (
@@ -15,15 +14,16 @@ from .addon import (
     session_token,
     set_uuid,
 )
+from .array import AttributeArray
 from .attribute import (
+    Attribute,
     AttributeDomains,
+    AttributeTypeNames,
     AttributeTypes,
     DomainNames,
-    AttributeTypeNames,
-    list_attributes,
     _check_obj_attributes,
     evaluate_object,
-    Attribute,
+    list_attributes,
 )
 from .collection import create_collection
 from .errors import LinkedObjectError
@@ -240,7 +240,8 @@ class BlenderObjectBase:
         """
 
         if not isinstance(value, Object):
-            raise ValueError(f"{value} must be a bpy.types.Object")
+            # a ValueError rather than TypeError, kept for backwards compatibility
+            raise ValueError(f"{value} must be a bpy.types.Object")  # noqa: TRY004
 
         set_uuid(value, self.uuid)
         self._link(value)
@@ -520,7 +521,8 @@ class BlenderObjectAttribute(BlenderObjectBase):
             If the attribute doesn't exist. This is also a KeyError.
         """
         if not isinstance(name, str):
-            raise ValueError("Attribute name must be a string")
+            # a ValueError rather than TypeError, kept for backwards compatibility
+            raise ValueError("Attribute name must be a string")  # noqa: TRY004
         return AttributeArray(self.object, name)
 
     def __setitem__(self, name: str, data: np.ndarray) -> None:
@@ -818,7 +820,7 @@ class BlenderObject(BlenderObjectAttribute):
             stacklevel=2,
         )
         if not isinstance(self.data, bpy.types.Mesh):
-            raise AttributeError(
+            raise AttributeError(  # noqa: TRY004 (deprecated property, behaviour kept)
                 f"vertices property only works with Mesh objects, "
                 f"not {type(self.data).__name__}"
             )
@@ -850,7 +852,7 @@ class BlenderObject(BlenderObjectAttribute):
             stacklevel=2,
         )
         if not isinstance(self.data, bpy.types.Mesh):
-            raise AttributeError(
+            raise AttributeError(  # noqa: TRY004 (deprecated property, behaviour kept)
                 f"edges property only works with Mesh objects, "
                 f"not {type(self.data).__name__}"
             )

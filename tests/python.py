@@ -7,7 +7,7 @@ def main():
     argv = sys.argv
     argv = argv[argv.index("--") + 1 :]
     python = os.path.realpath(sys.executable)
-    run = subprocess.run([python] + argv)
+    run = subprocess.run([python, *argv], check=False)
     if run.returncode != 0:
         print(f"Error: {run.returncode}")
         sys.exit(run.returncode)

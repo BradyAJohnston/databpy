@@ -50,8 +50,8 @@ from them. The functions are named around nodes in Geometry Nodes
 ``` python
 import databpy as db
 
-db.store_named_attribute() # store a named attribute on a mesh object
-db.named_attribute()       # retrieve a named attribute from a mesh object
+db.store_named_attribute()  # store a named attribute on a mesh object
+db.named_attribute()  # retrieve a named attribute from a mesh object
 ```
 
 Here’s an example on how to store an attribute:
@@ -60,12 +60,7 @@ Here’s an example on how to store an attribute:
 import numpy as np
 import databpy as db
 
-coords = np.array([
-    [0, 0, 0],
-    [0, 5, 0],
-    [5, 0, 0],
-    [5, 5, 0]
-])
+coords = np.array([[0, 0, 0], [0, 5, 0], [5, 0, 0], [5, 5, 0]])
 
 obj = db.create_object(coords, name="Box")
 db.store_named_attribute(obj, np.array([10, 20, 31, 42]), "vals")
@@ -79,6 +74,7 @@ attributes. It is built to store and retrieve data using NumPy arrays:
 ``` python
 import numpy as np
 import databpy as db
+
 np.random.seed(6)
 
 # Create a mesh object
@@ -94,7 +90,7 @@ obj.name
 Access attributes from the object’s mesh.
 
 ``` python
-db.named_attribute(obj, 'position')
+db.named_attribute(obj, "position")
 ```
 
     array([[0.8928602 , 0.3319798 , 0.8212291 ],
@@ -119,11 +115,11 @@ This just gives us access to the `named_attribute()` and
 provides a more intuitive way to access the object’s attributes.
 
 ``` python
-bob = db.BlenderObject(obj)       # wraps the existing object 
-bob = db.create_bob(random_verts) # creates a new object and returns it already wrapped
+bob = db.BlenderObject(obj)  # wraps the existing object
+bob = db.create_bob(random_verts)  # creates a new object and returns it already wrapped
 
 # these two are identical
-bob.named_attribute('position')
+bob.named_attribute("position")
 bob.position
 ```
 
@@ -176,7 +172,7 @@ json_file = StringIO("""
 
 df = pl.read_json(json_file)
 columns_to_explode = [col for col in df.columns if df[col].dtype == pl.List(pl.List)]
-df = df.explode(columns_to_explode)
+df = df.explode(columns_to_explode, empty_as_null=True)
 
 vertices = np.zeros((len(df), 3), dtype=np.float32)
 bob = db.create_bob(vertices, name="DinoStar")

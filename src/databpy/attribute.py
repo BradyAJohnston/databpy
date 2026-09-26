@@ -1,11 +1,12 @@
+import os
+import warnings
 from dataclasses import dataclass
 from enum import Enum
 from typing import Literal
+
 import bpy
-from bpy.types import Object
 import numpy as np
-import os
-import warnings
+from bpy.types import Object
 
 from .errors import DatabpyError
 
@@ -113,8 +114,6 @@ class AttributeMismatchError(NamedAttributeError):
     exists but the data being written doesn't match the attribute's expected
     shape, size, or type.
     """
-
-    pass
 
 
 class AttributeDomains(Enum):
@@ -329,7 +328,8 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
     """
 
     if not isinstance(array, np.ndarray):
-        raise ValueError(f"`array` must be a numpy array, not {type(array)=}")
+        # a ValueError rather than TypeError, kept for backwards compatibility
+        raise ValueError(f"`array` must be a numpy array, not {type(array)=}")  # noqa: TRY004
     if array.ndim == 0:
         raise ValueError(
             "`array` must have at least one dimension, with one row per element"
@@ -697,9 +697,7 @@ class Attribute:
             return array.reshape(self.shape)
 
     def __str__(self) -> str:
-        return "Attribute: {}, type: {}, size: {}".format(
-            self.attribute.name, self.type_name, self.shape
-        )
+        return f"Attribute: {self.attribute.name}, type: {self.type_name}, size: {self.shape}"
 
 
 def _match_atype(

@@ -1,8 +1,9 @@
+import bpy
 import numpy as np
+import pytest
+
 import databpy as db
 from databpy import LinkedObjectError, bdo
-import bpy
-import pytest
 
 
 def test_creat_obj():
