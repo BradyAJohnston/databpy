@@ -4,7 +4,10 @@ from typing import Literal
 import bpy
 from bpy.types import Object
 import numpy as np
+import os
 import warnings
+
+from .errors import DatabpyError
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
 PossibleAttributeTypes = (
@@ -43,18 +46,36 @@ AttributeTypeNames = Literal[
 ]
 
 
-class NamedAttributeError(AttributeError):
+class NamedAttributeError(DatabpyError, AttributeError):
     """
     Base exception for all attribute-related errors in databpy.
 
     This exception is raised when operations on Blender named attributes fail,
     such as when an attribute doesn't exist, has incorrect dimensions, or
     cannot be created.
+
+    Notes
+    -----
+    This currently also subclasses `AttributeError`, which will be removed in databpy
+    0.11.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch
+    `NamedAttributeError` or `DatabpyError` instead.
     """
 
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
+
+    def __str__(self) -> str:
+        return self.message
+
+
+class AttributeNotFoundError(NamedAttributeError, KeyError):
+    """
+    Exception raised when a named attribute doesn't exist.
+
+    This is also a `KeyError`, so dictionary-style access such as `bob["name"]` can
+    be handled like any other missing key.
+    """
 
 
 def _check_obj_attributes(obj: Object) -> None:
@@ -411,12 +432,14 @@ def _as_storage_array(data: np.ndarray, atype: AttributeTypes) -> np.ndarray:
 
 def _warn_string_support() -> None:
     # STRING attributes are accessible through the Python API but aren't yet properly
-    # supported in Geometry Nodes, so treat their use as experimental for now
+    # supported in Geometry Nodes, so treat their use as experimental for now. The
+    # warning points at the first frame outside databpy, so Python's default filter
+    # shows it once per call site
     warnings.warn(
         "String attributes can be read and written through the Python API but are not "
         "yet properly supported within Geometry Nodes. Support may change in future "
         "Blender / databpy versions.",
-        stacklevel=4,
+        skip_file_prefixes=(os.path.dirname(__file__),),
     )
 
 
@@ -913,8 +936,8 @@ def named_attribute(
 
     Raises
     ------
-    AttributeError
-        If the named attribute does not exist on the mesh.
+    AttributeNotFoundError
+        If the named attribute does not exist on the object.
 
     Examples
     --------
@@ -937,8 +960,10 @@ def named_attribute(
     try:
         attr = Attribute(obj.data.attributes[name])  # type: ignore
     except KeyError:
-        message = f"The selected attribute '{name}' does not exist on the mesh."
-        raise NamedAttributeError(message)
+        raise AttributeNotFoundError(
+            f"The selected attribute '{name}' does not exist on the object. "
+            f"Available attributes: {list_attributes(obj, evaluate=evaluate)}"
+        ) from None
 
     return attr.as_array()
 
@@ -956,8 +981,10 @@ def remove_named_attribute(obj: bpy.types.Object, name: str) -> None:
 
     Raises
     ------
-    AttributeError
-        If the named attribute does not exist on the mesh.
+    AttributeNotFoundError
+        If the named attribute does not exist on the object.
+    NamedAttributeError
+        If the attribute is required by Blender (e.g. `position`) and can't be removed.
 
     Examples
     --------
@@ -977,8 +1004,13 @@ def remove_named_attribute(obj: bpy.types.Object, name: str) -> None:
     _check_obj_attributes(obj)
     try:
         attr = obj.data.attributes[name]  # type: ignore
-        obj.data.attributes.remove(attr)  # type: ignore
     except KeyError:
-        raise NamedAttributeError(
+        raise AttributeNotFoundError(
             f"The selected attribute '{name}' does not exist on the object"
-        )
+        ) from None
+    try:
+        obj.data.attributes.remove(attr)  # type: ignore
+    except RuntimeError as e:
+        raise NamedAttributeError(
+            f"The attribute '{name}' is required by Blender and can't be removed"
+        ) from e

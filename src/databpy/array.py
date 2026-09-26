@@ -1,6 +1,13 @@
 import numpy as np
-from .addon import LinkedObjectError, find_by_session_uid, session_token
-from .attribute import Attribute, AttributeDomains, AttributeTypes, store_named_attribute
+from .addon import find_by_session_uid, session_token
+from .attribute import (
+    Attribute,
+    AttributeDomains,
+    AttributeNotFoundError,
+    AttributeTypes,
+    store_named_attribute,
+)
+from .errors import LinkedObjectError
 import bpy
 
 
@@ -157,8 +164,19 @@ class AttributeArray(np.ndarray):
         -------
         AttributeArray
             A numpy array subclass that syncs changes back to Blender.
+
+        Raises
+        ------
+        AttributeNotFoundError
+            If the attribute doesn't exist on the object.
         """
-        attr = Attribute(obj.data.attributes[name])
+        try:
+            attr = Attribute(obj.data.attributes[name])
+        except KeyError:
+            raise AttributeNotFoundError(
+                f"The attribute '{name}' does not exist on '{obj.name}'. "
+                f"Available attributes: {sorted(obj.data.attributes.keys())}"
+            ) from None
         arr = np.asarray(attr.as_array()).view(cls)
         arr._link = _AttributeLink(obj, attr)
         # Track the root array so that views can sync the full data

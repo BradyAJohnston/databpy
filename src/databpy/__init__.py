@@ -31,8 +31,10 @@ from .attribute import (
     AttributeTypes,
     AttributeDomains,
     NamedAttributeError,
+    AttributeNotFoundError,
     AttributeMismatchError,
 )
+from .errors import DatabpyError
 
 __all__ = [
     "ObjectTracker",
@@ -68,5 +70,7 @@ __all__ = [
     "AttributeTypes",
     "AttributeDomains",
     "NamedAttributeError",
+    "AttributeNotFoundError",
     "AttributeMismatchError",
+    "DatabpyError",
 ]

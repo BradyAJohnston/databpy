@@ -20,27 +20,9 @@ def session_token() -> str:
     return _session_token
 
 
-class LinkedObjectError(Exception):
-    """
-    Error raised when a Python object doesn't have a linked object in the 3D scene.
-
-    Parameters
-    ----------
-    message : str
-        The error message describing why the linked object is missing or invalid.
-
-    Attributes
-    ----------
-    message : str
-        The error message that was passed.
-    """
-
-    def __init__(self, message: str):
-        self.message = message
-        super().__init__(self.message)
-
-
-def find_by_session_uid(session_uid: int, name_hint: str = "") -> bpy.types.Object | None:
+def find_by_session_uid(
+    session_uid: int, name_hint: str = ""
+) -> bpy.types.Object | None:
     """Find an object by its `session_uid`, checking `name_hint` first as a fast path."""
     obj = bpy.data.objects.get(name_hint)
     if obj is not None and obj.session_uid == session_uid:

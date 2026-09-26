@@ -10,7 +10,6 @@ from .array import AttributeArray
 
 from . import attribute as attr
 from .addon import (
-    LinkedObjectError,
     find_by_session_uid,
     get_uuid,
     session_token,
@@ -27,6 +26,7 @@ from .attribute import (
     Attribute,
 )
 from .collection import create_collection
+from .errors import LinkedObjectError
 
 
 class ObjectDatabase:
@@ -514,6 +514,8 @@ class BlenderObjectAttribute(BlenderObjectBase):
         ------
         ValueError
             If name is not a string.
+        AttributeNotFoundError
+            If the attribute doesn't exist. This is also a KeyError.
         """
         if not isinstance(name, str):
             raise ValueError("Attribute name must be a string")

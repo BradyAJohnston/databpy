@@ -21,7 +21,9 @@ def test_uint8_values_are_not_wrapped(cube):
 
 @pytest.mark.parametrize("dtype", [np.uint16, np.uint32])
 def test_unsigned_2d_uses_int32(dtype):
-    assert guess_atype_from_array(np.zeros((4, 2), dtype=dtype)) == AttributeTypes.INT32_2D
+    assert (
+        guess_atype_from_array(np.zeros((4, 2), dtype=dtype)) == AttributeTypes.INT32_2D
+    )
 
 
 def test_integer_overflow_raises(cube):
@@ -63,7 +65,12 @@ def test_attribute_from_array_checks_overflow(cube):
 
 @pytest.mark.parametrize(
     "data",
-    [np.array(1.0), np.zeros((8, 5)), np.zeros((8, 2), dtype=bool), np.zeros((8, 3), dtype="U1")],
+    [
+        np.array(1.0),
+        np.zeros((8, 5)),
+        np.zeros((8, 2), dtype=bool),
+        np.zeros((8, 3), dtype="U1"),
+    ],
 )
 def test_uninferable_shapes_raise_clearly(cube, data):
     with pytest.raises(ValueError):

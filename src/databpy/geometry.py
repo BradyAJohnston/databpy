@@ -4,7 +4,7 @@ import bpy
 import numpy as np
 from bpy.types import Context, Object
 
-from .attribute import Attribute, NamedAttributeError
+from .attribute import Attribute, AttributeNotFoundError, NamedAttributeError
 
 GeometryComponents = Literal["MESH", "POINTCLOUD", "CURVES", "INSTANCES"]
 
@@ -194,14 +194,16 @@ class GeometrySet:
 
         Raises
         ------
-        NamedAttributeError
+        AttributeNotFoundError
             If the attribute does not exist on the given (or any) component.
+        NamedAttributeError
+            If the given component isn't present.
         """
         if component is None:
             for data in self.components().values():
                 if name in data.attributes:
                     return Attribute(data.attributes[name]).as_array()
-            raise NamedAttributeError(
+            raise AttributeNotFoundError(
                 f"The attribute '{name}' does not exist on any component of the "
                 f"evaluated geometry. Available attributes: {self.list_attributes()}"
             )
@@ -210,7 +212,7 @@ class GeometrySet:
         try:
             attribute = data.attributes[name]
         except KeyError:
-            raise NamedAttributeError(
+            raise AttributeNotFoundError(
                 f"The attribute '{name}' does not exist on the {component} component. "
                 f"Available attributes: {sorted(data.attributes.keys())}"
             )

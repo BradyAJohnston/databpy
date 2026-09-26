@@ -382,7 +382,9 @@ def test_list_attributes(evaluate, drop_hidden):
     # store a named attribute via geometry nodes as this should only show up
     # when evaluate=True
     tree = bpy.data.node_groups.new("Geometry Nodes", "GeometryNodeTree")
-    tree.interface.new_socket("Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
+    tree.interface.new_socket(
+        "Geometry", in_out="INPUT", socket_type="NodeSocketGeometry"
+    )
     tree.interface.new_socket(
         "Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry"
     )
