@@ -3,7 +3,7 @@ import warnings
 from collections.abc import Callable
 from typing import overload
 
-REMOVAL_VERSION = "0.11.0"
+REMOVAL_VERSION = "0.12.0"
 
 # depth of nested deprecated calls, so a deprecated function that internally uses
 # other deprecated functions only warns once for the user's outermost call

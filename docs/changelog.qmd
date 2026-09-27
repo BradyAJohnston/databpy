@@ -3,7 +3,7 @@ title: Changelog
 toc: true
 ---
 
-## 0.9.0 (unreleased)
+## 0.10.0 (unreleased)
 
 A robustness release, in preparation for wider use of databpy across projects. Node
 related functionality is deprecated in favour of
@@ -11,24 +11,17 @@ related functionality is deprecated in favour of
 survives renames, reallocation and other add-ons, and attribute data is validated
 instead of being silently corrupted.
 
-It also includes a full static-typing pass over the package and test suite. The code
-base passes [ty](https://docs.astral.sh/ty/) with zero errors and zero suppression
-comments, and ty runs in CI alongside ruff. Blender API values that are typed as
-`Something | None` or as wide data-block unions are handled through small helpers that
-check at runtime and narrow the type, instead of being ignored.
-
 databpy follows semantic versioning. Deprecated functionality raises a
 `FutureWarning` and is kept for at least two minor releases before removal. Everything
-deprecated in this release is removed in 0.11.0.
+deprecated in this release is removed in 0.12.0.
 
 ### Deprecated
 
 - `databpy.nodes`: `new_tree`, `swap_tree`, `custom_string_iswitch`,
   `append_from_blend`, `DuplicatePrevention`, `cleanup_duplicates`,
-  `deduplicate_node_trees`, `get_input`, `get_output`, `MaintainConnections`, and the
-  node helpers added in this release (`tree_interface`, `new_socket`, `input_socket`,
-  `output_socket`, `socket_value` and `set_socket_value`). Node functionality is
-  moving to nodebpy.
+  `deduplicate_node_trees`, `get_input`, `get_output`, `MaintainConnections`,
+  `tree_interface`, `new_socket`, `input_socket`, `output_socket`, `socket_value` and
+  `set_socket_value`. Node functionality is moving to nodebpy.
 - `register()` is no longer required. `unregister()` is now a no-op: it previously
   removed `Object.uuid`, which broke every other add-on using databpy.
 - The registered `Object.uuid` property. The uuid is now stored as the custom property
@@ -39,32 +32,24 @@ deprecated in this release is removed in 0.11.0.
 
 ### Added
 
-- Typed narrowing helpers, exported from the top-level `databpy` namespace:
-  - `require()` — return a value, raising `ValueError` if it is `None`
-  - `require_data()`, `mesh_data()`, `curves_data()`, `pointcloud_data()`,
-    `volume_data()` — return `Object.data` checked to be the expected
-    data-block type, raising `TypeError` otherwise
-  - `active_scene()` and `active_object()` — non-optional accessors for
-    `bpy.context.scene` / `bpy.context.active_object`
 - `DatabpyError`, the base class for all databpy errors.
 - `AttributeNotFoundError`, raised for missing attributes. It is both a
   `NamedAttributeError` and a `KeyError`, and its message lists the available
   attributes.
-- `databpy.object.get_uuid()` / `set_uuid()` to read and write the persistent uuid
-  databpy stores on an object.
 - `get_from_uuid(name_hint=...)`, to choose between duplicated objects that share a
   uuid.
 - `py.typed`, so type checkers use databpy's type hints.
-- Type checking with ty in CI (new `typecheck` job in the lint workflow), with
-  `ty` and `ruff` added as locked dev dependencies.
-- API documentation sections for the new utility and node helpers.
 
 ### Changed
 
 - `BlenderObject` tracks its object by `session_uid` within a session, surviving
   renames and memory reallocation, and by its persistent uuid after a file is loaded.
+  As before, a wrapper stops resolving its object once another wrapper stores a
+  different uuid on it.
 - **Breaking**: accessing a `BlenderObject` whose object was removed raises
   `LinkedObjectError`, instead of resolving to a duplicate that shares its uuid.
+- `databpy.object.get_uuid()` / `set_uuid()` read and write the new custom property,
+  falling back to and keeping in sync the registered `Object.uuid` property.
 - `AttributeArray` tracks its object by `session_uid` instead of holding a direct
   reference. Syncing raises `LinkedObjectError` if the object was removed or a file
   was loaded, instead of warning or writing to stale data.
@@ -72,11 +57,6 @@ deprecated in this release is removed in 0.11.0.
   `ufunc.at`, `fill`, `sort`, `put`, `partition`, `np.copyto`, `np.place`,
   `np.putmask` and `np.fill_diagonal`. Augmented assignment on a view
   (`pos[:, 2] += 1`) writes to Blender once instead of twice.
-- **Breaking**: invalid-type errors now consistently raise `TypeError` (some
-  previously raised `ValueError` or `AttributeError`): `utils.path_resolve()`,
-  `attribute.guess_atype_from_array()`, `BlenderObject.__getitem__()` with a
-  non-string key, assigning a non-`Object` to `BlenderObjectBase.object`, and
-  the deprecated `vertices` / `edges` properties on non-mesh objects.
 - **Breaking**: the `domain` argument of `store_named_attribute()` defaults to `None`,
   using the domain of an existing attribute, otherwise `POINT`. A `domain` that doesn't
   match an existing attribute raises `NamedAttributeError` instead of being ignored.
@@ -96,17 +76,7 @@ deprecated in this release is removed in 0.11.0.
   and `GeometrySet.named_attribute()` raise `AttributeNotFoundError` for missing
   attributes. `bob["name"]` previously raised a bare `KeyError`, which it remains a
   subclass of.
-- `AttributeArray` raises `TypeError` for objects that aren't a mesh, curves or point
-  cloud.
-- `Attribute()` accepts any `bpy.types.Attribute` and validates it against the
-  supported concrete attribute types, raising `NamedAttributeError` for
-  unsupported ones.
-- `store_named_attribute()`, `Attribute.from_array()` and the object creation functions
-  (`create_object()`, `create_mesh_object()`, `create_curves_object()`,
-  `create_pointcloud_object()`, `create_bob()` and the `BlenderObject.from_*()`
-  classmethods) accept any array-like data.
-- `utils.lerp()` accepts scalars and array-likes, converting to numpy arrays
-  internally (the documented list example now actually works).
+- `store_named_attribute()` and `Attribute.from_array()` accept any array-like data.
 - `create_pointcloud_object()` creates the point cloud directly instead of converting a
   mesh with an operator, so it no longer depends on the context. The `.selection`
   attribute added by the conversion is no longer present.
@@ -122,14 +92,6 @@ deprecated in this release is removed in 0.11.0.
   call site.
 - `AttributeArray` no longer has the private `_attribute` and `_attr_name` attributes.
   `_blender_object` is kept as a read-only lookup.
-- `nodes.new_tree()` is typed as returning a `GeometryNodeTree` and raises
-  `NodeGroupCreationError` if an existing node group with the requested name is
-  not a geometry node tree.
-- `nodes.MaintainConnections` and `nodes.swap_tree()` raise `TypeError` when
-  given a node that is not a `GeometryNodeGroup`.
-- `custom_string_iswitch()` catches specific exception types during node group
-  creation (rather than a blind `except Exception`) and chains the original
-  error onto the raised `NodeGroupCreationError`.
 
 ### Fixed
 
@@ -143,6 +105,61 @@ deprecated in this release is removed in 0.11.0.
   the unweighted centroid. Unsupported dtypes now raise `TypeError`.
 - `ObjectTracker` reported renamed objects as new.
 - After a uuid mismatch, every access of `BlenderObject.object` searched all objects.
+
+## 0.9.0 (2026-09-14)
+
+A full static-typing pass over the package and test suite. The code base now
+passes [ty](https://docs.astral.sh/ty/) with zero errors and zero suppression
+comments (every `# type: ignore` has been removed), and ty runs in CI alongside
+ruff. Blender API values that are typed as `Something | None` or as wide
+data-block unions are now handled through small helpers that check at runtime
+and narrow the type, instead of being ignored.
+
+### Added
+
+- Typed narrowing helpers, exported from the top-level `databpy` namespace:
+  - `require()` — return a value, raising `ValueError` if it is `None`
+  - `require_data()`, `mesh_data()`, `curves_data()`, `pointcloud_data()`,
+    `volume_data()` — return `Object.data` checked to be the expected
+    data-block type, raising `TypeError` otherwise
+  - `active_scene()` and `active_object()` — non-optional accessors for
+    `bpy.context.scene` / `bpy.context.active_object`
+- Node helpers in `databpy.nodes` for the optional-heavy node APIs:
+  `tree_interface()`, `new_socket()`, `input_socket()`, `output_socket()`,
+  `socket_value()` and `set_socket_value()`.
+- `databpy.object.get_uuid()` / `set_uuid()` for the dynamically registered
+  `uuid` property on `bpy.types.Object`.
+- Type checking with ty in CI (new `typecheck` job in the lint workflow), with
+  `ty` and `ruff` added as locked dev dependencies.
+- API documentation sections for the new utility and node helpers.
+
+### Changed
+
+- **Breaking**: invalid-type errors now consistently raise `TypeError` (some
+  previously raised `ValueError` or `AttributeError`): `utils.path_resolve()`,
+  `attribute.guess_atype_from_array()`, `BlenderObject.__getitem__()` with a
+  non-string key, assigning a non-`Object` to `BlenderObjectBase.object`, and
+  the deprecated `vertices` / `edges` properties on non-mesh objects.
+- Object creation functions (`create_object()`, `create_mesh_object()`,
+  `create_curves_object()`, `create_pointcloud_object()`, `create_bob()` and
+  the `BlenderObject.from_*()` classmethods) are now typed to accept any
+  array-like (lists and tuples always worked at runtime).
+- `utils.lerp()` accepts scalars and array-likes, converting to numpy arrays
+  internally (the documented list example now actually works).
+- `Attribute()` accepts any `bpy.types.Attribute` and validates it against the
+  supported concrete attribute types, raising `NamedAttributeError` for
+  unsupported ones.
+- `nodes.new_tree()` is typed as returning a `GeometryNodeTree` and raises
+  `NodeGroupCreationError` if an existing node group with the requested name is
+  not a geometry node tree.
+- `nodes.MaintainConnections` and `nodes.swap_tree()` raise `TypeError` when
+  given a node that is not a `GeometryNodeGroup`.
+- `custom_string_iswitch()` catches specific exception types during node group
+  creation (rather than a blind `except Exception`) and chains the original
+  error onto the raised `NodeGroupCreationError`.
+
+### Fixed
+
 - `from databpy import utils` was shadowed by `databpy.nodes.utils` in the
   package namespace, so static analysis (and potentially import order) resolved
   `databpy.utils` to the wrong module.

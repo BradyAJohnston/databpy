@@ -60,7 +60,7 @@ class NamedAttributeError(DatabpyError, AttributeError):
     Notes
     -----
     This currently also subclasses `AttributeError`, which will be removed in databpy
-    0.11.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch
+    0.12.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch
     `NamedAttributeError` or `DatabpyError` instead.
     """
 

@@ -14,7 +14,7 @@ UUID_KEY = "_databpy_uuid"
 # `getattr` / `setattr` with this constant
 UUID_PROP_NAME = "uuid"
 
-LEGACY_REMOVAL_VERSION = "0.11.0"
+LEGACY_REMOVAL_VERSION = "0.12.0"
 
 # Changes on every file load and is unique per process, so `session_uid` values cached
 # in a previous session (or a pickled wrapper) are never trusted in the current one.
