@@ -6,7 +6,7 @@ readme = "README.md"
 dependencies = [
     "numpy",
 ]
-requires-python = ">=3.13.0"
+requires-python = "~=3.13.0"
 keywords = ["blender", "python", "numpy"]
 maintainers = [
     {name="Brady Johnston", email="brady.johnston@me.com"},

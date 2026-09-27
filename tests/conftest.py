@@ -1,9 +1,19 @@
-import bpy
+import os
+import tempfile
+
 import pytest
+
+# Isolate the tests from extensions installed in the user's Blender. `import bpy` adds
+# their packages to `sys.path`, where another installed copy of databpy would shadow
+# this one. This has to be set before bpy is first imported, which happens when the
+# test modules are collected after this file.
+os.environ["BLENDER_USER_EXTENSIONS"] = tempfile.mkdtemp(prefix="databpy-tests-")
 
 
 @pytest.fixture(autouse=True)
 def run_around_tests():
+    import bpy
+
     # Code that will run before each tests
 
     bpy.ops.wm.read_homefile(app_template="")
