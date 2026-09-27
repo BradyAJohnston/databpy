@@ -424,7 +424,7 @@ except db.AttributeMismatchError as e:
     print(f"Shape error: {e}")
 ```
 
-    Attribute not found: The selected attribute 'nonexistent' does not exist on the mesh.
+    Attribute not found: The selected attribute 'nonexistent' does not exist on the object. Available attributes: ['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', '.uv_select_edge', '.uv_select_face', '.uv_select_vert', 'UVMap', 'edge_attr', 'face_attr', 'position', 'sharp_face', 'vertex_attr']
     Size mismatch: Data size 300 (shape (100, 3)) does not match the required size 24 for domain `POINT` with 8 elements and dimensions (3,)
     Shape error: Array size 32 does not match attribute size 24. Array shape (8, 4) cannot be reshaped to attribute shape (8, 3)
 
@@ -478,14 +478,14 @@ db.store_named_attribute(
 db.named_attribute(obj, "my_attr")
 ```
 
-    array([[0.07032485, 0.8063112 , 0.22326866],
-           [0.0235605 , 0.91963583, 0.8822031 ],
-           [0.32103062, 0.5271677 , 0.85183597],
-           [0.17516273, 0.8896378 , 0.06035553],
-           [0.5668154 , 0.11829334, 0.18109255],
-           [0.8373914 , 0.98614323, 0.3034317 ],
-           [0.5572352 , 0.7726369 , 0.34224772],
-           [0.5651644 , 0.18147446, 0.08631072]], dtype=float32)
+    array([[0.65951616, 0.3692685 , 0.79950213],
+           [0.6909444 , 0.9376805 , 0.15578142],
+           [0.12786259, 0.32727733, 0.78236246],
+           [0.69647735, 0.46983752, 0.7933011 ],
+           [0.29910785, 0.7466002 , 0.08451121],
+           [0.11705984, 0.21861354, 0.20905729],
+           [0.8196885 , 0.9694117 , 0.8526931 ],
+           [0.31700793, 0.02384541, 0.596782  ]], dtype=float32)
 
 ### 5. Clean Up Temporary Attributes
 
@@ -498,7 +498,7 @@ except db.NamedAttributeError as e:
     print(e)
 ```
 
-    The selected attribute 'my_attr' does not exist on the mesh.
+    The selected attribute 'my_attr' does not exist on the object. Available attributes: ['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', '.uv_select_edge', '.uv_select_face', '.uv_select_vert', 'UVMap', 'edge_attr', 'face_attr', 'position', 'sharp_face', 'test', 'vertex_attr']
 
 ## Architecture Summary
 

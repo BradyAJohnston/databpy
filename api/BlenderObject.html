@@ -122,7 +122,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">databpy 0.9.0</span>
+    <span class="navbar-title">databpy 0.10.0</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -623,7 +623,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>weight</td>
 <td><a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a> | <a href="https://numpy.org/doc/stable/reference/index.html#module-numpy">np</a>.<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray">ndarray</a> | None</td>
-<td>The weights or indices for calculating the centroid: - If str: Name of attribute to use as weights - If np.ndarray with float dtype: Weights for each position - If np.ndarray with int dtype: Indices of positions to include - If None: Use all positions equally weighted Defaults to None.</td>
+<td>The weights or indices for calculating the centroid: - If str: Name of attribute to use as weights - If np.ndarray with float dtype: Weights for each position - If np.ndarray with int dtype: Indices of positions to include - If np.ndarray with bool dtype: Mask of positions to include - If None: Use all positions equally weighted Defaults to None.</td>
 <td><code>None</code></td>
 </tr>
 </tbody>
@@ -1094,12 +1094,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="databpy.BlenderObject.store_named_attribute" class="level3">
 <h3 class="anchored" data-anchor-id="databpy.BlenderObject.store_named_attribute">store_named_attribute</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.store_named_attribute(</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    data,</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    name,</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    atype<span class="op">=</span><span class="va">None</span>,</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    domain<span class="op">=</span>AttributeDomains.POINT,</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>BlenderObject.store_named_attribute(data, name, atype<span class="op">=</span><span class="va">None</span>, domain<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Store a named attribute on the Blender object.</p>
 <section id="parameters-8" class="level4 doc-section doc-section-parameters">
 <h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-8">Parameters</h4>
@@ -1128,14 +1123,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>atype</td>
 <td><a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a> or <a href="../api/AttributeTypes.html#databpy.AttributeTypes">AttributeTypes</a> or None</td>
-<td>The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array.</td>
+<td>The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None uses the type of an existing attribute, otherwise infers the attribute type from the input array.</td>
 <td><code>None</code></td>
 </tr>
 <tr class="even">
 <td>domain</td>
-<td><a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a> or <a href="../api/AttributeDomains.html#databpy.AttributeDomains">AttributeDomains</a></td>
-<td>The domain to store the attribute on. Defaults to AttributeDomains.POINT.</td>
-<td><code>AttributeDomains.POINT</code></td>
+<td><a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a> or <a href="../api/AttributeDomains.html#databpy.AttributeDomains">AttributeDomains</a> or None</td>
+<td>The domain to store the attribute on. None uses the domain of an existing attribute, otherwise AttributeDomains.POINT.</td>
+<td><code>None</code></td>
 </tr>
 </tbody>
 </table>

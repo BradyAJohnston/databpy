@@ -6,8 +6,6 @@ create_pointcloud_object(positions=None, name='PointCloud', collection=None)
 
 Create a new Blender point cloud object.
 
-This function creates a point cloud by first creating a mesh with vertices at the specified positions, then converting it to a point cloud using Blender’s convert operator.
-
 ## Parameters
 
 | Name | Type | Description | Default |
@@ -33,7 +31,3 @@ positions = np.random.random((100, 3))
 pc_obj = create_pointcloud_object(positions, name="MyPC")
 print(len(pc_obj.data.points))  # 100
 ```
-
-## Notes
-
-This function works by creating a temporary mesh and converting it to a point cloud using `bpy.ops.object.convert(target='POINTCLOUD')`.

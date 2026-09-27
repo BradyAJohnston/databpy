@@ -122,7 +122,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">databpy 0.9.0</span>
+    <span class="navbar-title">databpy 0.10.0</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -505,9 +505,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>BlenderObjectBase</h1>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>BlenderObjectBase(obj<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Minimal base class for Blender objects with name and object access.</p>
-<p>This provides a minimal set of functionality to persistently track a an object in Blender’s database, providing access to it’s name property and also the object itself. Referencing an object in the database directly can lead to ReferenceErrors as Blender can <em>without warning</em> alter the database and thus the Object’s place in memory.</p>
-<p>To get around this BlenderObjectBase always looks up via the name attribute and double checks with the <code>uuid</code> attribute to ensure the correct object is being returned. If there is a mismatch the entite database will be searched for an object with a uuid that matches and if none is found a LinkedObjectError will be raised.</p>
-<p>Blender <em>internally</em> uses it’s own UUID / reference system but this is currently (and frustratingly) not available to us via the Python API.</p>
+<p>This provides a minimal set of functionality to persistently track an object in Blender’s database, providing access to its name property and also the object itself. Referencing an object in the database directly can lead to ReferenceErrors as Blender can <em>without warning</em> alter the database and thus the Object’s place in memory.</p>
+<p>To get around this the object is tracked in two ways:</p>
+<ul>
+<li>Within a session, by the object’s <code>session_uid</code>, which stays the same across renames and internal reallocations. Duplicates of the object get a new <code>session_uid</code>, so they are never mistaken for the original. If the object is removed a LinkedObjectError is raised.</li>
+<li>Across sessions (after loading a .blend file, or in a new Python process), by a persistent <code>uuid</code> stored on the object as a custom property. On first access in a new session the object is found by its <code>uuid</code> and then tracked by its new <code>session_uid</code>.</li>
+</ul>
 <section id="attributes" class="level2 doc-section doc-section-attributes">
 <h2 class="doc-section doc-section-attributes anchored" data-anchor-id="attributes">Attributes</h2>
 <table class="caption-top table">

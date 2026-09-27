@@ -30,7 +30,7 @@ Create a new Blender curves object (new Curves type, not legacy Curve).
 
 | Name | Type | Description |
 |----|----|----|
-|  | [ValueError](https://docs.python.org/3/builtins/exceptions.html#ValueError) | If positions and curve_sizes lengths don’t match. |
+|  | [ValueError](https://docs.python.org/3/builtins/exceptions.html#ValueError) | If only one of positions and curve_sizes is given, or their lengths don’t match. |
 
 ## Examples
 

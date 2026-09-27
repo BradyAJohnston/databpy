@@ -109,7 +109,7 @@ BlenderObjectAttribute.store_named_attribute(
     data,
     name,
     atype=None,
-    domain=AttributeDomains.POINT,
+    domain=None,
 )
 ```
 
@@ -121,8 +121,8 @@ Store a named attribute on the Blender object.
 |----|----|----|----|
 | data | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | The data to be stored as an attribute. | *required* |
 | name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name for the attribute. Will overwrite an already existing attribute. | *required* |
-| atype | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeTypes](../api/AttributeTypes.llms.md#databpy.AttributeTypes) or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None will attempt to infer the attribute type from the input array. | `None` |
-| domain | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) | The domain to store the attribute on. Defaults to AttributeDomains.POINT. | `AttributeDomains.POINT` |
+| atype | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeTypes](../api/AttributeTypes.llms.md#databpy.AttributeTypes) or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None uses the type of an existing attribute, otherwise infers the attribute type from the input array. | `None` |
+| domain | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) or None | The domain to store the attribute on. None uses the domain of an existing attribute, otherwise AttributeDomains.POINT. | `None` |
 
 #### Returns
 

@@ -10,6 +10,12 @@ AttributeArray provides an ergonomic interface for working with Blender attribut
 
 This is the high-level interface for attribute manipulation. For low-level control, see the `Attribute` class which provides manual get/set operations without auto-sync.
 
+## Syncing
+
+Changes are written back to Blender by item assignment (`pos[0] = ...`), in-place operators (`pos += 1`, `pos[:, 2] *= 2`), ufuncs with `out=` or `.at`, the `fill`, `sort`, `put` and `partition` methods, and `np.copyto`, `np.place`, `np.putmask` and `np.fill_diagonal`. Writes through `.flat` are not synced.
+
+Other operations (`pos + 1`, `pos.copy()`, `pos[mask]`) return plain or detached arrays that don’t sync. If the object is removed, or a file is loaded, syncing raises a `LinkedObjectError`.
+
 ## Performance Characteristics
 
 - Every modification syncs the ENTIRE attribute array to Blender, not just changed values
@@ -25,9 +31,7 @@ Works with all Blender attribute types: - Float types: FLOAT, FLOAT2, FLOAT4, FL
 
 | Name | Type | Description |
 |----|----|----|
-| \_blender_object | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Object](https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object) | Reference to the Blender object for syncing changes. |
-| \_attribute | `Attribute` | The underlying Attribute instance with type information. |
-| \_attr_name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Name of the attribute being wrapped. |
+| \_link | `_AttributeLink` \| None | Link to the Blender object and attribute, or None for detached copies. |
 | \_root | [AttributeArray](../api/AttributeArray.llms.md#databpy.AttributeArray) | Reference to the root array for handling views/slices correctly. |
 
 ## Examples
@@ -56,16 +60,16 @@ print(bob.position)  # Returns an AttributeArray
 
     Initial position:
     AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-    [[0.08519451 0.12593558 0.73475355]
-     [0.9307156  0.9718119  0.07536577]
-     [0.9999933  0.9402475  0.04354297]
-     [0.5477702  0.6138743  0.09345043]
-     [0.79537034 0.9728326  0.459035  ]
-     [0.00572387 0.13590908 0.5142813 ]
-     [0.52112395 0.0110083  0.82412577]
-     [0.9702636  0.04447497 0.061113  ]
-     [0.94849247 0.8218436  0.3123446 ]
-     [0.10509195 0.27289036 0.5416162 ]]
+    [[0.85493296 0.26510254 0.53331715]
+     [0.30681923 0.74060124 0.7171653 ]
+     [0.30642015 0.7410065  0.91750836]
+     [0.29925293 0.1590265  0.3935563 ]
+     [0.08549345 0.24925674 0.93933177]
+     [0.66976726 0.7500259  0.75108945]
+     [0.9346324  0.2545115  0.04834617]
+     [0.8814895  0.4373572  0.9538264 ]
+     [0.12332802 0.06911905 0.7156254 ]
+     [0.49863532 0.10793674 0.15716378]]
 
 ``` python
 bob.position[:, 2] += 1.0
@@ -75,16 +79,16 @@ print(bob.position)
 
     Updated position:
     AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-    [[0.08519451 0.12593558 1.7347536 ]
-     [0.9307156  0.9718119  1.0753658 ]
-     [0.9999933  0.9402475  1.043543  ]
-     [0.5477702  0.6138743  1.0934504 ]
-     [0.79537034 0.9728326  1.459035  ]
-     [0.00572387 0.13590908 1.5142813 ]
-     [0.52112395 0.0110083  1.8241258 ]
-     [0.9702636  0.04447497 1.061113  ]
-     [0.94849247 0.8218436  1.3123446 ]
-     [0.10509195 0.27289036 1.5416162 ]]
+    [[0.85493296 0.26510254 1.5333171 ]
+     [0.30681923 0.74060124 1.7171652 ]
+     [0.30642015 0.7410065  1.9175084 ]
+     [0.29925293 0.1590265  1.3935564 ]
+     [0.08549345 0.24925674 1.9393318 ]
+     [0.66976726 0.7500259  1.7510895 ]
+     [0.9346324  0.2545115  1.0483462 ]
+     [0.8814895  0.4373572  1.9538264 ]
+     [0.12332802 0.06911905 1.7156254 ]
+     [0.49863532 0.10793674 1.1571637 ]]
 
 ``` python
 # Convert to regular numpy array (no sync)
@@ -93,16 +97,16 @@ print(np.asarray(bob.position))
 ```
 
     As Array:
-    [[0.08519451 0.12593558 1.7347536 ]
-     [0.9307156  0.9718119  1.0753658 ]
-     [0.9999933  0.9402475  1.043543  ]
-     [0.5477702  0.6138743  1.0934504 ]
-     [0.79537034 0.9728326  1.459035  ]
-     [0.00572387 0.13590908 1.5142813 ]
-     [0.52112395 0.0110083  1.8241258 ]
-     [0.9702636  0.04447497 1.061113  ]
-     [0.94849247 0.8218436  1.3123446 ]
-     [0.10509195 0.27289036 1.5416162 ]]
+    [[0.85493296 0.26510254 1.5333171 ]
+     [0.30681923 0.74060124 1.7171652 ]
+     [0.30642015 0.7410065  1.9175084 ]
+     [0.29925293 0.1590265  1.3935564 ]
+     [0.08549345 0.24925674 1.9393318 ]
+     [0.66976726 0.7500259  1.7510895 ]
+     [0.9346324  0.2545115  1.0483462 ]
+     [0.8814895  0.4373572  1.9538264 ]
+     [0.12332802 0.06911905 1.7156254 ]
+     [0.49863532 0.10793674 1.1571637 ]]
 
 Working with integer attributes:
 
@@ -123,3 +127,44 @@ id_array += 100  # Automatically syncs as int32
 ## See Also
 
 Attribute : Low-level attribute interface without auto-sync store_named_attribute : Function to create/update attributes named_attribute : Function to read attribute data as regular arrays
+
+## Methods
+
+| Name | Description |
+|----|----|
+| [fill](#databpy.AttributeArray.fill) | Fill the array with a scalar value and sync to Blender. |
+| [partition](#databpy.AttributeArray.partition) | Partition the array in-place and sync to Blender. |
+| [put](#databpy.AttributeArray.put) | Set values at the given flat indices and sync to Blender. |
+| [sort](#databpy.AttributeArray.sort) | Sort the array in-place and sync to Blender. |
+
+### fill
+
+``` python
+AttributeArray.fill(value)
+```
+
+Fill the array with a scalar value and sync to Blender.
+
+### partition
+
+``` python
+AttributeArray.partition(*args, **kwargs)
+```
+
+Partition the array in-place and sync to Blender.
+
+### put
+
+``` python
+AttributeArray.put(*args, **kwargs)
+```
+
+Set values at the given flat indices and sync to Blender.
+
+### sort
+
+``` python
+AttributeArray.sort(*args, **kwargs)
+```
+
+Sort the array in-place and sync to Blender.

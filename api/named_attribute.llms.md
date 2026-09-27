@@ -24,7 +24,7 @@ Get the named attribute data from the object.
 
 | Name | Type | Description |
 |----|----|----|
-|  | [AttributeError](https://docs.python.org/3/builtins/exceptions.html#AttributeError) | If the named attribute does not exist on the mesh. |
+|  | `AttributeNotFoundError` | If the named attribute does not exist on the object. |
 
 ## Examples
 

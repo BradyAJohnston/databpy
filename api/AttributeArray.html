@@ -122,7 +122,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">databpy 0.9.0</span>
+    <span class="navbar-title">databpy 0.10.0</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -488,11 +488,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-  <li><a href="#performance-characteristics" id="toc-performance-characteristics" class="nav-link active" data-scroll-target="#performance-characteristics">Performance Characteristics</a></li>
+  <li><a href="#syncing" id="toc-syncing" class="nav-link active" data-scroll-target="#syncing">Syncing</a></li>
+  <li><a href="#performance-characteristics" id="toc-performance-characteristics" class="nav-link" data-scroll-target="#performance-characteristics">Performance Characteristics</a></li>
   <li><a href="#supported-types" id="toc-supported-types" class="nav-link" data-scroll-target="#supported-types">Supported Types</a></li>
   <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   <li><a href="#see-also" id="toc-see-also" class="nav-link" data-scroll-target="#see-also">See Also</a></li>
+  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a></li>
   </ul>
 </nav>
     </div>
@@ -522,6 +524,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>A numpy array subclass that automatically syncs changes back to the Blender object.</p>
 <p>AttributeArray provides an ergonomic interface for working with Blender attributes using familiar numpy operations. It automatically handles bidirectional syncing: values are retrieved from Blender as a numpy array, operations are applied, and results are immediately stored back to Blender.</p>
 <p>This is the high-level interface for attribute manipulation. For low-level control, see the <code>Attribute</code> class which provides manual get/set operations without auto-sync.</p>
+<section id="syncing" class="level2 doc-section doc-section-syncing">
+<h2 class="doc-section doc-section-syncing anchored" data-anchor-id="syncing">Syncing</h2>
+<p>Changes are written back to Blender by item assignment (<code>pos[0] = ...</code>), in-place operators (<code>pos += 1</code>, <code>pos[:, 2] *= 2</code>), ufuncs with <code>out=</code> or <code>.at</code>, the <code>fill</code>, <code>sort</code>, <code>put</code> and <code>partition</code> methods, and <code>np.copyto</code>, <code>np.place</code>, <code>np.putmask</code> and <code>np.fill_diagonal</code>. Writes through <code>.flat</code> are not synced.</p>
+<p>Other operations (<code>pos + 1</code>, <code>pos.copy()</code>, <code>pos[mask]</code>) return plain or detached arrays that don’t sync. If the object is removed, or a file is loaded, syncing raises a <code>LinkedObjectError</code>.</p>
+</section>
 <section id="performance-characteristics" class="level2 doc-section doc-section-performance-characteristics">
 <h2 class="doc-section doc-section-performance-characteristics anchored" data-anchor-id="performance-characteristics">Performance Characteristics</h2>
 <ul>
@@ -547,19 +554,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td>_blender_object</td>
-<td><code>bpy</code>.<a href="https://docs.blender.org/api/current/bpy.types.html#module-bpy.types">types</a>.<a href="https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object">Object</a></td>
-<td>Reference to the Blender object for syncing changes.</td>
-</tr>
-<tr class="even">
-<td>_attribute</td>
-<td><code>Attribute</code></td>
-<td>The underlying Attribute instance with type information.</td>
-</tr>
-<tr class="odd">
-<td>_attr_name</td>
-<td><a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></td>
-<td>Name of the attribute being wrapped.</td>
+<td>_link</td>
+<td><code>_AttributeLink</code> | None</td>
+<td>Link to the Blender object and attribute, or None for detached copies.</td>
 </tr>
 <tr class="even">
 <td>_root</td>
@@ -572,7 +569,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
 <p>Basic usage:</p>
-<div id="098f72e3" class="cell" data-execution_count="1">
+<div id="b92c478b" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -581,7 +578,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>pos[:, <span class="dv">2</span>] <span class="op">+=</span> <span class="fl">1.0</span>  <span class="co"># Automatically syncs to Blender</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Using BlenderObject for convenience:</p>
-<div id="893a44c8" class="cell" data-execution_count="2">
+<div id="82b936c3" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -591,57 +588,57 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stdout">
 <pre><code>Initial position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-[[0.08519451 0.12593558 0.73475355]
- [0.9307156  0.9718119  0.07536577]
- [0.9999933  0.9402475  0.04354297]
- [0.5477702  0.6138743  0.09345043]
- [0.79537034 0.9728326  0.459035  ]
- [0.00572387 0.13590908 0.5142813 ]
- [0.52112395 0.0110083  0.82412577]
- [0.9702636  0.04447497 0.061113  ]
- [0.94849247 0.8218436  0.3123446 ]
- [0.10509195 0.27289036 0.5416162 ]]</code></pre>
+[[0.85493296 0.26510254 0.53331715]
+ [0.30681923 0.74060124 0.7171653 ]
+ [0.30642015 0.7410065  0.91750836]
+ [0.29925293 0.1590265  0.3935563 ]
+ [0.08549345 0.24925674 0.93933177]
+ [0.66976726 0.7500259  0.75108945]
+ [0.9346324  0.2545115  0.04834617]
+ [0.8814895  0.4373572  0.9538264 ]
+ [0.12332802 0.06911905 0.7156254 ]
+ [0.49863532 0.10793674 0.15716378]]</code></pre>
 </div>
 </div>
-<div id="fcd3a128" class="cell" data-execution_count="3">
+<div id="8c9ba0b6" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bob.position[:, <span class="dv">2</span>] <span class="op">+=</span> <span class="fl">1.0</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Updated position:'</span>)</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(bob.position)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Updated position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-[[0.08519451 0.12593558 1.7347536 ]
- [0.9307156  0.9718119  1.0753658 ]
- [0.9999933  0.9402475  1.043543  ]
- [0.5477702  0.6138743  1.0934504 ]
- [0.79537034 0.9728326  1.459035  ]
- [0.00572387 0.13590908 1.5142813 ]
- [0.52112395 0.0110083  1.8241258 ]
- [0.9702636  0.04447497 1.061113  ]
- [0.94849247 0.8218436  1.3123446 ]
- [0.10509195 0.27289036 1.5416162 ]]</code></pre>
+[[0.85493296 0.26510254 1.5333171 ]
+ [0.30681923 0.74060124 1.7171652 ]
+ [0.30642015 0.7410065  1.9175084 ]
+ [0.29925293 0.1590265  1.3935564 ]
+ [0.08549345 0.24925674 1.9393318 ]
+ [0.66976726 0.7500259  1.7510895 ]
+ [0.9346324  0.2545115  1.0483462 ]
+ [0.8814895  0.4373572  1.9538264 ]
+ [0.12332802 0.06911905 1.7156254 ]
+ [0.49863532 0.10793674 1.1571637 ]]</code></pre>
 </div>
 </div>
-<div id="c65e3e66" class="cell" data-execution_count="4">
+<div id="5441771f" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to regular numpy array (no sync)</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'As Array:'</span>)</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(np.asarray(bob.position))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>As Array:
-[[0.08519451 0.12593558 1.7347536 ]
- [0.9307156  0.9718119  1.0753658 ]
- [0.9999933  0.9402475  1.043543  ]
- [0.5477702  0.6138743  1.0934504 ]
- [0.79537034 0.9728326  1.459035  ]
- [0.00572387 0.13590908 1.5142813 ]
- [0.52112395 0.0110083  1.8241258 ]
- [0.9702636  0.04447497 1.061113  ]
- [0.94849247 0.8218436  1.3123446 ]
- [0.10509195 0.27289036 1.5416162 ]]</code></pre>
+[[0.85493296 0.26510254 1.5333171 ]
+ [0.30681923 0.74060124 1.7171652 ]
+ [0.30642015 0.7410065  1.9175084 ]
+ [0.29925293 0.1590265  1.3935564 ]
+ [0.08549345 0.24925674 1.9393318 ]
+ [0.66976726 0.7500259  1.7510895 ]
+ [0.9346324  0.2545115  1.0483462 ]
+ [0.8814895  0.4373572  1.9538264 ]
+ [0.12332802 0.06911905 1.7156254 ]
+ [0.49863532 0.10793674 1.1571637 ]]</code></pre>
 </div>
 </div>
 <p>Working with integer attributes:</p>
-<div id="662be594" class="cell" data-execution_count="5">
+<div id="dc900b43" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -658,8 +655,57 @@ AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape
 <section id="see-also" class="level2 doc-section doc-section-see-also">
 <h2 class="doc-section doc-section-see-also anchored" data-anchor-id="see-also">See Also</h2>
 <p>Attribute : Low-level attribute interface without auto-sync store_named_attribute : Function to create/update attributes named_attribute : Function to read attribute data as regular arrays</p>
+</section>
+<section id="methods" class="level2">
+<h2 class="anchored" data-anchor-id="methods">Methods</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="#databpy.AttributeArray.fill">fill</a></td>
+<td>Fill the array with a scalar value and sync to Blender.</td>
+</tr>
+<tr class="even">
+<td><a href="#databpy.AttributeArray.partition">partition</a></td>
+<td>Partition the array in-place and sync to Blender.</td>
+</tr>
+<tr class="odd">
+<td><a href="#databpy.AttributeArray.put">put</a></td>
+<td>Set values at the given flat indices and sync to Blender.</td>
+</tr>
+<tr class="even">
+<td><a href="#databpy.AttributeArray.sort">sort</a></td>
+<td>Sort the array in-place and sync to Blender.</td>
+</tr>
+</tbody>
+</table>
+<section id="databpy.AttributeArray.fill" class="level3">
+<h3 class="anchored" data-anchor-id="databpy.AttributeArray.fill">fill</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>AttributeArray.fill(value)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Fill the array with a scalar value and sync to Blender.</p>
+</section>
+<section id="databpy.AttributeArray.partition" class="level3">
+<h3 class="anchored" data-anchor-id="databpy.AttributeArray.partition">partition</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>AttributeArray.partition(<span class="op">*</span>args, <span class="op">**</span>kwargs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Partition the array in-place and sync to Blender.</p>
+</section>
+<section id="databpy.AttributeArray.put" class="level3">
+<h3 class="anchored" data-anchor-id="databpy.AttributeArray.put">put</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>AttributeArray.put(<span class="op">*</span>args, <span class="op">**</span>kwargs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Set values at the given flat indices and sync to Blender.</p>
+</section>
+<section id="databpy.AttributeArray.sort" class="level3">
+<h3 class="anchored" data-anchor-id="databpy.AttributeArray.sort">sort</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>AttributeArray.sort(<span class="op">*</span>args, <span class="op">**</span>kwargs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Sort the array in-place and sync to Blender.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

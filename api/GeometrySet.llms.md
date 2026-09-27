@@ -130,4 +130,5 @@ Get named attribute data from the evaluated geometry.
 
 | Name | Type | Description |
 |----|----|----|
-|  | `NamedAttributeError` | If the attribute does not exist on the given (or any) component. |
+|  | `AttributeNotFoundError` | If the attribute does not exist on the given (or any) component. |
+|  | `NamedAttributeError` | If the given component isn’t present. |

@@ -1,6 +1,59 @@
 # Changelog
 
-## 0.9.0 (unreleased)
+## 0.10.0 (unreleased)
+
+A robustness release, in preparation for wider use of databpy across projects. Node related functionality is deprecated in favour of [nodebpy](https://pypi.org/project/nodebpy/), objects are tracked in a way that survives renames, reallocation and other add-ons, and attribute data is validated instead of being silently corrupted.
+
+databpy follows semantic versioning. Deprecated functionality raises a `FutureWarning` and is kept for at least two minor releases before removal. Everything deprecated in this release is removed in 0.12.0.
+
+### Deprecated
+
+- `databpy.nodes`: `new_tree`, `swap_tree`, `custom_string_iswitch`, `append_from_blend`, `DuplicatePrevention`, `cleanup_duplicates`, `deduplicate_node_trees`, `get_input`, `get_output`, `MaintainConnections`, `tree_interface`, `new_socket`, `input_socket`, `output_socket`, `socket_value` and `set_socket_value`. Node functionality is moving to nodebpy.
+- `register()` is no longer required. `unregister()` is now a no-op: it previously removed `Object.uuid`, which broke every other add-on using databpy.
+- The registered `Object.uuid` property. The uuid is now stored as the custom property `obj["_databpy_uuid"]`, which needs no registration. `Object.uuid` is kept in sync and values from existing .blend files are migrated automatically.
+- `NamedAttributeError` subclassing `AttributeError`, as `hasattr()` and `getattr()` silently swallow it. Catch `NamedAttributeError` or `DatabpyError` instead.
+
+### Added
+
+- `DatabpyError`, the base class for all databpy errors.
+- `AttributeNotFoundError`, raised for missing attributes. It is both a `NamedAttributeError` and a `KeyError`, and its message lists the available attributes.
+- `get_from_uuid(name_hint=...)`, to choose between duplicated objects that share a uuid.
+- `py.typed`, so type checkers use databpy’s type hints.
+
+### Changed
+
+- `BlenderObject` tracks its object by `session_uid` within a session, surviving renames and memory reallocation, and by its persistent uuid after a file is loaded. As before, a wrapper stops resolving its object once another wrapper stores a different uuid on it.
+- **Breaking**: accessing a `BlenderObject` whose object was removed raises `LinkedObjectError`, instead of resolving to a duplicate that shares its uuid.
+- `databpy.object.get_uuid()` / `set_uuid()` read and write the new custom property, falling back to and keeping in sync the registered `Object.uuid` property.
+- `AttributeArray` tracks its object by `session_uid` instead of holding a direct reference. Syncing raises `LinkedObjectError` if the object was removed or a file was loaded, instead of warning or writing to stale data.
+- `AttributeArray` syncs every in-place modification: all in-place operators, `out=`, `ufunc.at`, `fill`, `sort`, `put`, `partition`, `np.copyto`, `np.place`, `np.putmask` and `np.fill_diagonal`. Augmented assignment on a view (`pos[:, 2] += 1`) writes to Blender once instead of twice.
+- **Breaking**: the `domain` argument of `store_named_attribute()` defaults to `None`, using the domain of an existing attribute, otherwise `POINT`. A `domain` that doesn’t match an existing attribute raises `NamedAttributeError` instead of being ignored.
+- Writing to an existing attribute without `atype` uses the attribute’s type, instead of raising if the guessed type differed.
+- **Breaking**: 1D unsigned integer arrays are stored as `INT` (`uint8` was stored as `INT8`, wrapping values above 127) and `(n, 2)` unsigned arrays as `INT32_2D`.
+- **Breaking**: attribute type guessing raises `ValueError` when no type matches (0-d, `(n, 5)`, `(n, 2)` bool, complex or non-numeric multi-column arrays), instead of falling back to `FLOAT`.
+- **Breaking**: values that can’t be represented by an integer attribute (overflow, NaN or inf) and complex data raise `AttributeMismatchError`, instead of being silently wrapped or truncated.
+- **Breaking**: removing a required attribute such as `position` raises `NamedAttributeError` instead of Blender’s `RuntimeError`.
+- `bob["name"]`, `named_attribute()`, `remove_named_attribute()`, `AttributeArray()` and `GeometrySet.named_attribute()` raise `AttributeNotFoundError` for missing attributes. `bob["name"]` previously raised a bare `KeyError`, which it remains a subclass of.
+- `store_named_attribute()` and `Attribute.from_array()` accept any array-like data.
+- `create_pointcloud_object()` creates the point cloud directly instead of converting a mesh with an operator, so it no longer depends on the context. The `.selection` attribute added by the conversion is no longer present.
+- `create_curves_object()` raises `ValueError` if only one of `positions` and `curve_sizes` is given, instead of creating an empty object.
+- `create_mesh_object()` and `BlenderObject.new_from_pydata()` raise `ValueError` for out of range edge or face indices, instead of creating an invalid mesh.
+- `ObjectTracker` identifies new objects by `session_uid`. `new_objects()` is ordered from oldest to newest and `latest()` returns the most recently created object.
+- Object data is refreshed with `update_tag()` after writing attributes, replacing the workaround of reassigning a vertex position.
+- The string attribute warning points at the calling code, so it is shown once per call site.
+- `AttributeArray` no longer has the private `_attribute` and `_attr_name` attributes. `_blender_object` is kept as a read-only lookup.
+
+### Fixed
+
+- In-place operations other than `+=`, `-=`, `*=` and `/=` modified an `AttributeArray` without syncing to Blender.
+- Writing attributes to empty geometry raised `IndexError` or `KeyError`.
+- `create_pointcloud_object()` returned a mesh when given a collection not linked to the scene, and left an orphan mesh behind.
+- `create_mesh_object()` raised for faces with different numbers of vertices.
+- `BlenderObject.centroid()` ignored boolean masks and unsigned index arrays, returning the unweighted centroid. Unsupported dtypes now raise `TypeError`.
+- `ObjectTracker` reported renamed objects as new.
+- After a uuid mismatch, every access of `BlenderObject.object` searched all objects.
+
+## 0.9.0 (2026-09-14)
 
 A full static-typing pass over the package and test suite. The code base now passes [ty](https://docs.astral.sh/ty/) with zero errors and zero suppression comments (every `# type: ignore` has been removed), and ty runs in CI alongside ruff. Blender API values that are typed as `Something | None` or as wide data-block unions are now handled through small helpers that check at runtime and narrow the type, instead of being ignored.
 

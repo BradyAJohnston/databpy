@@ -6,11 +6,12 @@ BlenderObjectBase(obj=None)
 
 Minimal base class for Blender objects with name and object access.
 
-This provides a minimal set of functionality to persistently track a an object in Blender’s database, providing access to it’s name property and also the object itself. Referencing an object in the database directly can lead to ReferenceErrors as Blender can *without warning* alter the database and thus the Object’s place in memory.
+This provides a minimal set of functionality to persistently track an object in Blender’s database, providing access to its name property and also the object itself. Referencing an object in the database directly can lead to ReferenceErrors as Blender can *without warning* alter the database and thus the Object’s place in memory.
 
-To get around this BlenderObjectBase always looks up via the name attribute and double checks with the `uuid` attribute to ensure the correct object is being returned. If there is a mismatch the entite database will be searched for an object with a uuid that matches and if none is found a LinkedObjectError will be raised.
+To get around this the object is tracked in two ways:
 
-Blender *internally* uses it’s own UUID / reference system but this is currently (and frustratingly) not available to us via the Python API.
+- Within a session, by the object’s `session_uid`, which stays the same across renames and internal reallocations. Duplicates of the object get a new `session_uid`, so they are never mistaken for the original. If the object is removed a LinkedObjectError is raised.
+- Across sessions (after loading a .blend file, or in a new Python process), by a persistent `uuid` stored on the object as a custom property. On first access in a new session the object is found by its `uuid` and then tracked by its new `session_uid`.
 
 ## Attributes
 
