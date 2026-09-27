@@ -1,10 +1,54 @@
-import warnings
 from typing import Self
 
 import bpy
 import numpy as np
 
-from .attribute import Attribute, _attribute_data, store_named_attribute
+from .addon import find_by_session_uid, session_token
+from .attribute import (
+    Attribute,
+    AttributeDomains,
+    AttributeNotFoundError,
+    AttributeTypes,
+    _attribute_data,
+    store_named_attribute,
+)
+from .errors import LinkedObjectError
+
+
+class _AttributeLink:
+    """Session-stable link from an AttributeArray to the attribute it was read from.
+
+    The object is tracked by its `session_uid` rather than a direct reference, which
+    can become invalid when Blender reallocates or renames the object.
+    """
+
+    def __init__(self, obj: bpy.types.Object, attribute: Attribute):
+        self.object_name: str = obj.name
+        self.session_uid: int = obj.session_uid
+        self.session_token: str = session_token()
+        self.name: str = attribute.name
+        self.atype: AttributeTypes = attribute.atype
+        self.domain: AttributeDomains = attribute.domain
+
+    def resolve(self) -> bpy.types.Object:
+        if self.session_token != session_token():
+            raise LinkedObjectError(
+                f"AttributeArray '{self.name}' was read from '{self.object_name}' before "
+                "a file was loaded, and can no longer be synced to Blender."
+            )
+        obj = find_by_session_uid(self.session_uid, self.object_name)
+        if obj is None:
+            raise LinkedObjectError(
+                f"The object '{self.object_name}' for AttributeArray '{self.name}' has "
+                "been removed."
+            )
+        self.object_name = obj.name
+        return obj
+
+
+# numpy functions that write into their first argument without going through a ufunc,
+# `__setitem__` or one of the synced methods
+_WRITING_FUNCTIONS = {np.copyto, np.place, np.putmask, np.fill_diagonal}
 
 
 class AttributeArray(np.ndarray):
@@ -18,6 +62,17 @@ class AttributeArray(np.ndarray):
 
     This is the high-level interface for attribute manipulation. For low-level control,
     see the `Attribute` class which provides manual get/set operations without auto-sync.
+
+    Syncing
+    -------
+    Changes are written back to Blender by item assignment (`pos[0] = ...`), in-place
+    operators (`pos += 1`, `pos[:, 2] *= 2`), ufuncs with `out=` or `.at`, the
+    `fill`, `sort`, `put` and `partition` methods, and `np.copyto`, `np.place`,
+    `np.putmask` and `np.fill_diagonal`. Writes through `.flat` are not synced.
+
+    Other operations (`pos + 1`, `pos.copy()`, `pos[mask]`) return plain or detached
+    arrays that don't sync. If the object is removed, or a file is loaded, syncing
+    raises a `LinkedObjectError`.
 
     Performance Characteristics
     ---------------------------
@@ -37,12 +92,8 @@ class AttributeArray(np.ndarray):
 
     Attributes
     ----------
-    _blender_object : bpy.types.Object
-        Reference to the Blender object for syncing changes.
-    _attribute : Attribute
-        The underlying Attribute instance with type information.
-    _attr_name : str
-        Name of the attribute being wrapped.
+    _link : _AttributeLink | None
+        Link to the Blender object and attribute, or None for detached copies.
     _root : AttributeArray
         Reference to the root array for handling views/slices correctly.
 
@@ -103,11 +154,6 @@ class AttributeArray(np.ndarray):
     named_attribute : Function to read attribute data as regular arrays
     """
 
-    _blender_object: bpy.types.Object | None
-    _attribute: Attribute | None
-    _attr_name: str | None
-    _root: np.ndarray
-
     def __new__(cls, obj: bpy.types.Object, name: str) -> Self:
         """Create a new AttributeArray that wraps a Blender attribute.
 
@@ -122,15 +168,30 @@ class AttributeArray(np.ndarray):
         -------
         AttributeArray
             A numpy array subclass that syncs changes back to Blender.
+
+        Raises
+        ------
+        AttributeNotFoundError
+            If the attribute doesn't exist on the object.
         """
-        attr = Attribute(_attribute_data(obj).attributes[name])
+        data = _attribute_data(obj)
+        try:
+            attr = Attribute(data.attributes[name])
+        except KeyError:
+            raise AttributeNotFoundError(
+                f"The attribute '{name}' does not exist on '{obj.name}'. "
+                f"Available attributes: {sorted(data.attributes.keys())}"
+            ) from None
         arr = np.asarray(attr.as_array()).view(cls)
-        arr._blender_object = obj
-        arr._attribute = attr
-        arr._attr_name = name
+        arr._link = _AttributeLink(obj, attr)
         # Track the root array so that views can sync the full data
         arr._root = arr
         return arr
+
+    @property
+    def _blender_object(self) -> bpy.types.Object | None:
+        """The linked Blender object, or None for detached copies."""
+        return None if self._link is None else self._link.resolve()
 
     def __array_finalize__(self, obj):
         """Initialize attributes when array is created through operations."""
@@ -141,66 +202,102 @@ class AttributeArray(np.ndarray):
         # Blender; copies (e.g. `pos.copy()`, `pos[mask]`) become detached arrays
         # that no longer sync
         if np.may_share_memory(self, obj):
-            self._blender_object = getattr(obj, "_blender_object", None)
-            self._attribute = getattr(obj, "_attribute", None)
-            self._attr_name = getattr(obj, "_attr_name", None)
-            # Preserve reference to the root array for syncing
+            self._link = getattr(obj, "_link", None)
             self._root = getattr(obj, "_root", self)
         else:
-            self._blender_object = None
-            self._attribute = None
-            self._attr_name = None
+            self._link = None
             self._root = self
 
     def __array_wrap__(self, out_arr, context=None, return_scalar=False):
-        """Return plain numpy arrays from operations like `pos + 1`.
-
-        Only in-place operations (`pos += 1`) keep the AttributeArray type and
-        its connection to Blender - other operation results are new arrays that
-        should not sync back.
-        """
+        """Return plain numpy arrays from operations that produce new arrays."""
         if out_arr is self:
             return out_arr
         if return_scalar:
             return out_arr[()]
         return np.asarray(out_arr)
 
+    def __array_ufunc__(self, ufunc, method, *inputs, out=None, **kwargs):
+        """Run ufuncs on plain arrays, syncing any AttributeArray written to.
+
+        In-place operators (`pos += 1`) are ufuncs with `out=`, so they are synced
+        here along with explicit `out=` arguments and `ufunc.at`.
+        """
+        written = tuple(out) if out is not None else ()
+        if method == "at":
+            written = inputs[:1]
+
+        inputs = tuple(
+            x.view(np.ndarray) if isinstance(x, AttributeArray) else x for x in inputs
+        )
+        if out is not None:
+            kwargs["out"] = tuple(
+                x.view(np.ndarray) if isinstance(x, AttributeArray) else x for x in out
+            )
+        result = getattr(ufunc, method)(*inputs, **kwargs)
+
+        for arr in written:
+            if isinstance(arr, AttributeArray):
+                arr._sync_to_blender()
+
+        if out is None or method == "at":
+            return result
+        return out[0] if len(out) == 1 else out
+
+    def __array_function__(self, func, types, args, kwargs):
+        """Sync after numpy functions that write into an AttributeArray."""
+        result = super().__array_function__(func, types, args, kwargs)
+        if func in _WRITING_FUNCTIONS:
+            target = args[0] if args else next(iter(kwargs.values()), None)
+            if isinstance(target, AttributeArray):
+                target._sync_to_blender()
+        return result
+
     def __setitem__(self, key, value):
         """Set item and sync changes back to Blender."""
+        if self._is_writeback(key, value):
+            # `pos[:, 2] += 1` assigns the already modified and synced view back to
+            # itself, so there is nothing to write
+            return
         super().__setitem__(key, value)
         self._sync_to_blender()
 
-    def _ensure_correct_shape(
-        self, data: np.ndarray, attribute: Attribute
-    ) -> np.ndarray:
-        """Ensure data has the correct shape for Blender.
+    def _is_writeback(self, key, value) -> bool:
+        if (
+            not isinstance(value, AttributeArray)
+            or value._link is None
+            or value._root is not self._root
+        ):
+            return False
+        try:
+            target = super().__getitem__(key)
+        except (IndexError, TypeError, ValueError):
+            return False
+        return (
+            isinstance(target, np.ndarray)
+            and target.__array_interface__["data"] == value.__array_interface__["data"]
+            and target.shape == value.shape
+            and target.strides == value.strides
+        )
 
-        Handles numpy views that may have lost dimension information and
-        reshapes 1D arrays to match the expected attribute dimensions.
-        """
-        expected_dims = attribute.atype.value.dimensions
-        # the total number of scalar values per element, e.g. FLOAT_VECTOR (3,)
-        # gives 3 and FLOAT4X4 (4, 4) gives 16
-        expected_components = int(np.prod(expected_dims))
+    def fill(self, value):
+        """Fill the array with a scalar value and sync to Blender."""
+        super().fill(value)
+        self._sync_to_blender()
 
-        # Reshape 1D to correct dimensionality if needed
-        if data.ndim == 1 and len(data) % expected_components == 0:
-            n_elements = len(data) // expected_components
-            if len(expected_dims) == 1:
-                # 1D attribute (FLOAT, INT, BOOLEAN, etc.)
-                return data
-            else:
-                # Multi-dimensional attribute
-                return data.reshape(n_elements, *expected_dims)
+    def sort(self, *args, **kwargs):
+        """Sort the array in-place and sync to Blender."""
+        super().sort(*args, **kwargs)
+        self._sync_to_blender()
 
-        # Handle views that lost shape information (e.g., column slices)
-        if data.ndim != len(attribute.shape):
-            # Try to get the full array from the root
-            full_array = np.asarray(self._root).copy()
-            if full_array.shape == attribute.shape:
-                return full_array
+    def put(self, *args, **kwargs):
+        """Set values at the given flat indices and sync to Blender."""
+        super().put(*args, **kwargs)
+        self._sync_to_blender()
 
-        return data
+    def partition(self, *args, **kwargs):
+        """Partition the array in-place and sync to Blender."""
+        super().partition(*args, **kwargs)
+        self._sync_to_blender()
 
     def _sync_to_blender(self):
         """Sync the current array data back to the Blender object.
@@ -210,78 +307,37 @@ class AttributeArray(np.ndarray):
         API requiring the full array. For large meshes, consider batching
         multiple modifications before triggering a sync.
         """
-        attribute = self._attribute
-        attr_name = self._attr_name
-        if attribute is None or attr_name is None:
+        link = self._link
+        if link is None:
             # a detached copy with no linked attribute; nothing to sync
             return
 
-        if self._blender_object is None:
-            warnings.warn(
-                "AttributeArray has lost its Blender object reference. "
-                "Changes will not be synced back to Blender. This can happen "
-                "if the array was created from a deleted object or copied incorrectly.",
-                RuntimeWarning,
-                stacklevel=3,
-            )
-            return
-
         # Always sync using the root array to ensure full shape
-        root = getattr(self, "_root", self)
-        data_to_sync = np.asarray(root)
-        data_to_sync = self._ensure_correct_shape(data_to_sync, attribute)
-
-        # Use the attribute's actual dtype instead of hardcoding float32
-        expected_dtype = attribute.dtype
-        if data_to_sync.dtype != expected_dtype:
-            data_to_sync = data_to_sync.astype(expected_dtype)
-
         store_named_attribute(
-            self._blender_object,
-            data_to_sync,
-            name=attr_name,
-            atype=attribute.atype,
-            domain=attribute.domain,
+            link.resolve(),
+            self._root.view(np.ndarray),
+            name=link.name,
+            atype=link.atype,
+            domain=link.domain,
         )
 
-    def _inplace_operation_with_sync(self, operation, other):
-        """Common method for in-place operations."""
-        result = operation(other)
-        self._sync_to_blender()
-        return result
-
-    def __iadd__(self, other):
-        """In-place addition with Blender syncing."""
-        return self._inplace_operation_with_sync(super().__iadd__, other)
-
-    def __isub__(self, other):
-        """In-place subtraction with Blender syncing."""
-        return self._inplace_operation_with_sync(super().__isub__, other)
-
-    def __imul__(self, other):
-        """In-place multiplication with Blender syncing."""
-        return self._inplace_operation_with_sync(super().__imul__, other)
-
-    def __itruediv__(self, other):
-        """In-place division with Blender syncing."""
-        return self._inplace_operation_with_sync(super().__itruediv__, other)
+    def _describe(self) -> tuple[str, str, str, str, str]:
+        """Names of the attribute, domain, type, object and data-block for printing."""
+        link = self._link
+        if link is None:
+            return ("Unknown", "Unknown", "Unknown", "Unknown", "Unknown")
+        obj_name = obj_type = "Unknown"
+        try:
+            obj = link.resolve()
+            obj_name, obj_type = obj.name, obj.data.name
+        except LinkedObjectError:
+            obj_name = link.object_name
+        return link.name, link.domain.name, str(link.atype.value), obj_name, obj_type
 
     def __str__(self):
         """String representation showing attribute info and array data."""
-        # Get basic info
-        attr_name = getattr(self, "_attr_name", "Unknown")
-        domain = getattr(self._attribute, "domain", None)
-        domain_name = domain.name if domain else "Unknown"
-
-        # Get object info
-        obj_name = "Unknown"
-        obj_type = "Unknown"
-        if self._blender_object:
-            obj_name = getattr(self._blender_object, "name", "Unknown")
-            obj_type = getattr(self._blender_object.data, "name", "Unknown")
-
-        # Get array info
-        array_str = np.array_str(np.asarray(self))
+        attr_name, domain_name, _, obj_name, obj_type = self._describe()
+        array_str = np.array_str(np.asarray(self).view(np.ndarray))
 
         return (
             f"AttributeArray '{attr_name}' from {obj_type}('{obj_name}')"
@@ -291,23 +347,11 @@ class AttributeArray(np.ndarray):
 
     def __repr__(self):
         """Detailed representation for debugging."""
-        # Get basic info
-        attr_name = getattr(self, "_attr_name", "Unknown")
-        domain = getattr(self._attribute, "domain", None)
-        domain_name = domain.name if domain else "Unknown"
-        atype = getattr(self._attribute, "atype", None)
-        type_name = atype.value if atype is not None else "Unknown"
-
-        # Get object info
-        obj_name = "Unknown"
-        obj_type = "Unknown"
-        if self._blender_object:
-            obj_name = getattr(self._blender_object, "name", "Unknown")
-            obj_type = getattr(self._blender_object.data, "name", "Unknown")
+        attr_name, domain_name, type_name, obj_name, obj_type = self._describe()
 
         # Get array representation with explicit dtype for cross-platform consistency
         # np.array_repr() can omit dtype on Windows when it's the platform default
-        arr = np.asarray(self)
+        arr = np.asarray(self).view(np.ndarray)
         # Use np.array_repr() but then ensure dtype is always appended
         array_repr = np.array_repr(arr)
         # If dtype isn't already in the repr, add it before the closing parenthesis

@@ -5,6 +5,7 @@ from .attribute import (
     Attribute,
     AttributeDomains,
     AttributeMismatchError,
+    AttributeNotFoundError,
     AttributeType,
     AttributeTypes,
     NamedAttributeError,
@@ -15,6 +16,7 @@ from .attribute import (
     store_named_attribute,
 )
 from .collection import create_collection, move_to_collection
+from .errors import DatabpyError
 from .geometry import GeometrySet
 from .object import (
     BOB,
@@ -50,11 +52,13 @@ __all__ = [
     "AttributeArray",
     "AttributeDomains",
     "AttributeMismatchError",
+    "AttributeNotFoundError",
     "AttributeType",
     "AttributeTypes",
     "BlenderObject",
     "BlenderObjectAttribute",
     "BlenderObjectBase",
+    "DatabpyError",
     "GeometrySet",
     "LinkedObjectError",
     "NamedAttributeError",

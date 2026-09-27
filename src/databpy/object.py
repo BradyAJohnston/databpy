@@ -1,3 +1,4 @@
+import itertools
 import warnings
 from uuid import uuid1
 
@@ -7,7 +8,12 @@ from bpy.types import Object
 from numpy import typing as npt
 
 from . import attribute as attr
-from .addon import UUID_PROP_NAME, register
+from .addon import (
+    find_by_session_uid,
+    get_uuid,
+    session_token,
+    set_uuid,
+)
 from .array import AttributeArray
 from .attribute import (
     Attribute,
@@ -20,67 +26,8 @@ from .attribute import (
     list_attributes,
 )
 from .collection import create_collection
+from .errors import LinkedObjectError
 from .utils import active_scene
-
-
-def get_uuid(obj: Object) -> str:
-    """
-    Get the databpy UUID stored on an object.
-
-    The `uuid` property is registered dynamically on `bpy.types.Object` (see
-    `databpy.addon.register`), so it is accessed via `getattr` rather than as a
-    static attribute.
-
-    Parameters
-    ----------
-    obj : Object
-        The Blender object to read the UUID from.
-
-    Returns
-    -------
-    str
-        The UUID string, or an empty string if none has been set.
-    """
-    value = getattr(obj, UUID_PROP_NAME, "")
-    return value if isinstance(value, str) else ""
-
-
-def set_uuid(obj: Object, uuid: str) -> None:
-    """
-    Set the databpy UUID on an object, registering the property if needed.
-
-    Parameters
-    ----------
-    obj : Object
-        The Blender object to store the UUID on.
-    uuid : str
-        The UUID string to store.
-    """
-    try:
-        setattr(obj, UUID_PROP_NAME, uuid)
-    except AttributeError:
-        register()
-        setattr(obj, UUID_PROP_NAME, uuid)
-
-
-class LinkedObjectError(Exception):
-    """
-    Error raised when a Python object doesn't have a linked object in the 3D scene.
-
-    Parameters
-    ----------
-    message : str
-        The error message describing why the linked object is missing or invalid.
-
-    Attributes
-    ----------
-    message : str
-        The error message that was passed.
-    """
-
-    def __init__(self, message: str):
-        self.message = message
-        super().__init__(self.message)
 
 
 class ObjectDatabase:
@@ -129,6 +76,7 @@ class ObjectTracker:
             The instance of the class.
         """
         self.objects = list(active_scene().objects)
+        self._existing = {obj.session_uid for obj in self.objects}
         return self
 
     def __exit__(self, type, value, traceback):
@@ -143,15 +91,16 @@ class ObjectTracker:
         Returns
         -------
         list
-            A list of new objects.
+            A list of new objects, ordered from oldest to newest.
         """
-        obj_names = [o.name for o in self.objects]
-        current_objects = active_scene().objects
-        new_objects = []
-        for obj in current_objects:
-            if obj.name not in obj_names:
-                new_objects.append(obj)
-        return new_objects
+        # session_uid values increase as data-blocks are created, so they give both
+        # a rename-proof identity and the creation order
+        new_objects = [
+            obj
+            for obj in active_scene().objects
+            if obj.session_uid not in self._existing
+        ]
+        return sorted(new_objects, key=lambda obj: obj.session_uid)
 
     def latest(self):
         """
@@ -167,7 +116,7 @@ class ObjectTracker:
         return self.new_objects()[-1]
 
 
-def get_from_uuid(uuid: str) -> Object:
+def get_from_uuid(uuid: str, name_hint: str | None = None) -> Object:
     """
     Get an object from the bpy.data.objects collection using a UUID.
 
@@ -175,37 +124,45 @@ def get_from_uuid(uuid: str) -> Object:
     ----------
     uuid : str
         The UUID of the object to get.
+    name_hint : str | None, optional
+        Preferred object name if several objects share the UUID, which happens when
+        an object has been duplicated.
 
     Returns
     -------
     Object
         The object from the bpy.data.objects collection.
     """
-    for obj in bpy.data.objects:
-        if get_uuid(obj) == uuid:
+    matches = [obj for obj in bpy.data.objects if get_uuid(obj) == uuid]
+    if not matches:
+        raise LinkedObjectError(
+            "Failed to find an object in the database with given uuid: " + uuid
+        )
+    for obj in matches:
+        if obj.name == name_hint:
             return obj
-
-    raise LinkedObjectError(
-        "Failed to find an object in the database with given uuid: " + uuid
-    )
+    return matches[0]
 
 
 class BlenderObjectBase:
     """
     Minimal base class for Blender objects with name and object access.
 
-    This provides a minimal set of functionality to persistently track a an object in
-    Blender's database, providing access to it's name property and also the object itself.
+    This provides a minimal set of functionality to persistently track an object in
+    Blender's database, providing access to its name property and also the object itself.
     Referencing an object in the database directly can lead to ReferenceErrors as Blender
     can _without warning_ alter the database and thus the Object's place in memory.
 
-    To get around this BlenderObjectBase always looks up via the name attribute and
-    double checks with the `uuid` attribute to ensure the correct object is being returned.
-    If there is a mismatch the entite database will be searched for an object with a uuid
-    that matches and if none is found a LinkedObjectError will be raised.
+    To get around this the object is tracked in two ways:
 
-    Blender _internally_ uses it's own UUID / reference system but this is currently (and
-    frustratingly) not available to us via the Python API.
+    - Within a session, by the object's `session_uid`, which stays the same across
+      renames and internal reallocations. Duplicates of the object get a new
+      `session_uid`, so they are never mistaken for the original. If the object is
+      removed a LinkedObjectError is raised.
+    - Across sessions (after loading a .blend file, or in a new Python process), by a
+      persistent `uuid` stored on the object as a custom property. On first access in
+      a new session the object is found by its `uuid` and then tracked by its new
+      `session_uid`.
 
     Attributes
     ----------
@@ -228,23 +185,22 @@ class BlenderObjectBase:
         """
         self._uuid: str = str(uuid1())
         self._object_name: str = ""
+        self._session_uid: int | None = None
+        self._session_token: str | None = None
 
-        if not hasattr(bpy.types.Object, "uuid"):
-            register()
+        if isinstance(obj, str):
+            obj = bpy.data.objects[obj]
 
         if isinstance(obj, Object):
             existing_uuid = get_uuid(obj)
-            if existing_uuid != "":
+            if existing_uuid:
                 self._uuid = existing_uuid
             self.object = obj
-        elif isinstance(obj, str):
-            obj = bpy.data.objects[obj]
-            existing_uuid = get_uuid(obj)
-            if existing_uuid != "":
-                self._uuid = existing_uuid
-            self.object = obj
-        elif obj is None:
-            self._object_name = ""
+
+    def _link(self, obj: Object) -> None:
+        self._object_name = obj.name
+        self._session_uid = obj.session_uid
+        self._session_token = session_token()
 
     @property
     def object(self) -> Object:
@@ -257,18 +213,30 @@ class BlenderObjectBase:
             The Blender object, or None if not found.
         """
 
-        # if we can't match a an object by name in the database, we instead try to match
-        # by the uuid. If we match by name and the uuid doesn't match, we try to find
-        # another object instead with the same uuid
-
-        try:
-            obj = bpy.data.objects[self._object_name]
+        if self._session_token == session_token():
+            obj = (
+                None
+                if self._session_uid is None
+                else find_by_session_uid(self._session_uid, self._object_name)
+            )
+            if obj is None:
+                raise LinkedObjectError(
+                    f"The object '{self._object_name}' linked to this "
+                    f"{type(self).__name__} has been removed."
+                )
+            # another wrapper has taken over the object by storing its own uuid on it
             if get_uuid(obj) != self.uuid:
-                obj = get_from_uuid(self.uuid)
-        except (KeyError, MemoryError):
-            obj = get_from_uuid(self.uuid)
-            self._object_name = obj.name
+                raise LinkedObjectError(
+                    f"The object '{obj.name}' linked to this {type(self).__name__} is "
+                    "now linked to a different uuid."
+                )
+        else:
+            # new session (file loaded or new process), session_uid values are no longer
+            # valid so find the object again by its persistent uuid
+            obj = get_from_uuid(self.uuid, name_hint=self._object_name)
 
+        if obj.name != self._object_name or self._session_token != session_token():
+            self._link(obj)
         return obj
 
     @object.setter
@@ -286,7 +254,7 @@ class BlenderObjectBase:
             raise TypeError(f"{value} must be a bpy.types.Object")
 
         set_uuid(value, self.uuid)
-        self._object_name = value.name
+        self._link(value)
 
     @property
     def uuid(self) -> str:
@@ -354,7 +322,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
         data: np.ndarray,
         name: str,
         atype: AttributeTypeNames | AttributeTypes | None = None,
-        domain: DomainNames | AttributeDomains = AttributeDomains.POINT,
+        domain: DomainNames | AttributeDomains | None = None,
     ) -> bpy.types.Attribute:
         """
         Store a named attribute on the Blender object.
@@ -367,10 +335,11 @@ class BlenderObjectAttribute(BlenderObjectBase):
             The name for the attribute. Will overwrite an already existing attribute.
         atype : str or AttributeTypes or None, optional
             The attribute type to store the data as. Either string or selection from the
-            AttributeTypes enum. None will attempt to infer the attribute type from the
-            input array.
-        domain : str or AttributeDomains, optional
-            The domain to store the attribute on. Defaults to AttributeDomains.POINT.
+            AttributeTypes enum. None uses the type of an existing attribute, otherwise
+            infers the attribute type from the input array.
+        domain : str or AttributeDomains or None, optional
+            The domain to store the attribute on. None uses the domain of an existing
+            attribute, otherwise AttributeDomains.POINT.
 
         Returns
         -------
@@ -558,6 +527,8 @@ class BlenderObjectAttribute(BlenderObjectBase):
         ------
         TypeError
             If name is not a string.
+        AttributeNotFoundError
+            If the attribute doesn't exist. This is also a KeyError.
         """
         if not isinstance(name, str):
             raise TypeError("Attribute name must be a string")
@@ -783,9 +754,10 @@ class BlenderObject(BlenderObjectAttribute):
             raise TypeError(
                 f"Object must be a mesh to create a new object from pydata, not {type(self.data)}"
             )
-        vertices, edges, faces = [
-            [] if x is None else x for x in (vertices, edges, faces)
-        ]
+        vertices = [] if vertices is None else np.asarray(vertices)
+        edges, faces = [[] if x is None else x for x in (edges, faces)]
+        edges = _check_indices(edges, len(vertices), "edges")
+        faces = _check_indices(faces, len(vertices), "faces")
         self.data.clear_geometry()
         self.data.from_pydata(vertices, edges, faces)
         return self.object
@@ -801,6 +773,7 @@ class BlenderObject(BlenderObjectAttribute):
             - If str: Name of attribute to use as weights
             - If np.ndarray with float dtype: Weights for each position
             - If np.ndarray with int dtype: Indices of positions to include
+            - If np.ndarray with bool dtype: Mask of positions to include
             - If None: Use all positions equally weighted
             Defaults to None.
 
@@ -812,13 +785,19 @@ class BlenderObject(BlenderObjectAttribute):
         if isinstance(weight, str):
             weight = self.named_attribute(weight)
 
-        if isinstance(weight, np.ndarray):
-            if weight.dtype.kind == "f":
-                return np.average(self.position, weights=weight, axis=0)
-            elif weight.dtype.kind == "i":
-                return np.average(self.position[weight], axis=0)
+        if weight is None:
+            return np.average(self.position, axis=0)
 
-        return np.average(self.position, axis=0)
+        weight = np.asarray(weight)
+        if weight.dtype.kind == "f":
+            return np.average(self.position, weights=weight, axis=0)
+        elif weight.dtype.kind in "iub":
+            return np.average(self.position[weight], axis=0)
+
+        raise TypeError(
+            f"`weight` must contain float weights, integer indices or a boolean mask, "
+            f"not {weight.dtype}"
+        )
 
     @property
     def vertices(self):
@@ -888,6 +867,21 @@ class BlenderObject(BlenderObjectAttribute):
         return self.data.edges
 
 
+def _check_indices(indices, n_vertices: int, kind: str):
+    # from_pydata doesn't validate indices, and out of range values leave an invalid mesh
+    if not isinstance(indices, np.ndarray):
+        indices = [list(item) for item in indices]
+        flat = np.fromiter(itertools.chain.from_iterable(indices), dtype=np.int64)
+    else:
+        flat = indices.ravel()
+    if flat.size and (flat.min() < 0 or flat.max() >= n_vertices):
+        raise ValueError(
+            f"`{kind}` reference vertex indices outside of the {n_vertices} vertices "
+            f"(found range [{flat.min()}, {flat.max()}])"
+        )
+    return indices
+
+
 def create_mesh_object(
     vertices: npt.ArrayLike | None = None,
     edges: npt.ArrayLike | None = None,
@@ -917,16 +911,13 @@ def create_mesh_object(
         The created mesh object.
     """
 
-    def _array(a):
-        if a is None:
-            return []
-        else:
-            return np.asarray(a)
+    vertices = [] if vertices is None else np.asarray(vertices)
+    # edges and faces aren't converted to arrays, as faces can have different sizes
+    edges = _check_indices([] if edges is None else edges, len(vertices), "edges")
+    faces = _check_indices([] if faces is None else faces, len(vertices), "faces")
 
     mesh = bpy.data.meshes.new(name)
-    mesh.from_pydata(
-        vertices=_array(vertices), edges=_array(edges), faces=_array(faces)
-    )
+    mesh.from_pydata(vertices=vertices, edges=edges, faces=faces)
     obj = bpy.data.objects.new(name, mesh)
     if collection is None:
         collection = create_collection("Collection")
@@ -966,7 +957,8 @@ def create_curves_object(
     Raises
     ------
     ValueError
-        If positions and curve_sizes lengths don't match.
+        If only one of positions and curve_sizes is given, or their lengths don't
+        match.
 
     Examples
     --------
@@ -979,6 +971,11 @@ def create_curves_object(
     curves_obj = create_curves_object(positions, [3, 4])
     ```
     """
+    if (positions is None) != (curve_sizes is None):
+        raise ValueError(
+            "`positions` and `curve_sizes` must be given together, or both be None"
+        )
+
     curves_data = bpy.data.hair_curves.new(name)
     obj = bpy.data.objects.new(name, curves_data)
 
@@ -1012,10 +1009,6 @@ def create_pointcloud_object(
     """
     Create a new Blender point cloud object.
 
-    This function creates a point cloud by first creating a mesh with vertices
-    at the specified positions, then converting it to a point cloud using
-    Blender's convert operator.
-
     Parameters
     ----------
     positions : np.ndarray, optional
@@ -1042,23 +1035,18 @@ def create_pointcloud_object(
     pc_obj = create_pointcloud_object(positions, name="MyPC")
     print(len(pc_obj.data.points))  # 100
     ```
-
-    Notes
-    -----
-    This function works by creating a temporary mesh and converting it to a
-    point cloud using `bpy.ops.object.convert(target='POINTCLOUD')`.
     """
+    pointcloud = bpy.data.pointclouds.new(name)
+    obj = bpy.data.objects.new(name, pointcloud)
 
-    obj = create_mesh_object(
-        vertices=positions, edges=None, faces=None, name=name, collection=collection
-    )
+    if collection is None:
+        collection = create_collection("Collection")
+    collection.objects.link(obj)
 
-    with bpy.context.temp_override(
-        active_object=obj,
-        selected_objects=[obj],
-        selected_editable_objects=[obj],
-    ):
-        bpy.ops.object.convert(target="POINTCLOUD")
+    if positions is not None:
+        positions = np.asarray(positions)
+        pointcloud.resize(len(positions))
+        attr.store_named_attribute(obj, positions, "position")
 
     return obj
 
@@ -1139,13 +1127,9 @@ def create_bob(
         name=name,
         collection=collection,
     )
-    bob = BlenderObject(obj)
     if uuid:
-        # update the stored uuid on the object first: the `bob.object` lookup
-        # matches by uuid, so it must be set before changing `bob._uuid`
         set_uuid(obj, uuid)
-        bob._uuid = uuid
-    return bob
+    return BlenderObject(obj)
 
 
 # Friendly alias for BlenderObject - commonly used variable name

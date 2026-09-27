@@ -174,7 +174,7 @@ json_file = StringIO("""
 
 df = pl.read_json(json_file)
 columns_to_explode = [col for col in df.columns if df[col].dtype == pl.List(pl.List)]
-df = df.explode(columns_to_explode)
+df = df.explode(columns_to_explode, empty_as_null=True)
 
 vertices = np.zeros((len(df), 3), dtype=np.float32)
 bob = db.create_bob(vertices, name="DinoStar")

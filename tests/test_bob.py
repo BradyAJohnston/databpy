@@ -70,17 +70,16 @@ def test_bob_mismatch_uuid():
     assert old_uuid == bob.uuid
 
 
-def test_register():
-    db.unregister()
-    db.BlenderObject(bpy.data.objects["Cube"])
+def test_register_deprecated():
+    with pytest.warns(FutureWarning, match="no longer required"):
+        db.register()
+    bob = db.BlenderObject(bpy.data.objects["Cube"])
 
-
-def test_set_uuid_registers_property():
-    # after unregistering, setting a uuid re-registers the dynamic property
-    obj = bpy.data.objects["Cube"]
-    db.unregister()
-    db.object.set_uuid(obj, "test-uuid-register")
-    assert db.object.get_uuid(obj) == "test-uuid-register"
+    # unregister must not break other add-ons sharing databpy
+    with pytest.warns(FutureWarning, match="no longer does anything"):
+        db.unregister()
+    assert hasattr(bpy.types.Object, "uuid")
+    assert bob.name == "Cube"
 
 
 def test_object_setter_requires_object():

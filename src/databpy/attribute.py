@@ -1,11 +1,15 @@
+import os
 import warnings
 from dataclasses import dataclass
 from enum import Enum
-from typing import Literal
+from typing import Literal, cast
 
 import bpy
 import numpy as np
+import numpy.typing as npt
 from bpy.types import Object
+
+from .errors import DatabpyError
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
 AttributeDataBlock = bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
@@ -45,18 +49,36 @@ AttributeTypeNames = Literal[
 ]
 
 
-class NamedAttributeError(AttributeError):
+class NamedAttributeError(DatabpyError, AttributeError):
     """
     Base exception for all attribute-related errors in databpy.
 
     This exception is raised when operations on Blender named attributes fail,
     such as when an attribute doesn't exist, has incorrect dimensions, or
     cannot be created.
+
+    Notes
+    -----
+    This currently also subclasses `AttributeError`, which will be removed in databpy
+    0.12.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch
+    `NamedAttributeError` or `DatabpyError` instead.
     """
 
     def __init__(self, message):
         self.message = message
         super().__init__(self.message)
+
+    def __str__(self) -> str:
+        return self.message
+
+
+class AttributeNotFoundError(NamedAttributeError, KeyError):
+    """
+    Exception raised when a named attribute doesn't exist.
+
+    This is also a `KeyError`, so dictionary-style access such as `bob["name"]` can
+    be handled like any other missing key.
+    """
 
 
 def _attribute_data(obj: Object) -> AttributeDataBlock:
@@ -312,7 +334,9 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
 
     This function matches arrays broadly to Blender attribute types while ensuring
     they are categorized correctly based on both shape and dtype. It handles:
-    - Integer types: distinguishes int8, int32, int16_2d and int32_2d based on dtype and shape
+    - Integer types: distinguishes int8, int32, int16_2d and int32_2d based on dtype and shape.
+      Unsigned integers map to the 32-bit types, as their values may not fit the smaller
+      signed types
     - Float types: all floating point arrays map to float32-based attributes
     - 4D data: uint8 maps to BYTE_COLOR, other dtypes map to the generic FLOAT4.
       FLOAT_COLOR and QUATERNION must be explicitly requested via `atype`
@@ -333,6 +357,8 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
     ------
     TypeError
         If input is not a numpy array.
+    ValueError
+        If no attribute type matches the array's shape and dtype.
 
     Examples
     --------
@@ -346,89 +372,116 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
 
     if not isinstance(array, np.ndarray):
         raise TypeError(f"`array` must be a numpy array, not {type(array)=}")
+    if array.ndim == 0:
+        raise ValueError(
+            "`array` must have at least one dimension, with one row per element"
+        )
 
     dtype = array.dtype
+    kind = dtype.kind
     shape = array.shape
     n_row = shape[0]
+    numeric = kind in "biuf"
 
     # Handle 1D arrays (single values per element)
     if shape == (n_row, 1) or shape == (n_row,):
-        # Boolean arrays
-        if np.issubdtype(dtype, np.bool_):
+        if kind == "b":
             return AttributeTypes.BOOLEAN
-        # Integer arrays - check for int8 vs int32
-        elif np.issubdtype(dtype, np.integer):
-            # Check if it's int8 or uint8 (but not for colors)
-            if dtype in (np.int8, np.uint8):
-                return AttributeTypes.INT8
-            else:
-                # All other integer types default to INT (int32)
-                return AttributeTypes.INT
-        # Float arrays
-        elif np.issubdtype(dtype, np.floating):
+        elif kind == "i":
+            return AttributeTypes.INT8 if dtype == np.int8 else AttributeTypes.INT
+        elif kind == "u":
+            # unsigned values (e.g. uint8 above 127) don't fit in the signed INT8
+            return AttributeTypes.INT
+        elif kind == "f":
             return AttributeTypes.FLOAT
         # String arrays (unicode, bytes or numpy 2.x StringDType)
-        elif dtype.kind in ("U", "S", "T"):
+        elif kind in ("U", "S", "T"):
             return AttributeTypes.STRING
 
     # Handle 2D arrays (vectors, colors, matrices)
     elif shape == (n_row, 2):
-        # 2D vectors - check dtype to determine int16_2d / int32_2d vs float2
-        if np.issubdtype(dtype, np.integer):
-            if dtype in (np.int16, np.uint16):
+        if kind == "i":
+            if dtype == np.int16:
                 return AttributeTypes.INT16_2D
             return AttributeTypes.INT32_2D
-        elif np.issubdtype(dtype, np.floating):
+        elif kind == "u":
+            return AttributeTypes.INT32_2D
+        elif kind == "f":
             return AttributeTypes.FLOAT2
 
-    elif shape == (n_row, 3):
-        # 3D vectors (FLOAT_VECTOR expects float32)
+    elif shape == (n_row, 3) and numeric:
         return AttributeTypes.FLOAT_VECTOR
 
-    elif shape == (n_row, 4):
+    elif shape == (n_row, 4) and numeric:
         # 4D data - uint8 maps to BYTE_COLOR, everything else to the generic FLOAT4.
         # The color and quaternion types must be explicitly requested via `atype`
         if dtype == np.uint8:
             return AttributeTypes.BYTE_COLOR
-        else:
-            return AttributeTypes.FLOAT4
+        return AttributeTypes.FLOAT4
 
     # Handle 3D arrays (matrices)
-    elif shape == (n_row, 4, 4):
+    elif shape == (n_row, 4, 4) and numeric:
         return AttributeTypes.FLOAT4X4
 
-    # Default fallback
-    return AttributeTypes.FLOAT
+    raise ValueError(
+        f"Unable to infer an attribute type for an array with shape {shape} and dtype "
+        f"{dtype}. Pass `atype` explicitly or convert the data to a supported shape."
+    )
 
 
 def _trigger_data_update(obj_data) -> None:
-    # The updating of data doesn't work 100% of the time (see:
-    # https://projects.blender.org/blender/blender/issues/118507) so this resetting of a
-    # single vertex is the current fix. Not great as I can see it breaking when we are
-    # missing a vertex - but for now we shouldn't be dealing with any situations where this
-    # is the case For now we will set a single vert to it's own position, which triggers a
-    # proper refresh of the object data.
-    try:
-        obj_data.vertices[0].co = obj_data.vertices[0].co
-    except AttributeError:
-        # For non-mesh objects (Curves, PointCloud), try update() if it exists
-        try:
-            obj_data.attributes["position"].data[0].vector = (
-                obj_data.attributes["position"].data[0].vector
+    # tag the data-block so the depsgraph re-evaluates modifiers and the viewport redraws
+    obj_data.update_tag()
+
+
+def _as_storage_array(data: np.ndarray, atype: AttributeTypes) -> np.ndarray:
+    """
+    Flatten and cast data to the attribute's storage dtype.
+
+    Casting to the storage dtype lets `foreach_set` use the fast buffer protocol path.
+    Values that can't be represented in an integer storage type raise instead of
+    silently wrapping around.
+    """
+    target = np.dtype(atype.value.dtype)
+    source = data.dtype
+
+    if source.kind == "c":
+        raise AttributeMismatchError(
+            f"Complex data cannot be stored in a `{atype.value.type_name}` attribute."
+        )
+
+    if (
+        target.kind in "iu"
+        and source.kind in "iuf"
+        and data.size
+        and not np.can_cast(source, target)
+    ):
+        info = np.iinfo(cast(np.dtype[np.integer], target))
+        low, high = np.min(data), np.max(data)
+        if (
+            (source.kind == "f" and not (np.isfinite(low) and np.isfinite(high)))
+            or low < info.min
+            or high > info.max
+        ):
+            raise AttributeMismatchError(
+                f"Values in the range [{low}, {high}] can't be stored in the `{atype.value.type_name}` "
+                f"attribute, which stores {target} values in the range "
+                f"[{info.min}, {info.max}]."
             )
-        except AttributeError:
-            if hasattr(obj_data, "update"):
-                obj_data.update()
+
+    return np.ravel(data).astype(target, copy=False)
 
 
 def _warn_string_support() -> None:
     # STRING attributes are accessible through the Python API but aren't yet properly
-    # supported in Geometry Nodes, so treat their use as experimental for now
+    # supported in Geometry Nodes, so treat their use as experimental for now. The
+    # warning points at the first frame outside databpy, so Python's default filter
+    # shows it once per call site
     warnings.warn(
         "String attributes can be read and written through the Python API but are not "
         "yet properly supported within Geometry Nodes. Support may change in future "
         "Blender / databpy versions.",
-        stacklevel=4,
+        skip_file_prefixes=(os.path.dirname(__file__),),
     )
 
 
@@ -635,7 +688,7 @@ class Attribute:
         """Returns the total number of scalar values in the attribute."""
         return int(np.prod(self.shape, dtype=int))
 
-    def from_array(self, array: np.ndarray) -> None:
+    def from_array(self, array: npt.ArrayLike) -> None:
         """
         Set the attribute data from a numpy array.
 
@@ -644,15 +697,17 @@ class Attribute:
 
         Parameters
         ----------
-        array : np.ndarray
+        array : npt.ArrayLike
             Array containing the data to set. Must have the same total number
             of elements as the attribute.
 
         Raises
         ------
         AttributeMismatchError
-            If array cannot be reshaped to match attribute shape.
+            If array cannot be reshaped to match attribute shape, or its values
+            can't be represented by the attribute's type.
         """
+        array = np.asarray(array)
         if array.size != self.size:
             raise AttributeMismatchError(
                 f"Array size {array.size} does not match attribute size {self.size}. "
@@ -662,10 +717,8 @@ class Attribute:
         if self.atype == AttributeTypes.STRING:
             _write_string_values(self.attribute, array)
         else:
-            # casting to the storage dtype lets 'foreach_set' use the fast buffer
-            # protocol path instead of per-item iteration
             self.attribute.data.foreach_set(
-                self.value_name, np.ravel(array).astype(self.dtype, copy=False)
+                self.value_name, _as_storage_array(array, self.atype)
             )
 
         _trigger_data_update(self.attribute.id_data)
@@ -727,10 +780,10 @@ def _match_domain(domain: DomainNames | AttributeDomains) -> DomainNames:
 
 def store_named_attribute(
     obj: bpy.types.Object,
-    data: np.ndarray,
+    data: npt.ArrayLike,
     name: str,
     atype: AttributeTypeNames | AttributeTypes | None = None,
-    domain: DomainNames | AttributeDomains = AttributeDomains.POINT,
+    domain: DomainNames | AttributeDomains | None = None,
     overwrite: bool = True,
 ) -> bpy.types.Attribute:
     """
@@ -741,13 +794,15 @@ def store_named_attribute(
     obj : bpy.types.Object
         The Blender object.
     data : np.ndarray
-        The attribute data as a numpy array.
+        The attribute data, as a numpy array or anything convertible to one.
     name : str
         The name of the attribute.
     atype : str or AttributeTypes or None, optional
-        The attribute type to store the data as. If None, type is inferred from data.
-    domain : str or AttributeDomains, optional
-        The domain of the attribute, by default 'POINT'.
+        The attribute type to store the data as. If None, the type of an existing
+        attribute is used, otherwise the type is inferred from data.
+    domain : str or AttributeDomains or None, optional
+        The domain of the attribute. If None, the domain of an existing attribute is
+        used, otherwise 'POINT'.
     overwrite : bool, optional
         Whether to overwrite existing attribute, by default True.
 
@@ -759,9 +814,12 @@ def store_named_attribute(
     Raises
     ------
     ValueError
-        If atype string doesn't match available types.
+        If atype string doesn't match available types, or no type can be inferred.
+    NamedAttributeError
+        If data length doesn't match domain size, or the atype or domain don't match
+        an existing attribute.
     AttributeMismatchError
-        If data length doesn't match domain size.
+        If the values can't be represented by the attribute's type.
 
     Examples
     --------
@@ -781,9 +839,7 @@ def store_named_attribute(
     ```
     """
 
-    atype = _match_atype(atype, data)
-    domain = _match_domain(domain)
-
+    data = np.asarray(data)
     obj_data = obj.data
 
     if not isinstance(
@@ -796,8 +852,22 @@ def store_named_attribute(
     if name == "":
         raise NamedAttributeError("Attribute name cannot be an empty string.")
 
-    existing_attribute = obj_data.attributes.get(name)
-    if existing_attribute is None or not overwrite:
+    existing_attribute = obj_data.attributes.get(name) if overwrite else None
+    if existing_attribute is not None:
+        # writing to an existing attribute keeps its type and domain
+        attribute = _as_typed_attribute(existing_attribute)
+        existing_atype = AttributeTypes[attribute.data_type]
+        atype = existing_atype if atype is None else _match_atype(atype, data)
+        if domain is not None and _match_domain(domain) != attribute.domain:
+            raise NamedAttributeError(
+                f"Attribute `{name}` already exists on the `{attribute.domain}` domain, "
+                f"not `{_match_domain(domain)}`. Remove it first to store it on a "
+                "different domain."
+            )
+        domain = attribute.domain
+    else:
+        atype = _match_atype(atype, data)
+        domain = _match_domain(AttributeDomains.POINT if domain is None else domain)
         current_names = obj_data.attributes.keys()
         try:
             new_attribute = obj_data.attributes.new(name, atype.value.type_name, domain)
@@ -819,8 +889,6 @@ def store_named_attribute(
                 "Potentially the attribute name is too long or there is no geometry on the object for the given domain."
             )
         attribute = _as_typed_attribute(new_attribute)
-    else:
-        attribute = _as_typed_attribute(existing_attribute)
 
     target_atype = AttributeTypes[attribute.data_type]
 
@@ -854,10 +922,8 @@ def store_named_attribute(
         _write_string_values(attribute, data)
     else:
         # the 'foreach_set' requires a 1D array, regardless of the shape of the attribute
-        # so we have to flatten it first. Casting to the attribute's storage dtype lets
-        # 'foreach_set' use the fast buffer protocol path instead of per-item iteration
         attribute.data.foreach_set(
-            atype.value.value_name, np.ravel(data).astype(atype.value.dtype, copy=False)
+            atype.value.value_name, _as_storage_array(data, atype)
         )
 
     _trigger_data_update(obj_data)
@@ -926,8 +992,8 @@ def named_attribute(
 
     Raises
     ------
-    AttributeError
-        If the named attribute does not exist on the mesh.
+    AttributeNotFoundError
+        If the named attribute does not exist on the object.
 
     Examples
     --------
@@ -950,8 +1016,10 @@ def named_attribute(
     try:
         attr = Attribute(_attribute_data(obj).attributes[name])
     except KeyError:
-        message = f"The selected attribute '{name}' does not exist on the mesh."
-        raise NamedAttributeError(message)
+        raise AttributeNotFoundError(
+            f"The selected attribute '{name}' does not exist on the object. "
+            f"Available attributes: {list_attributes(obj, evaluate=evaluate)}"
+        ) from None
 
     return attr.as_array()
 
@@ -969,8 +1037,10 @@ def remove_named_attribute(obj: bpy.types.Object, name: str) -> None:
 
     Raises
     ------
-    AttributeError
-        If the named attribute does not exist on the mesh.
+    AttributeNotFoundError
+        If the named attribute does not exist on the object.
+    NamedAttributeError
+        If the attribute is required by Blender (e.g. `position`) and can't be removed.
 
     Examples
     --------
@@ -991,8 +1061,13 @@ def remove_named_attribute(obj: bpy.types.Object, name: str) -> None:
     obj_data = _attribute_data(obj)
     try:
         attr = obj_data.attributes[name]
-        obj_data.attributes.remove(attr)
     except KeyError:
-        raise NamedAttributeError(
+        raise AttributeNotFoundError(
             f"The selected attribute '{name}' does not exist on the object"
-        )
+        ) from None
+    try:
+        obj_data.attributes.remove(attr)
+    except RuntimeError as e:
+        raise NamedAttributeError(
+            f"The attribute '{name}' is required by Blender and can't be removed"
+        ) from e

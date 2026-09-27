@@ -2,6 +2,8 @@ from typing import Literal, cast
 
 import bpy
 
+from ._deprecation import deprecated
+
 NODE_DUP_SUFFIX = r"\.\d{3}$"
 
 # only some socket subclasses carry a `default_value`, and each declares its own
@@ -15,6 +17,7 @@ class NodeGroupCreationError(Exception):
         super().__init__(self.message)
 
 
+@deprecated
 def get_output(group: bpy.types.NodeTree) -> bpy.types.Node:
     return group.nodes[
         bpy.app.translations.pgettext_data(
@@ -23,6 +26,7 @@ def get_output(group: bpy.types.NodeTree) -> bpy.types.Node:
     ]
 
 
+@deprecated
 def get_input(group: bpy.types.NodeTree) -> bpy.types.Node:
     return group.nodes[
         bpy.app.translations.pgettext_data(
@@ -31,6 +35,7 @@ def get_input(group: bpy.types.NodeTree) -> bpy.types.Node:
     ]
 
 
+@deprecated
 def tree_interface(tree: bpy.types.NodeTree) -> bpy.types.NodeTreeInterface:
     """Return the interface of a node tree, raising an error if it has none.
 
@@ -43,6 +48,7 @@ def tree_interface(tree: bpy.types.NodeTree) -> bpy.types.NodeTreeInterface:
     return interface
 
 
+@deprecated
 def new_socket(
     tree: bpy.types.NodeTree,
     name: str,
@@ -78,16 +84,19 @@ def new_socket(
     )
 
 
+@deprecated
 def input_socket(node: bpy.types.Node, key: int | str) -> bpy.types.NodeSocket:
     """Get an input socket of a node by index or name."""
     return node.inputs[key]
 
 
+@deprecated
 def output_socket(node: bpy.types.Node, key: int | str) -> bpy.types.NodeSocket:
     """Get an output socket of a node by index or name."""
     return node.outputs[key]
 
 
+@deprecated
 def socket_value(socket: bpy.types.NodeSocket) -> object:
     """Return the default value of a socket.
 
@@ -101,6 +110,7 @@ def socket_value(socket: bpy.types.NodeSocket) -> object:
     return socket.default_value
 
 
+@deprecated
 def set_socket_value(socket: bpy.types.NodeSocket, value: object) -> None:
     """Set the default value of a socket.
 
@@ -115,6 +125,7 @@ def set_socket_value(socket: bpy.types.NodeSocket, value: object) -> None:
     setattr(socket, _DEFAULT_VALUE_ATTR, value)
 
 
+@deprecated
 class MaintainConnections:
     # capture input and output links, so we can rebuild the links based on name
     # and the sockets they were connected to

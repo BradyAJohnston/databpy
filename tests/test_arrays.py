@@ -332,8 +332,8 @@ class TestAttributeArray(unittest.TestCase):
 
         # Verify shape and components
         assert colors.shape == (5, 4)
-        assert colors._attribute is not None
-        assert colors._attribute.atype.value.dimensions == (4,)
+        assert colors._link is not None
+        assert colors._link.atype.value.dimensions == (4,)
 
         # Modify and verify sync
         colors[:, 3] = 0.5  # Set alpha to 0.5

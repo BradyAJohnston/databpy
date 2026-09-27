@@ -2,6 +2,7 @@ from collections.abc import Iterable
 
 import bpy
 
+from ._deprecation import deprecated
 from .utils import (
     MaintainConnections,
     NodeGroupCreationError,
@@ -14,6 +15,7 @@ from .utils import (
 )
 
 
+@deprecated
 def swap_tree(node: bpy.types.Node, tree: bpy.types.GeometryNodeTree) -> None:
     if not isinstance(node, bpy.types.GeometryNodeGroup):
         raise TypeError(
@@ -24,6 +26,7 @@ def swap_tree(node: bpy.types.Node, tree: bpy.types.GeometryNodeTree) -> None:
         node.name = tree.name
 
 
+@deprecated
 def new_tree(
     name: str = "Geometry Nodes",
     geometry: bool = True,
@@ -56,6 +59,7 @@ def new_tree(
     return tree
 
 
+@deprecated
 def custom_string_iswitch(
     name: str, values: Iterable[str], attr_name: str = "attr_id"
 ) -> bpy.types.GeometryNodeTree:

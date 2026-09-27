@@ -4,9 +4,9 @@ from typing import Any
 import bpy
 import numpy as np
 import pytest
+from nodebpy import geometry as g
 
 import databpy as db
-from databpy.nodes import input_socket, new_socket, output_socket, set_socket_value
 
 
 def test_attribute_properties():
@@ -188,7 +188,8 @@ def test_guess_atype():
     assert db.attribute.AttributeTypes.INT8 == db.attribute.guess_atype_from_array(
         np.zeros(10, dtype=np.int8)
     )
-    assert db.attribute.AttributeTypes.INT8 == db.attribute.guess_atype_from_array(
+    # uint8 values above 127 don't fit in the signed INT8
+    assert db.attribute.AttributeTypes.INT == db.attribute.guess_atype_from_array(
         np.zeros(10, dtype=np.uint8)
     )
     assert db.attribute.AttributeTypes.INT32_2D == db.attribute.guess_atype_from_array(
@@ -271,22 +272,16 @@ def test_storage_type():
 
     # a constant value stored via geometry nodes uses SINGLE storage on the
     # evaluated geometry, which still reads transparently as a full array
-    tree = db.require(bpy.data.node_groups.new("test_gn", "GeometryNodeTree"))
-    new_socket(tree, "Geometry", in_out="INPUT", socket_type="NodeSocketGeometry")
-    new_socket(tree, "Geometry", in_out="OUTPUT", socket_type="NodeSocketGeometry")
-    n_in = tree.nodes.new("NodeGroupInput")
-    n_out = tree.nodes.new("NodeGroupOutput")
-    store = tree.nodes.new("GeometryNodeStoreNamedAttribute")
-    assert isinstance(store, bpy.types.GeometryNodeStoreNamedAttribute)
-    store.data_type = "FLOAT"
-    store.domain = "POINT"
-    set_socket_value(input_socket(store, "Name"), "const_val")
-    set_socket_value(input_socket(store, "Value"), 3.5)
-    tree.links.new(n_in.outputs[0], input_socket(store, "Geometry"))
-    tree.links.new(output_socket(store, 0), n_out.inputs[0])
+    with g.tree("test_gn", arrange=None) as tree:
+        (
+            g.StoreNamedAttribute.point.float(
+                tree.inputs.geometry(), name="const_val", value=3.5
+            )
+            >> tree.outputs.geometry()
+        )
     modifier = obj.modifiers.new("test_gn", "NODES")
     assert isinstance(modifier, bpy.types.NodesModifier)
-    modifier.node_group = tree
+    modifier.node_group = tree.tree
 
     ev = db.evaluate_object(obj)
     assert (
@@ -377,15 +372,16 @@ def test_list_attributes(evaluate, drop_hidden):
 
     # store a named attribute via geometry nodes as this should only show up
     # when evaluate=True
-    tree = db.nodes.new_tree()
-    n = tree.nodes.new("GeometryNodeStoreNamedAttribute")
-    set_socket_value(input_socket(n, "Name"), "testing")
-    set_socket_value(input_socket(n, "Value"), 0.5)
-    tree.links.new(tree.nodes["Group Input"].outputs["Geometry"], n.inputs["Geometry"])
-    tree.links.new(n.outputs["Geometry"], tree.nodes["Group Output"].inputs["Geometry"])
+    with g.tree("Geometry Nodes", arrange=None) as tree:
+        (
+            g.StoreNamedAttribute.point.float(
+                tree.inputs.geometry(), name="testing", value=0.5
+            )
+            >> tree.outputs.geometry()
+        )
     mod = obj.modifiers.new("db_nodes", "NODES")
     assert isinstance(mod, bpy.types.NodesModifier)
-    mod.node_group = tree
+    mod.node_group = tree.tree
 
     for name in names:
         data = np.random.rand(len(db.mesh_data(obj).vertices), 3)
