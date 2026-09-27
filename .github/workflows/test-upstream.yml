@@ -1,33 +1,62 @@
 name: Test Upstream
 
-on: 
-    pull_request:
-      branches: ["main"]
-    
+# Run the test suites of projects that depend on databpy against this branch, to catch
+# breaking changes before release. Each project's environment is set up with uv and
+# bpy as it is in its own CI, then databpy is replaced with the version from this branch.
+
+on:
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-    test-in-blender:
-        runs-on: ${{ matrix.os }}
-        env:
-            BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
-            REPO_NAME: "BradyAJohnston/databpy"
-        strategy:
-            max-parallel: 4
-            fail-fast: false
-            matrix:
-              version: ["latest"]
-              os: [ubuntu-latest]
-              repo: ["BradyAJohnston/MolecularNodes", "kolibril13/blender_csv_import"]
-        steps:
-            - uses: actions/checkout@v5
-              with:
-                repository: ${{ matrix.repo }}
-            
-            - uses: BradyAJohnston/setup-blender@v5
-              with: 
-                version: ${{ matrix.version }}
-            
-            - name: Install and Test
-              run: |
-                blender -b -P tests/python.py -- -m pip install -e ".[test]"
-                blender -b -P tests/python.py -- -m pip install git+https://github.com/${{ env.REPO_NAME}}.git@${{ env.BRANCH_NAME }}
-                blender -b -P tests/run.py -- -vv
+  test-upstream:
+    name: ${{ matrix.repo }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - repo: BradyAJohnston/MolecularNodes
+            setup: uv run --no-sync -m nodebpy.assets build
+            test: uv run --no-sync pytest -n auto
+    steps:
+      - name: Checkout ${{ matrix.repo }}
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ matrix.repo }}
+          path: upstream
+
+      - name: Checkout databpy
+        uses: actions/checkout@v5
+        with:
+          path: databpy
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        working-directory: upstream
+        run: uv sync --all-extras
+
+      # `--no-sync` on the following steps stops uv from restoring the locked databpy
+      - name: Install databpy from this branch
+        working-directory: upstream
+        run: |
+          uv pip install ../databpy
+          uv run --no-sync python -c "import databpy; print(databpy.__file__)"
+
+      - name: Setup
+        if: matrix.setup
+        working-directory: upstream
+        timeout-minutes: 10
+        run: ${{ matrix.setup }}
+
+      - name: Run tests
+        working-directory: upstream
+        timeout-minutes: 15
+        run: ${{ matrix.test }}
