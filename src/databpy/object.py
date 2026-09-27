@@ -224,6 +224,12 @@ class BlenderObjectBase:
                     f"The object '{self._object_name}' linked to this "
                     f"{type(self).__name__} has been removed."
                 )
+            # another wrapper has taken over the object by storing its own uuid on it
+            if get_uuid(obj) != self.uuid:
+                raise LinkedObjectError(
+                    f"The object '{obj.name}' linked to this {type(self).__name__} is "
+                    "now linked to a different uuid."
+                )
         else:
             # new session (file loaded or new process), session_uid values are no longer
             # valid so find the object again by its persistent uuid

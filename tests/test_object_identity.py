@@ -55,6 +55,16 @@ def test_removed_object_raises_instead_of_retargeting():
         _ = bob.object
 
 
+def test_object_claimed_by_another_wrapper_raises():
+    # a new wrapper storing its own uuid on the object takes over from the old one
+    bob = db.BlenderObject(bpy.data.objects["Cube"])
+    db.object.set_uuid(bob.object, "new-owner")
+
+    with pytest.raises(db.LinkedObjectError, match="different uuid"):
+        _ = bob.object
+    assert db.create_bob(uuid="other").uuid == "other"
+
+
 def test_reconnects_after_file_reload(tmp_path):
     bob = db.BlenderObject(bpy.data.objects["Cube"])
     bob.store_named_attribute(np.arange(8), "ids")
