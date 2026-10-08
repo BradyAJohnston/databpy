@@ -3,7 +3,7 @@ title: Changelog
 toc: true
 ---
 
-## 0.10.1 (unreleased)
+## 0.10.1 2026-10-08
 
 Faster mesh construction and attribute access, with benchmarks tracked by
 [CodSpeed](https://app.codspeed.io/BradyAJohnston/databpy).
