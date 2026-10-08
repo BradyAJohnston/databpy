@@ -1,6 +1,22 @@
 # Changelog
 
-## 0.10.0 (unreleased)
+## 0.10.1 2026-10-08
+
+Faster mesh construction and attribute access, with benchmarks tracked by [CodSpeed](https://app.codspeed.io/BradyAJohnston/databpy).
+
+### Changed
+
+- `create_mesh_object()`, `create_object()`, `create_bob()` and `BlenderObject.new_from_pydata()` write vertices, edges and faces directly to the mesh’s attributes instead of using `Mesh.from_pydata()`. Creating a mesh is ~500x faster for vertices, ~250x for edges and ~17x for faces given as an array. The resulting meshes are unchanged.
+- **Breaking**: `create_mesh_object()` and `BlenderObject.new_from_pydata()` raise `ValueError` for vertices that aren’t shaped `(n, 3)` (previously Blender’s `RuntimeError`, leaving an orphan mesh) or edges without exactly two indices, and `TypeError` for non-integer indices, before any mesh is created.
+- Reading and writing attributes has about half the overhead per call, which matters most for small geometry.
+- `AttributeTypes.BYTE_COLOR` reads and writes through Blender’s `color_srgb` property, so its `value_name` is `"color_srgb"`.
+
+### Fixed
+
+- Reading or writing `BYTE_COLOR` attributes truncated every value to 0 or 1. Values from 0 to 255 now round-trip, and reading and writing is 4-7x faster.
+- `GeometrySet.instances` and reading `position` from the `INSTANCES` component returned uninitialised values, as Blender doesn’t set the positions of the instances point cloud. They are now filled from `instance_transform`.
+
+## 0.10.0 (2026-09-27)
 
 A robustness release, in preparation for wider use of databpy across projects. Node related functionality is deprecated in favour of [nodebpy](https://pypi.org/project/nodebpy/), objects are tracked in a way that survives renames, reallocation and other add-ons, and attribute data is validated instead of being silently corrupted.
 
