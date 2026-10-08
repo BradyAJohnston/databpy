@@ -109,7 +109,14 @@ class GeometrySet:
         and `.reference_index` alongside any named attributes stored on the
         instance domain.
         """
-        return self.geometry.instances_pointcloud()
+        pointcloud = self.geometry.instances_pointcloud()
+        if pointcloud is not None and len(pointcloud.points):
+            # Blender leaves `position` unset, so fill it from the translation of
+            # each instance's transform
+            transforms = Attribute(pointcloud.attributes["instance_transform"])
+            position = Attribute(pointcloud.attributes["position"])
+            position.from_array(transforms.as_array()[:, 3, :3])
+        return pointcloud
 
     @property
     def instance_references(self) -> list:
