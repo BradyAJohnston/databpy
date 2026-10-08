@@ -499,6 +499,23 @@ def test_byte_color_dtype():
     assert result.shape == (3, 4), f"Expected shape (3, 4), got {result.shape}"
 
 
+def test_byte_color_round_trip():
+    # every byte value is written and read back unchanged
+    values = np.arange(256, dtype=np.uint8).reshape(64, 4)
+    obj = db.create_pointcloud_object(np.zeros((64, 3)))
+    db.store_named_attribute(obj, values, "color", atype="BYTE_COLOR")
+    np.testing.assert_array_equal(db.named_attribute(obj, "color"), values)
+
+    # and are stored as the bytes Blender exposes as `color_srgb`
+    attribute = db.pointcloud_data(obj).attributes["color"]
+    assert isinstance(attribute, bpy.types.ByteColorAttribute)
+    np.testing.assert_allclose(attribute.data[1].color_srgb, values[1] / 255)
+
+    attr = db.Attribute(attribute)
+    attr.from_array(values[::-1])
+    np.testing.assert_array_equal(attr.as_array(), values[::-1])
+
+
 def test_1d_array_reshaping():
     """Test that 1D arrays can be reshaped to match attribute dimensions."""
     verts = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
