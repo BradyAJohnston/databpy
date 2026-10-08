@@ -98,31 +98,32 @@ def _check_obj_attributes(obj: Object) -> None:
     _attribute_data(obj)
 
 
+# looking up classes on `bpy.types` is slow, so they are only looked up once
+_TYPED_ATTRIBUTES = (
+    bpy.types.IntAttribute,
+    bpy.types.BoolAttribute,
+    bpy.types.Int2Attribute,
+    bpy.types.Short2Attribute,
+    bpy.types.FloatAttribute,
+    bpy.types.Float2Attribute,
+    bpy.types.Float4Attribute,
+    bpy.types.ByteIntAttribute,
+    bpy.types.Float4x4Attribute,
+    bpy.types.ByteColorAttribute,
+    bpy.types.FloatColorAttribute,
+    bpy.types.QuaternionAttribute,
+    bpy.types.FloatVectorAttribute,
+    bpy.types.StringAttribute,
+)
+
+
 def _as_typed_attribute(attribute: bpy.types.Attribute) -> PossibleAttributeTypes:
     """Narrow a generic `Attribute` to one of the concrete attribute types.
 
     The concrete subclasses are the ones that expose the `data` collection used
     for reading and writing values.
     """
-    if isinstance(
-        attribute,
-        (
-            bpy.types.IntAttribute,
-            bpy.types.BoolAttribute,
-            bpy.types.Int2Attribute,
-            bpy.types.Short2Attribute,
-            bpy.types.FloatAttribute,
-            bpy.types.Float2Attribute,
-            bpy.types.Float4Attribute,
-            bpy.types.ByteIntAttribute,
-            bpy.types.Float4x4Attribute,
-            bpy.types.ByteColorAttribute,
-            bpy.types.FloatColorAttribute,
-            bpy.types.QuaternionAttribute,
-            bpy.types.FloatVectorAttribute,
-            bpy.types.StringAttribute,
-        ),
-    ):
+    if isinstance(attribute, _TYPED_ATTRIBUTES):
         return attribute
     raise NamedAttributeError(
         f"Attribute '{attribute.name}' has an unsupported data type: "
@@ -717,7 +718,7 @@ class Attribute:
     @property
     def size(self) -> int:
         """Returns the total number of scalar values in the attribute."""
-        return int(np.prod(self.shape, dtype=int))
+        return math.prod(self.shape)
 
     def from_array(self, array: npt.ArrayLike) -> None:
         """
