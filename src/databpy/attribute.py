@@ -1,3 +1,4 @@
+import math
 import os
 import warnings
 from dataclasses import dataclass
@@ -191,7 +192,7 @@ class AttributeDomains(Enum):
     LAYER = "LAYER"
 
 
-ValueNames = Literal["value", "vector", "color"]
+ValueNames = Literal["value", "vector", "color", "color_srgb"]
 
 
 @dataclass(frozen=True)
@@ -291,8 +292,12 @@ class AttributeTypes(Enum):
         type_name="FLOAT_COLOR", value_name="color", dtype=np.float32, dimensions=(4,)
     )
     # CD_PROP_BYTE_COLOR (17): stored as unsigned char r,g,b,a (MLoopCol, ColorGeometry4b = ColorSceneLinearByteEncoded4b<Premultiplied>)
+    # the bytes are only exposed as floats, where `color_srgb` is the byte value / 255
     BYTE_COLOR = AttributeType(
-        type_name="BYTE_COLOR", value_name="color", dtype=np.uint8, dimensions=(4,)
+        type_name="BYTE_COLOR",
+        value_name="color_srgb",
+        dtype=np.uint8,
+        dimensions=(4,),
     )
     # CD_PROP_QUATERNION (52): stored as float[4] (blender::float4, blender::Quaternion)
     QUATERNION = AttributeType(
@@ -470,6 +475,32 @@ def _as_storage_array(data: np.ndarray, atype: AttributeTypes) -> np.ndarray:
             )
 
     return np.ravel(data).astype(target, copy=False)
+
+
+def _read_values(
+    attribute: PossibleAttributeTypes, atype: AttributeTypes
+) -> np.ndarray:
+    """Read the values of a numeric attribute as a flat array of its storage dtype."""
+    info = atype.value
+    size = len(attribute.data) * math.prod(info.dimensions)
+    if atype == AttributeTypes.BYTE_COLOR:
+        # the bytes are only exposed as floats in [0, 1], which are read with a
+        # float32 buffer as anything else is converted one value at a time
+        values = np.empty(size, dtype=np.float32)
+        attribute.data.foreach_get(info.value_name, values)
+        return np.rint(values * 255).astype(np.uint8)
+    values = np.empty(size, dtype=info.dtype)
+    attribute.data.foreach_get(info.value_name, values)
+    return values
+
+
+def _write_values(
+    attribute: PossibleAttributeTypes, atype: AttributeTypes, values: np.ndarray
+) -> None:
+    """Write a flat array from `_as_storage_array` to a numeric attribute."""
+    if atype == AttributeTypes.BYTE_COLOR:
+        values = values / np.float32(255)
+    attribute.data.foreach_set(atype.value.value_name, values)
 
 
 def _warn_string_support() -> None:
@@ -717,8 +748,8 @@ class Attribute:
         if self.atype == AttributeTypes.STRING:
             _write_string_values(self.attribute, array)
         else:
-            self.attribute.data.foreach_set(
-                self.value_name, _as_storage_array(array, self.atype)
+            _write_values(
+                self.attribute, self.atype, _as_storage_array(array, self.atype)
             )
 
         _trigger_data_update(self.attribute.id_data)
@@ -733,19 +764,16 @@ class Attribute:
             Array containing the attribute data with appropriate shape and dtype.
         """
 
-        if self.atype == AttributeTypes.STRING:
+        atype = self.atype
+        if atype == AttributeTypes.STRING:
             return _read_string_values(self.attribute)
 
-        # initialize empty 1D array that is needed to then be filled with values
-        # from the Blender attribute
-        array = np.zeros(self.size, dtype=self.dtype)
-        self.attribute.data.foreach_get(self.value_name, array)
+        array = _read_values(self.attribute, atype)
 
         # if the attribute has more than one dimension reshape the array before returning
-        if self.is_1d:
+        if atype.value.dimensions == (1,):
             return array
-        else:
-            return array.reshape(self.shape)
+        return array.reshape(-1, *atype.value.dimensions)
 
     def __str__(self) -> str:
         return f"Attribute: {self.attribute.name}, type: {self.type_name}, size: {self.shape}"
@@ -922,9 +950,7 @@ def store_named_attribute(
         _write_string_values(attribute, data)
     else:
         # the 'foreach_set' requires a 1D array, regardless of the shape of the attribute
-        attribute.data.foreach_set(
-            atype.value.value_name, _as_storage_array(data, atype)
-        )
+        _write_values(attribute, atype, _as_storage_array(data, atype))
 
     _trigger_data_update(obj_data)
 
