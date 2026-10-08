@@ -5,6 +5,7 @@
 [![pypi](https://img.shields.io/pypi/v/databpy.png)](https://pypi.org/project/databpy/)
 ![tests](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
 ![deployment](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
+[![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://app.codspeed.io/BradyAJohnston/databpy?utm_source=badge)
 
 ![](docs/img/notdavid.png)
 
