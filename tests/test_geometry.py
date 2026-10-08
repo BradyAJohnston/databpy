@@ -94,3 +94,30 @@ def test_geometry_set_repr():
     assert "GeometrySet of 'TestObject'" in text
     assert "POINTCLOUD: 4 points" in text
     assert "INSTANCES: 4 points" in text
+
+
+def test_geometry_set_instance_positions():
+    # Blender doesn't fill in `position` on the instances point cloud, see #76
+    points = np.random.default_rng(0).uniform(-10, 10, (20, 3))
+    obj = db.create_object(points, name="TestObject")
+    with g.tree("instances_only") as tree:
+        g.InstanceOnPoints(tree.inputs.geometry(), instance=g.Cube()) >> (
+            tree.outputs.geometry()
+        )
+    modifier = obj.modifiers.new("instances_only", "NODES")
+    assert isinstance(modifier, bpy.types.NodesModifier)
+    modifier.node_group = tree.tree
+
+    geom = db.GeometrySet(obj)
+    assert list(geom.components()) == ["INSTANCES"]
+    np.testing.assert_allclose(
+        geom.named_attribute("position", component="INSTANCES"), points, atol=1e-5
+    )
+    # without a component, the instances are found when searching
+    np.testing.assert_allclose(geom.named_attribute("position"), points, atol=1e-5)
+    assert geom.instances is not None
+    np.testing.assert_allclose(
+        db.Attribute(geom.instances.attributes["position"]).as_array(),
+        points,
+        atol=1e-5,
+    )
