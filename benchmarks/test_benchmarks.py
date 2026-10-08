@@ -98,3 +98,92 @@ def test_store_named_attribute(benchmark):
 def test_named_attribute(benchmark):
     obj = db.create_pointcloud_object(POSITIONS)
     benchmark(db.named_attribute, obj, "position")
+
+
+def _attribute_values(atype: db.AttributeTypes, n: int) -> np.ndarray:
+    info = atype.value
+    shape = (n,) if info.dimensions == (1,) else (n, *info.dimensions)
+    kind = np.dtype(info.dtype).kind
+    if kind == "b":
+        return rng.random(shape) > 0.5
+    if kind in "iu":
+        return rng.integers(0, 100, shape).astype(info.dtype)
+    return rng.random(shape).astype(info.dtype)
+
+
+# STRING attributes are read and written one value at a time, so are much slower
+NUMERIC_TYPES = [t for t in db.AttributeTypes if t != db.AttributeTypes.STRING]
+
+
+@pytest.mark.benchmark(group="attribute-read")
+@pytest.mark.parametrize("atype", NUMERIC_TYPES, ids=lambda t: t.name)
+def test_read_attribute(benchmark, atype):
+    obj = db.create_pointcloud_object(POSITIONS)
+    db.store_named_attribute(obj, _attribute_values(atype, N), "values", atype=atype)
+    benchmark(db.named_attribute, obj, "values")
+
+
+@pytest.mark.benchmark(group="attribute-write")
+@pytest.mark.parametrize("atype", NUMERIC_TYPES, ids=lambda t: t.name)
+def test_write_attribute(benchmark, atype):
+    obj = db.create_pointcloud_object(POSITIONS)
+    values = _attribute_values(atype, N)
+    db.store_named_attribute(obj, values, "values", atype=atype)
+    benchmark(db.store_named_attribute, obj, values, "values")
+
+
+@pytest.mark.benchmark(group="attribute-write")
+def test_write_attribute_float64(benchmark):
+    # float64 data has to be converted to the float32 that Blender stores
+    obj = db.create_pointcloud_object(POSITIONS)
+    values = POSITIONS.astype(np.float64)
+    benchmark(db.store_named_attribute, obj, values, "position")
+
+
+@pytest.mark.benchmark(group="attribute-array")
+def test_attribute_array_read(benchmark):
+    bob = db.BlenderObject(db.create_pointcloud_object(POSITIONS))
+    benchmark(lambda: bob.position)
+
+
+@pytest.mark.benchmark(group="attribute-array")
+def test_attribute_array_inplace(benchmark):
+    position = db.BlenderObject(db.create_pointcloud_object(POSITIONS)).position
+
+    def func():
+        position[:, 2] += 1.0
+
+    benchmark(func)
+
+
+@pytest.mark.benchmark(group="attribute-array")
+def test_attribute_array_set_item(benchmark):
+    # changing a single value still syncs the whole array
+    position = db.BlenderObject(db.create_pointcloud_object(POSITIONS)).position
+
+    def func():
+        position[0] = (1.0, 2.0, 3.0)
+
+    benchmark(func)
+
+
+# small geometry, where the overhead of each call matters more than copying data
+SMALL = rng.random((10, 3), dtype=np.float32)
+
+
+@pytest.mark.benchmark(group="attribute-overhead")
+def test_small_read(benchmark):
+    obj = db.create_pointcloud_object(SMALL)
+    benchmark(db.named_attribute, obj, "position")
+
+
+@pytest.mark.benchmark(group="attribute-overhead")
+def test_small_write(benchmark):
+    obj = db.create_pointcloud_object(SMALL)
+    benchmark(db.store_named_attribute, obj, SMALL, "position")
+
+
+@pytest.mark.benchmark(group="attribute-overhead")
+def test_small_attribute_array(benchmark):
+    bob = db.BlenderObject(db.create_pointcloud_object(SMALL))
+    benchmark(lambda: bob.position)
