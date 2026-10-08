@@ -1,5 +1,7 @@
 import itertools
 import warnings
+from collections.abc import Iterable, Sequence
+from typing import cast
 from uuid import uuid1
 
 import bpy
@@ -21,6 +23,7 @@ from .attribute import (
     AttributeTypeNames,
     AttributeTypes,
     DomainNames,
+    _as_typed_attribute,
     _check_obj_attributes,
     evaluate_object,
     list_attributes,
@@ -754,12 +757,9 @@ class BlenderObject(BlenderObjectAttribute):
             raise TypeError(
                 f"Object must be a mesh to create a new object from pydata, not {type(self.data)}"
             )
-        vertices = [] if vertices is None else np.asarray(vertices)
-        edges, faces = [[] if x is None else x for x in (edges, faces)]
-        edges = _check_indices(edges, len(vertices), "edges")
-        faces = _check_indices(faces, len(vertices), "faces")
+        arrays = _mesh_arrays(vertices, edges, faces)
         self.data.clear_geometry()
-        self.data.from_pydata(vertices, edges, faces)
+        _fill_mesh(self.data, *arrays)
         return self.object
 
     def centroid(self, weight: str | np.ndarray | None = None) -> np.ndarray:
@@ -867,19 +867,116 @@ class BlenderObject(BlenderObjectAttribute):
         return self.data.edges
 
 
-def _check_indices(indices, n_vertices: int, kind: str):
-    # from_pydata doesn't validate indices, and out of range values leave an invalid mesh
-    if not isinstance(indices, np.ndarray):
-        indices = [list(item) for item in indices]
-        flat = np.fromiter(itertools.chain.from_iterable(indices), dtype=np.int64)
+def _flatten_indices(
+    indices: npt.ArrayLike, n_vertices: int, kind: str
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Flatten edge or face indices, which can have mixed sizes.
+
+    Returns the flat vertex indices and the number of vertices in each edge or face.
+    Indices outside of the vertices raise, as they would leave an invalid mesh.
+    """
+    try:
+        array = np.asarray(indices)
+    except ValueError:
+        # faces with mixed sizes can't be stored as a single array
+        array = None
+
+    if array is not None and array.ndim == 2:
+        flat = array.ravel()
+        sizes = np.full(len(array), array.shape[1], dtype=np.int32)
     else:
-        flat = indices.ravel()
+        items = list(cast(Iterable[Sequence[int]], indices))
+        sizes = np.fromiter(map(len, items), dtype=np.int32, count=len(items))
+        flat = np.fromiter(
+            itertools.chain.from_iterable(items), dtype=np.int64, count=sizes.sum()
+        )
+
+    if flat.size and flat.dtype.kind not in "iu":
+        raise TypeError(f"`{kind}` must contain integer indices, not {flat.dtype}")
     if flat.size and (flat.min() < 0 or flat.max() >= n_vertices):
         raise ValueError(
             f"`{kind}` reference vertex indices outside of the {n_vertices} vertices "
             f"(found range [{flat.min()}, {flat.max()}])"
         )
-    return indices
+    return flat.astype(np.int32, copy=False), sizes
+
+
+def _mesh_arrays(
+    vertices: npt.ArrayLike | None,
+    edges: npt.ArrayLike | None,
+    faces: npt.ArrayLike | None,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Validate mesh data and convert it to the flat arrays used by `_fill_mesh`.
+
+    Returns the vertex positions, edge vertex indices, face corner vertex indices and
+    the size of each face.
+    """
+    vertices = np.asarray([] if vertices is None else vertices, dtype=np.float32)
+    if not vertices.size:
+        vertices = vertices.reshape(0, 3)
+    if vertices.ndim != 2 or vertices.shape[1] != 3:
+        raise ValueError(f"`vertices` must have the shape (N, 3), not {vertices.shape}")
+    edge_verts, edge_sizes = _flatten_indices(
+        [] if edges is None else edges, len(vertices), "edges"
+    )
+    if np.any(edge_sizes != 2):
+        raise ValueError("`edges` must each contain exactly 2 vertex indices")
+    corner_verts, face_sizes = _flatten_indices(
+        [] if faces is None else faces, len(vertices), "faces"
+    )
+    return vertices, edge_verts, corner_verts, face_sizes
+
+
+def _fill_mesh(
+    mesh: bpy.types.Mesh,
+    vertices: np.ndarray,
+    edge_verts: np.ndarray,
+    corner_verts: np.ndarray,
+    face_sizes: np.ndarray,
+) -> None:
+    """
+    Add vertices, edges and faces to an empty mesh, from the arrays of `_mesh_arrays`.
+
+    Equivalent to `mesh.from_pydata(vertices, edges, faces)` but much faster, as the
+    data is written directly to the mesh's attributes from numpy arrays rather than
+    going through Python tuples.
+    """
+    n_edges = len(edge_verts) // 2
+    mesh.vertices.add(len(vertices))
+    mesh.edges.add(n_edges)
+    mesh.loops.add(len(corner_verts))
+    mesh.polygons.add(len(face_sizes))
+
+    if len(vertices):
+        _as_typed_attribute(mesh.attributes["position"]).data.foreach_set(
+            "vector", vertices.ravel()
+        )
+    if n_edges:
+        _as_typed_attribute(mesh.attributes[".edge_verts"]).data.foreach_set(
+            "value", edge_verts
+        )
+    if len(face_sizes):
+        loop_starts = np.zeros(len(face_sizes), dtype=np.int32)
+        np.cumsum(face_sizes[:-1], out=loop_starts[1:])
+        mesh.polygons.foreach_set("loop_start", loop_starts)
+        _as_typed_attribute(mesh.attributes[".corner_vert"]).data.foreach_set(
+            "value", corner_verts
+        )
+
+    # match from_pydata, which marks faces as flat shaded. Writing the attribute
+    # directly is much faster than `mesh.shade_flat()`
+    sharp_face = mesh.attributes.get("sharp_face") or mesh.attributes.new(
+        "sharp_face", "BOOLEAN", "FACE"
+    )
+    _as_typed_attribute(sharp_face).data.foreach_set(
+        "value", np.ones(len(face_sizes), dtype=bool)
+    )
+
+    if n_edges or len(face_sizes):
+        # calculate the edges of the faces, and flag any loose edges
+        mesh.update(calc_edges=bool(len(face_sizes)), calc_edges_loose=bool(n_edges))
 
 
 def create_mesh_object(
@@ -911,13 +1008,9 @@ def create_mesh_object(
         The created mesh object.
     """
 
-    vertices = [] if vertices is None else np.asarray(vertices)
-    # edges and faces aren't converted to arrays, as faces can have different sizes
-    edges = _check_indices([] if edges is None else edges, len(vertices), "edges")
-    faces = _check_indices([] if faces is None else faces, len(vertices), "faces")
-
+    arrays = _mesh_arrays(vertices, edges, faces)
     mesh = bpy.data.meshes.new(name)
-    mesh.from_pydata(vertices=vertices, edges=edges, faces=faces)
+    _fill_mesh(mesh, *arrays)
     obj = bpy.data.objects.new(name, mesh)
     if collection is None:
         collection = create_collection("Collection")
