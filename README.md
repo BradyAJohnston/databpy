@@ -1,195 +1,73 @@
 # databpy
 
-
+[![pypi](https://img.shields.io/pypi/v/databpy)](https://pypi.org/project/databpy/)
 [![codecov](https://codecov.io/gh/BradyAJohnston/databpy/graph/badge.svg?token=KFuu67hzAz)](https://codecov.io/gh/BradyAJohnston/databpy)
-[![pypi](https://img.shields.io/pypi/v/databpy.png)](https://pypi.org/project/databpy/)
-![deployment](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
 [![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://app.codspeed.io/BradyAJohnston/databpy?utm_source=badge)
+![deployment](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
 
-| Blender | Tests |
-|----|----|
-| 5.1 | [![Blender 5.1](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.1.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.1.yml) |
-| 5.2 | [![Blender 5.2](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.2.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.2.yml) |
-| 5.3 (beta) | [![Blender 5.3](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.3.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.3.yml) |
-| 5.4 (alpha) | [![Blender 5.4](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.4.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.4.yml) |
+![](https://raw.githubusercontent.com/BradyAJohnston/databpy/main/docs/img/notdavid.png)
 
-![](docs/img/notdavid.png)
+databpy reads and writes the attributes of mesh, curves and point cloud objects in Blender as NumPy arrays, and creates those objects from arrays. It supports Blender 5.1 and later.
 
-Data-oriented wrappers around Blender’s Python API, which read and write
-the attributes of mesh, curves and point cloud objects as NumPy arrays.
+```python
+import numpy as np
+import databpy as db
 
-databpy started inside [Molecular
-Nodes](https://github.com/BradyAJohnston/MolecularNodes) and was split
-into a separate Python package for use in other projects.
+# create a mesh object from an (n, 3) array of vertex positions
+bob = db.create_bob(np.random.rand(100, 3), name="Points")
+
+# store and read attributes as NumPy arrays; the type is inferred from the dtype
+bob.store_named_attribute(np.arange(100), "id")
+ids = bob.named_attribute("id")
+
+# attributes as arrays that write changes back to Blender
+bob.position[:, 2] += 1.0
+bob["id"][:10] = -1
+```
+
+`store_named_attribute()` and `named_attribute()` are named after the Store Named Attribute and Named Attribute nodes in Geometry Nodes.
+
+## Performance
+
+databpy builds meshes by writing arrays straight to their attributes, rather than through `Mesh.from_pydata()`, and an attribute array writes back only the values that change:
+
+| Operation                                      | `bpy`   | databpy  | Speedup |
+| ---------------------------------------------- | ------- | -------- | ------- |
+| Mesh from 100,000 vertices                     | 37 ms   | 0.14 ms  | ~260x   |
+| Mesh from 100,000 vertices and 99,999 edges    | 62 ms   | 0.24 ms  | ~260x   |
+| Mesh from 90,000 vertices and 89,401 quads     | 101 ms  | 5.0 ms   | ~20x    |
+| Write 10 values of a 1,000,000 point attribute | 0.28 ms | 0.006 ms | ~45x    |
+
+The `bpy` column uses `Mesh.from_pydata()` for meshes, and for the attribute write a `foreach_get` and `foreach_set` round trip of the whole attribute. Times are medians of the workloads in [`benchmarks/test_benchmarks.py`](https://github.com/BradyAJohnston/databpy/blob/main/benchmarks/test_benchmarks.py), measured with bpy 5.2.1 and Python 3.13 on an AMD Ryzen 9 9950X (Linux), and vary by machine. [CodSpeed](https://app.codspeed.io/BradyAJohnston/databpy) tracks the benchmarks on every pull request.
 
 ## Installation
 
-databpy supports Blender 5.1 and later, which use Python 3.13. Install
-it from PyPI with pip:
-
-``` bash
+```bash
 pip install databpy
 ```
 
-> [!CAUTION]
->
-> `bpy` (Blender as a Python module) is an optional dependency, so
-> installing `databpy` inside Blender doesn’t install a second copy of
-> `bpy`. To use databpy outside Blender, install `bpy` as well with
-> either of these commands:
->
-> ``` bash
-> # install with the bpy dependency
-> pip install "databpy[bpy]"
->
-> # install both packages
-> pip install databpy bpy
-> ```
+`bpy` (Blender as a Python module) is an optional dependency, so installing databpy inside Blender doesn't install a second copy of `bpy`. To use databpy outside Blender, install `bpy` with it:
 
-## Usage
-
-databpy creates objects, and stores and retrieves their attributes.
-[`store_named_attribute()`](https://bradyajohnston.github.io/databpy/api/store_named_attribute.html)
-and
-[`named_attribute()`](https://bradyajohnston.github.io/databpy/api/named_attribute.html)
-are named after the `Store Named Attribute` and `Named Attribute` nodes
-in Geometry Nodes, and work on mesh, curves and point cloud objects.
-
-To store an attribute on a new object:
-
-``` python
-import numpy as np
-import databpy as db
-
-coords = np.array([[0, 0, 0], [0, 5, 0], [5, 0, 0], [5, 5, 0]])
-
-obj = db.create_object(coords, name="Box")
-db.store_named_attribute(obj, np.array([10, 20, 31, 42]), "vals")
+```bash
+pip install "databpy[bpy]"
 ```
 
-![image](https://github.com/user-attachments/assets/2af6046a-8d73-4881-af63-8ed175fe2136.png)
+## Supported Blender versions
 
-Attributes are stored and retrieved as NumPy arrays:
+| Blender     | Tests                                                                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 5.1         | [![Blender 5.1](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.1.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.1.yml) |
+| 5.2         | [![Blender 5.2](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.2.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.2.yml) |
+| 5.3 (beta)  | [![Blender 5.3](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.3.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.3.yml) |
+| 5.4 (alpha) | [![Blender 5.4](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.4.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.4.yml) |
 
-``` python
-import numpy as np
-import databpy as db
+databpy requires Python 3.13, the version Blender 5.1 and 5.2 use.
 
-np.random.seed(6)
+## Documentation
 
-# Create a mesh object
-random_verts = np.random.rand(10, 3)
+- [Getting started](https://bradyajohnston.github.io/databpy/): storing and reading attributes, `BlenderObject`, and importing a table with Polars
+- [Attributes guide](https://bradyajohnston.github.io/databpy/attributes.html): attribute types and domains, syncing, performance and errors
+- [API reference](https://bradyajohnston.github.io/databpy/api/)
+- [Changelog](https://bradyajohnston.github.io/databpy/changelog.html)
 
-obj = db.create_object(random_verts, name="RandomMesh")
-
-obj.name
-```
-
-    'RandomMesh'
-
-Read an attribute from the object’s mesh:
-
-``` python
-db.named_attribute(obj, "position")
-```
-
-    array([[0.8928602 , 0.3319798 , 0.8212291 ],
-           [0.04169663, 0.10765668, 0.59505206],
-           [0.52981734, 0.41880742, 0.33540785],
-           [0.62251943, 0.43814144, 0.7358821 ],
-           [0.5180364 , 0.5788586 , 0.6453551 ],
-           [0.99022424, 0.8198582 , 0.41320094],
-           [0.8762677 , 0.82375944, 0.05447451],
-           [0.7186372 , 0.8021706 , 0.7364066 ],
-           [0.7091318 , 0.5409368 , 0.12482417],
-           [0.9576473 , 0.4032563 , 0.21695116]], dtype=float32)
-
-### `BlenderObject` class (bob)
-
-`BlenderObject` wraps a `bpy.types.Object` and provides databpy’s
-functions as methods. Wrap an existing object, or create a new one with
-`create_bob()`.
-
-Attributes can be read with `named_attribute()`, or as properties and
-items such as `bob.position` and `bob["position"]`.
-
-``` python
-# wrap an existing object or create a new one
-bob = db.BlenderObject(obj)
-bob = db.create_bob(random_verts)
-
-# these two are identical
-bob.named_attribute("position")
-bob.position
-```
-
-    AttributeArray(name='position', object='NewObject', mesh='NewObject', domain=POINT, type=FLOAT_VECTOR, shape=(10, 3), dtype=float32)
-    array([[0.8928602 , 0.3319798 , 0.8212291 ],
-           [0.04169663, 0.10765668, 0.59505206],
-           [0.52981734, 0.41880742, 0.33540785],
-           [0.62251943, 0.43814144, 0.7358821 ],
-           [0.5180364 , 0.5788586 , 0.6453551 ],
-           [0.99022424, 0.8198582 , 0.41320094],
-           [0.8762677 , 0.82375944, 0.05447451],
-           [0.7186372 , 0.8021706 , 0.7364066 ],
-           [0.7091318 , 0.5409368 , 0.12482417],
-           [0.9576473 , 0.4032563 , 0.21695116]], dtype=float32)
-
-`new_from_pydata()` clears the geometry of the object’s mesh and fills
-it with new vertices, edges and faces:
-
-``` python
-bob.new_from_pydata(np.random.randn(5, 3))
-bob.position
-```
-
-    AttributeArray(name='position', object='NewObject', mesh='NewObject', domain=POINT, type=FLOAT_VECTOR, shape=(5, 3), dtype=float32)
-    array([[ 0.82465386, -1.1764315 ,  1.5644896 ],
-           [ 0.7127051 , -0.1810066 ,  0.53419954],
-           [-0.58661294, -1.4818532 ,  0.8572476 ],
-           [ 0.94309896,  0.11444143, -0.02195668],
-           [-2.1271446 , -0.83440745, -0.4655083 ]], dtype=float32)
-
-## Example with Polars data
-
-``` python
-import polars as pl
-import databpy as db
-from io import StringIO
-
-json_file = StringIO("""
-{
-  "Dino": [
-    [55.3846, 97.1795, 0.0],
-    [51.5385, 96.0256, 0.0]
-  ],
-  "Star": [
-    [58.2136, 91.8819, 0.0],
-    [58.1961, 92.215, 0.0]
-  ]
-}
-""")
-
-df = pl.read_json(json_file)
-columns_to_explode = [col for col in df.columns if df[col].dtype == pl.List(pl.List)]
-df = df.explode(columns_to_explode, empty_as_null=True)
-
-vertices = np.zeros((len(df), 3), dtype=np.float32)
-bob = db.create_bob(vertices, name="DinoStar")
-
-for col in df.columns:
-    data = np.vstack(df.get_column(col).to_numpy())
-    bob.store_named_attribute(data, col)
-
-bob.named_attribute("Dino")
-```
-
-    array([[55.3846, 97.1795,  0.    ],
-           [51.5385, 96.0256,  0.    ]], dtype=float32)
-
-``` python
-bob.named_attribute("Star")
-```
-
-    array([[58.2136, 91.8819,  0.    ],
-           [58.1961, 92.215 ,  0.    ]], dtype=float32)
+`databpy` started inside [Molecular Nodes](https://github.com/BradyAJohnston/MolecularNodes) and was split into a separate package for use in other projects, similarly to [`nodebpy`](https://github.com/BradyAJohnston/nodebpy).

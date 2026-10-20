@@ -74,3 +74,59 @@ bob = db.BlenderObject(bpy.data.objects["Cube"])
 bob.store_named_attribute(new_float_values, "example_values")
 bob.named_attribute("example_values")
 ```
+
+[`create_bob()`](`databpy.create_bob`) creates a mesh object from an array of vertex positions and wraps it. Attributes can also be read as properties and items, such as `bob.position` and `bob["position"]`, which return an [`AttributeArray`](`databpy.AttributeArray`) that writes changes back to Blender:
+
+```{python}
+np.random.seed(6)
+bob = db.create_bob(np.random.rand(10, 3), name="RandomMesh")
+
+bob.position[:, 2] += 1.0
+bob["position"]
+```
+
+[`new_from_pydata()`](`databpy.BlenderObject.new_from_pydata`) clears the geometry of the object's mesh and fills it with new vertices, edges and faces:
+
+```{python}
+bob.new_from_pydata(np.random.randn(5, 3))
+bob.position
+```
+
+## Importing a table with Polars
+
+Columns of a data frame can be stored as attributes. Here each column of a JSON table holds a list of 3D points, which are stored as `FLOAT_VECTOR` attributes on a new object with one vertex per row:
+
+```{python}
+import polars as pl
+from io import StringIO
+
+json_file = StringIO("""
+{
+  "Dino": [
+    [55.3846, 97.1795, 0.0],
+    [51.5385, 96.0256, 0.0]
+  ],
+  "Star": [
+    [58.2136, 91.8819, 0.0],
+    [58.1961, 92.215, 0.0]
+  ]
+}
+""")
+
+df = pl.read_json(json_file)
+columns_to_explode = [col for col in df.columns if df[col].dtype == pl.List(pl.List)]
+df = df.explode(columns_to_explode, empty_as_null=True)
+
+vertices = np.zeros((len(df), 3), dtype=np.float32)
+bob = db.create_bob(vertices, name="DinoStar")
+
+for col in df.columns:
+    data = np.vstack(df.get_column(col).to_numpy())
+    bob.store_named_attribute(data, col)
+
+bob.named_attribute("Dino")
+```
+
+```{python}
+bob.named_attribute("Star")
+```
