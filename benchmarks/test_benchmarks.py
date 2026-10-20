@@ -158,7 +158,7 @@ def test_attribute_array_inplace(benchmark):
 
 @pytest.mark.benchmark(group="attribute-array")
 def test_attribute_array_set_item(benchmark):
-    # changing a single value still syncs the whole array
+    # only the changed value is written to the attribute
     position = db.BlenderObject(db.create_pointcloud_object(POSITIONS)).position
 
     def func():

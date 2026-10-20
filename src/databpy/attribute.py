@@ -1,3 +1,4 @@
+import ctypes
 import math
 import os
 import warnings
@@ -510,6 +511,37 @@ def _write_values(
     if atype == AttributeTypes.BYTE_COLOR:
         values = values / np.float32(255)
     attribute.data.foreach_set(atype.value.value_name, values)
+
+
+def _attribute_memory(
+    attribute: PossibleAttributeTypes, atype: AttributeTypes
+) -> np.ndarray | None:
+    """A writable view of a numeric attribute's values in Blender's own memory.
+
+    The values are laid out exactly as databpy reads them (BYTE_COLOR as raw bytes), so
+    a few values can be written without transferring the whole attribute. Returns None
+    where the values aren't stored as one contiguous array, e.g. a `SINGLE` value for
+    the whole domain.
+
+    The view is only valid until the geometry changes, as Blender can reallocate the
+    values (e.g. when adding vertices), so it must be used immediately and discarded.
+    """
+    if atype == AttributeTypes.STRING or attribute.storage_type != "ARRAY":
+        return None
+    data = attribute.data
+    n = len(data)
+    if n == 0:
+        return None
+    info = atype.value
+    item_size = np.dtype(info.dtype).itemsize * math.prod(info.dimensions)
+    # accessing the values through RNA gives a pointer to memory that isn't shared
+    # with other data-blocks, so writes only affect this attribute
+    start = data[0].as_pointer()
+    if start == 0 or data[n - 1].as_pointer() - start != (n - 1) * item_size:
+        return None
+    buffer = (ctypes.c_char * (n * item_size)).from_address(start)
+    values = np.frombuffer(buffer, dtype=info.dtype)
+    return values if info.dimensions == (1,) else values.reshape(n, *info.dimensions)
 
 
 def _warn_string_support() -> None:
