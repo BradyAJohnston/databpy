@@ -2,7 +2,7 @@ from typing import Literal, cast
 
 import bpy
 
-from ._deprecation import deprecated
+from .._deprecation import deprecated
 
 NODE_DUP_SUFFIX = r"\.\d{3}$"
 

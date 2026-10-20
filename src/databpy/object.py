@@ -10,6 +10,7 @@ from bpy.types import Object
 from numpy import typing as npt
 
 from . import attribute as attr
+from ._deprecation import REMOVAL_VERSION
 from .addon import (
     find_by_session_uid,
     get_uuid,
@@ -906,7 +907,7 @@ class BlenderObject(BlenderObjectAttribute):
         Get the vertices of the Blender mesh object.
 
         .. deprecated:: 0.5.0
-            This property is mesh-specific and will be removed in version 1.0.0.
+            This property is mesh-specific and will be removed in databpy 0.13.0.
             Use ``bob.data.vertices`` directly for mesh objects, or use
             the attribute system (``bob['position']`` or ``bob.named_attribute('position')``)
             which works across all geometry types.
@@ -922,10 +923,10 @@ class BlenderObject(BlenderObjectAttribute):
             If the object is not a mesh.
         """
         warnings.warn(
-            "BlenderObject.vertices is deprecated and will be removed in version 1.0.0. "
-            "Use bob.data.vertices for mesh objects, or bob['position'] for "
-            "geometry-agnostic attribute access.",
-            DeprecationWarning,
+            "BlenderObject.vertices is deprecated and will be removed in databpy "
+            f"{REMOVAL_VERSION}. Use bob.data.vertices for mesh objects, or "
+            "bob['position'] for geometry-agnostic attribute access.",
+            FutureWarning,
             stacklevel=2,
         )
         if not isinstance(self.data, bpy.types.Mesh):
@@ -941,7 +942,7 @@ class BlenderObject(BlenderObjectAttribute):
         Get the edges of the Blender mesh object.
 
         .. deprecated:: 0.5.0
-            This property is mesh-specific and will be removed in version 1.0.0.
+            This property is mesh-specific and will be removed in databpy 0.13.0.
             Use ``bob.data.edges`` directly for mesh objects.
 
         Returns
@@ -955,9 +956,9 @@ class BlenderObject(BlenderObjectAttribute):
             If the object is not a mesh.
         """
         warnings.warn(
-            "BlenderObject.edges is deprecated and will be removed in version 1.0.0. "
-            "Use bob.data.edges directly for mesh objects.",
-            DeprecationWarning,
+            "BlenderObject.edges is deprecated and will be removed in databpy "
+            f"{REMOVAL_VERSION}. Use bob.data.edges directly for mesh objects.",
+            FutureWarning,
             stacklevel=2,
         )
         if not isinstance(self.data, bpy.types.Mesh):

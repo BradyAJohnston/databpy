@@ -448,7 +448,7 @@ bob.position[selected_mask, 2] = 1.0
       - Used for: shape mismatches, values that don't fit the attribute's type
   - **`db.LinkedObjectError`** - raised when an `AttributeArray` can't sync because its object was removed or a file was loaded
 
-`NamedAttributeError` currently also inherits from `AttributeError`, which will be removed in databpy 0.12.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch `NamedAttributeError` or `DatabpyError` instead.
+`NamedAttributeError` currently also inherits from `AttributeError`, which will be removed in databpy 0.13.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch `NamedAttributeError` or `DatabpyError` instead.
 
 ### Common errors
 

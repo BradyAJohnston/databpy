@@ -1,4 +1,6 @@
-from . import collection, nodes, utils
+from typing import TYPE_CHECKING
+
+from . import collection, utils
 from .addon import register, unregister
 from .array import AttributeArray
 from .attribute import (
@@ -82,7 +84,6 @@ __all__ = [
     "mesh_data",
     "move_to_collection",
     "named_attribute",
-    "nodes",
     "pointcloud_data",
     "register",
     "remove_named_attribute",
@@ -93,3 +94,16 @@ __all__ = [
     "utils",
     "volume_data",
 ]
+
+
+if TYPE_CHECKING:
+    from . import nodes as nodes
+
+
+def __getattr__(name: str):
+    # the deprecated `nodes` module is only imported when it is used, which warns
+    if name == "nodes":
+        import importlib
+
+        return importlib.import_module(".nodes", __name__)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

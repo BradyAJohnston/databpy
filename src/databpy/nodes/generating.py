@@ -2,7 +2,7 @@ from collections.abc import Iterable
 
 import bpy
 
-from ._deprecation import deprecated
+from .._deprecation import deprecated
 from .utils import (
     MaintainConnections,
     NodeGroupCreationError,

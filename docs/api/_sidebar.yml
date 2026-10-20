@@ -61,6 +61,6 @@ website:
       - api/nodes.set_socket_value.qmd
       - api/nodes.MaintainConnections.qmd
       - api/nodes.DuplicatePrevention.qmd
-      section: Nodes
+      section: Nodes (deprecated)
     id: api
   - id: dummy-sidebar
