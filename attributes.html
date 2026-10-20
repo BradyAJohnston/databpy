@@ -240,7 +240,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="blenderobject-highest-level" class="level3">
 <h3 class="anchored" data-anchor-id="blenderobject-highest-level">1. <a href="./api/BlenderObject.html#databpy.BlenderObject"><code>BlenderObject</code></a>: highest level</h3>
 <p>The <a href="./api/BlenderObject.html#databpy.BlenderObject"><code>BlenderObject</code></a> class (nicknamed “bob”) wraps an object, with dictionary-style access to its attributes and properties such as <code>bob.position</code>.</p>
-<div id="1f9be99e" class="cell" data-execution_count="1">
+<div id="c9d529a1" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -262,7 +262,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="attributearray-numpy-arrays-that-sync" class="level3">
 <h3 class="anchored" data-anchor-id="attributearray-numpy-arrays-that-sync">2. <a href="./api/AttributeArray.html#databpy.AttributeArray"><code>AttributeArray</code></a>: NumPy arrays that sync</h3>
 <p><a href="./api/AttributeArray.html#databpy.AttributeArray"><code>AttributeArray</code></a> is a <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray"><code>numpy.ndarray</code></a> subclass holding a copy of an attribute’s values, which writes changes back to Blender as they are made.</p>
-<div id="e7ad932a" class="cell" data-execution_count="2">
+<div id="a5fc758f" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -293,7 +293,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>Indexing that returns a <strong>view</strong> (slices like <code>pos[:, 2]</code> or <code>pos[2:5]</code>) stays linked to Blender, so modifying the view syncs. Indexing that returns a <strong>copy</strong> (<code>pos[mask]</code>, <code>pos[[0, 3]]</code>, <code>pos + 1</code>, <code>pos.copy()</code>) gives a detached array that doesn’t sync:</p>
-<div id="8998ed3d" class="cell" data-execution_count="3">
+<div id="0703a6a3" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>pos <span class="op">=</span> db.AttributeArray(obj, <span class="st">"position"</span>)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>column <span class="op">=</span> pos[:, <span class="dv">2</span>]</span>
@@ -310,7 +310,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="attribute-manual-reads-and-writes" class="level3">
 <h3 class="anchored" data-anchor-id="attribute-manual-reads-and-writes">3. <a href="./api/Attribute.html#databpy.Attribute"><code>Attribute</code></a>: manual reads and writes</h3>
 <p>The <a href="./api/Attribute.html#databpy.Attribute"><code>Attribute</code></a> class provides direct, stateless access with explicit control over when data is read or written.</p>
-<div id="f7360f6c" class="cell" data-execution_count="4">
+<div id="1927eb94" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
@@ -338,7 +338,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Blender supports various attribute data types. <code>databpy</code> works with all of them through the <a href="./api/AttributeTypes.html#databpy.AttributeTypes"><code>AttributeTypes</code></a> enum:</p>
 <section id="float-types" class="level3">
 <h3 class="anchored" data-anchor-id="float-types">Float types</h3>
-<div id="41f38c6f" class="cell" data-execution_count="5">
+<div id="a2672a50" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -379,7 +379,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="integer-types" class="level3">
 <h3 class="anchored" data-anchor-id="integer-types">Integer types</h3>
-<div id="7c7803d7" class="cell" data-execution_count="6">
+<div id="f7e518f9" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># INT - 32-bit signed integers</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>ids <span class="op">=</span> np.arange(<span class="dv">10</span>, dtype<span class="op">=</span>np.int32)</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>bob[<span class="st">"id"</span>] <span class="op">=</span> ids</span>
@@ -402,7 +402,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="color-types" class="level3">
 <h3 class="anchored" data-anchor-id="color-types">Color types</h3>
-<div id="4b423e5b" class="cell" data-execution_count="7">
+<div id="0112deff" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># BYTE_COLOR - RGBA as unsigned 8-bit (0-255), read back as uint8</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>byte_colors <span class="op">=</span> np.random.randint(<span class="dv">0</span>, <span class="dv">255</span>, size<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">4</span>), dtype<span class="op">=</span>np.uint8)</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>db.store_named_attribute(bob.<span class="bu">object</span>, byte_colors, <span class="st">"vertex_color"</span>, atype<span class="op">=</span><span class="st">"BYTE_COLOR"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -413,7 +413,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="boolean-type" class="level3">
 <h3 class="anchored" data-anchor-id="boolean-type">Boolean type</h3>
-<div id="c4f0b77e" class="cell" data-execution_count="8">
+<div id="2b181f7a" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># BOOLEAN - True/False flags</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>selection <span class="op">=</span> np.random.rand(<span class="dv">10</span>) <span class="op">&gt;</span> <span class="fl">0.5</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>bob[<span class="st">"selected"</span>] <span class="op">=</span> selection</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -421,12 +421,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="string-type" class="level3">
 <h3 class="anchored" data-anchor-id="string-type">String type</h3>
-<div id="38240f83" class="cell" data-execution_count="9">
+<div id="eaa4b06d" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># STRING - text values, read and written one value at a time</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>names <span class="op">=</span> np.array([<span class="ss">f"point_</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">10</span>)])</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>bob[<span class="st">"name"</span>] <span class="op">=</span> names</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_2409/2168651459.py:3: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
+<pre><code>/tmp/ipykernel_2632/2168651459.py:3: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
   bob["name"] = names</code></pre>
 </div>
 </div>
@@ -551,7 +551,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-<div id="4f81a659" class="cell" data-execution_count="10">
+<div id="04a08098" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
@@ -591,7 +591,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="common-workflows">Common workflows</h2>
 <section id="reading-attributes" class="level3">
 <h3 class="anchored" data-anchor-id="reading-attributes">Reading attributes</h3>
-<div id="6e670853" class="cell" data-execution_count="11">
+<div id="756fc57c" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -617,7 +617,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="writing-attributes" class="level3">
 <h3 class="anchored" data-anchor-id="writing-attributes">Writing attributes</h3>
-<div id="9a149012" class="cell" data-execution_count="12">
+<div id="3ec9b1ce" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -649,7 +649,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="modifying-attributes-in-place" class="level3">
 <h3 class="anchored" data-anchor-id="modifying-attributes-in-place">Modifying attributes in place</h3>
-<div id="131a8883" class="cell" data-execution_count="13">
+<div id="d3458257" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -674,7 +674,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="batch-processing" class="level3">
 <h3 class="anchored" data-anchor-id="batch-processing">Batch processing</h3>
 <p>For large datasets, use the <code>Attribute</code> class to batch operations:</p>
-<div id="c16a1c21" class="cell" data-execution_count="14">
+<div id="9c2bb98c" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
@@ -713,7 +713,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="integer-attributes" class="level3">
 <h3 class="anchored" data-anchor-id="integer-attributes">Integer attributes</h3>
-<div id="3eeac634" class="cell" data-execution_count="15">
+<div id="32bc5e17" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -738,7 +738,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="boolean-attributes" class="level3">
 <h3 class="anchored" data-anchor-id="boolean-attributes">Boolean attributes</h3>
-<div id="f71a4507" class="cell" data-execution_count="16">
+<div id="b6db048a" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -782,7 +782,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="common-errors" class="level3">
 <h3 class="anchored" data-anchor-id="common-errors">Common errors</h3>
-<div id="7fb8f816" class="cell" data-execution_count="17">
+<div id="09103ba7" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
@@ -841,7 +841,7 @@ Shape error: Array size 32 does not match attribute size 24. Array shape (8, 4) 
 </section>
 <section id="match-blenders-data-types" class="level3">
 <h3 class="anchored" data-anchor-id="match-blenders-data-types">2. Match Blender’s data types</h3>
-<div id="89b6b294" class="cell" data-execution_count="18">
+<div id="20a58121" class="cell" data-execution_count="18">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Good: Explicit dtype matching Blender's storage</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> np.random.rand(<span class="dv">10</span>, <span class="dv">3</span>).astype(np.float32)</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -851,7 +851,7 @@ Shape error: Array size 32 does not match attribute size 24. Array shape (8, 4) 
 </section>
 <section id="vectorize-operations" class="level3">
 <h3 class="anchored" data-anchor-id="vectorize-operations">3. Vectorize operations</h3>
-<div id="6ce51905" class="cell" data-execution_count="19">
+<div id="83341c02" class="cell" data-execution_count="19">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Not great: a Python loop with a sync per iteration</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>pos <span class="op">=</span> bob.position</span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(pos)):</span>
@@ -865,7 +865,7 @@ Shape error: Array size 32 does not match attribute size 24. Array shape (8, 4) 
 <section id="domains-and-types-as-enums-or-strings" class="level3">
 <h3 class="anchored" data-anchor-id="domains-and-types-as-enums-or-strings">4. Domains and types as enums or strings</h3>
 <p>Domains and types can be given as enums or as strings such as <code>"POINT"</code>. Both are checked by type checkers, as the string parameters only accept the valid names.</p>
-<div id="4beb2959" class="cell" data-execution_count="20">
+<div id="008e8cc4" class="cell" data-execution_count="20">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> databpy <span class="im">import</span> AttributeDomains, AttributeTypes</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co"># equivalent to atype="FLOAT_VECTOR", domain="POINT"</span></span>
@@ -878,20 +878,20 @@ Shape error: Array size 32 does not match attribute size 24. Array shape (8, 4) 
 <span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>db.named_attribute(obj, <span class="st">"my_attr"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="20">
-<pre><code>array([[0.35728535, 0.34824553, 0.10893304],
-       [0.8427882 , 0.7853052 , 0.7527815 ],
-       [0.6355139 , 0.8704941 , 0.6969338 ],
-       [0.43867815, 0.19934233, 0.11667952],
-       [0.9551966 , 0.7397923 , 0.02196443],
-       [0.54397655, 0.9472528 , 0.7183572 ],
-       [0.5770255 , 0.62757254, 0.60652566],
-       [0.5850158 , 0.36905017, 0.4706756 ]], dtype=float32)</code></pre>
+<pre><code>array([[0.53907025, 0.29898933, 0.37800607],
+       [0.9290844 , 0.32685682, 0.8981513 ],
+       [0.56450593, 0.7567582 , 0.4331677 ],
+       [0.01150827, 0.7891584 , 0.9120895 ],
+       [0.03559079, 0.04118609, 0.6577564 ],
+       [0.40975833, 0.50005865, 0.1216043 ],
+       [0.5727442 , 0.08088566, 0.37693074],
+       [0.69431007, 0.10804583, 0.03235256]], dtype=float32)</code></pre>
 </div>
 </div>
 </section>
 <section id="remove-temporary-attributes" class="level3">
 <h3 class="anchored" data-anchor-id="remove-temporary-attributes">5. Remove temporary attributes</h3>
-<div id="ea6e1a40" class="cell" data-execution_count="21">
+<div id="089192f3" class="cell" data-execution_count="21">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove attributes you no longer need</span></span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>db.remove_named_attribute(obj, <span class="st">"my_attr"</span>)</span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>

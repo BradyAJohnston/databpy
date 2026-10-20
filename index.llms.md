@@ -95,3 +95,84 @@ bob.named_attribute("example_values")
            [ 0.12915125,  0.07612761, -0.15512815],
            [ 0.63422537,  0.810655  ,  0.3548086 ],
            [ 1.8125904 , -1.3564758 , -0.46363196]], dtype=float32)
+
+[`create_bob()`](api/create_bob.llms.md#databpy.create_bob) creates a mesh object from an array of vertex positions and wraps it. Attributes can also be read as properties and items, such as `bob.position` and `bob["position"]`, which return an [`AttributeArray`](api/AttributeArray.llms.md#databpy.AttributeArray) that writes changes back to Blender:
+
+``` python
+np.random.seed(6)
+bob = db.create_bob(np.random.rand(10, 3), name="RandomMesh")
+
+bob.position[:, 2] += 1.0
+bob["position"]
+```
+
+    AttributeArray(name='position', object='RandomMesh', mesh='RandomMesh', domain=POINT, type=FLOAT_VECTOR, shape=(10, 3), dtype=float32)
+    array([[0.8928602 , 0.3319798 , 1.8212291 ],
+           [0.04169663, 0.10765668, 1.595052  ],
+           [0.52981734, 0.41880742, 1.3354079 ],
+           [0.62251943, 0.43814144, 1.735882  ],
+           [0.5180364 , 0.5788586 , 1.6453551 ],
+           [0.99022424, 0.8198582 , 1.413201  ],
+           [0.8762677 , 0.82375944, 1.0544745 ],
+           [0.7186372 , 0.8021706 , 1.7364066 ],
+           [0.7091318 , 0.5409368 , 1.1248242 ],
+           [0.9576473 , 0.4032563 , 1.2169511 ]], dtype=float32)
+
+[`new_from_pydata()`](api/BlenderObject.llms.md#databpy.BlenderObject.new_from_pydata) clears the geometry of the object’s mesh and fills it with new vertices, edges and faces:
+
+``` python
+bob.new_from_pydata(np.random.randn(5, 3))
+bob.position
+```
+
+    AttributeArray(name='position', object='RandomMesh', mesh='RandomMesh', domain=POINT, type=FLOAT_VECTOR, shape=(5, 3), dtype=float32)
+    array([[ 0.82465386, -1.1764315 ,  1.5644896 ],
+           [ 0.7127051 , -0.1810066 ,  0.53419954],
+           [-0.58661294, -1.4818532 ,  0.8572476 ],
+           [ 0.94309896,  0.11444143, -0.02195668],
+           [-2.1271446 , -0.83440745, -0.4655083 ]], dtype=float32)
+
+## Importing a table with Polars
+
+Columns of a data frame can be stored as attributes. Here each column of a JSON table holds a list of 3D points, which are stored as `FLOAT_VECTOR` attributes on a new object with one vertex per row:
+
+``` python
+import polars as pl
+from io import StringIO
+
+json_file = StringIO("""
+{
+  "Dino": [
+    [55.3846, 97.1795, 0.0],
+    [51.5385, 96.0256, 0.0]
+  ],
+  "Star": [
+    [58.2136, 91.8819, 0.0],
+    [58.1961, 92.215, 0.0]
+  ]
+}
+""")
+
+df = pl.read_json(json_file)
+columns_to_explode = [col for col in df.columns if df[col].dtype == pl.List(pl.List)]
+df = df.explode(columns_to_explode, empty_as_null=True)
+
+vertices = np.zeros((len(df), 3), dtype=np.float32)
+bob = db.create_bob(vertices, name="DinoStar")
+
+for col in df.columns:
+    data = np.vstack(df.get_column(col).to_numpy())
+    bob.store_named_attribute(data, col)
+
+bob.named_attribute("Dino")
+```
+
+    array([[55.3846, 97.1795,  0.    ],
+           [51.5385, 96.0256,  0.    ]], dtype=float32)
+
+``` python
+bob.named_attribute("Star")
+```
+
+    array([[58.2136, 91.8819,  0.    ],
+           [58.1961, 92.215 ,  0.    ]], dtype=float32)

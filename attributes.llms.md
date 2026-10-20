@@ -219,7 +219,7 @@ names = np.array([f"point_{i}" for i in range(10)])
 bob["name"] = names
 ```
 
-    /tmp/ipykernel_2409/2168651459.py:3: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
+    /tmp/ipykernel_2632/2168651459.py:3: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
       bob["name"] = names
 
 > **WARNING:**
@@ -541,14 +541,14 @@ db.store_named_attribute(
 db.named_attribute(obj, "my_attr")
 ```
 
-    array([[0.35728535, 0.34824553, 0.10893304],
-           [0.8427882 , 0.7853052 , 0.7527815 ],
-           [0.6355139 , 0.8704941 , 0.6969338 ],
-           [0.43867815, 0.19934233, 0.11667952],
-           [0.9551966 , 0.7397923 , 0.02196443],
-           [0.54397655, 0.9472528 , 0.7183572 ],
-           [0.5770255 , 0.62757254, 0.60652566],
-           [0.5850158 , 0.36905017, 0.4706756 ]], dtype=float32)
+    array([[0.53907025, 0.29898933, 0.37800607],
+           [0.9290844 , 0.32685682, 0.8981513 ],
+           [0.56450593, 0.7567582 , 0.4331677 ],
+           [0.01150827, 0.7891584 , 0.9120895 ],
+           [0.03559079, 0.04118609, 0.6577564 ],
+           [0.40975833, 0.50005865, 0.1216043 ],
+           [0.5727442 , 0.08088566, 0.37693074],
+           [0.69431007, 0.10804583, 0.03235256]], dtype=float32)
 
 ### 5. Remove temporary attributes
 
