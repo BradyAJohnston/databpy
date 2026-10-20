@@ -34,11 +34,11 @@ from .utils import active_scene
 
 
 class ObjectDatabase:
+    """Typed access to `bpy.data.objects` by name, available as `databpy.object.bdo`."""
+
     def __getitem__(self, key: str) -> Object:
         """
-        Get an object from the database using its name.
-
-        A helper for typing in development
+        Get an object from `bpy.data.objects` by its name.
 
         Parameters
         ----------
@@ -48,7 +48,12 @@ class ObjectDatabase:
         Returns
         -------
         Object
-            The object from the bpy.data.objects database
+            The object from `bpy.data.objects`.
+
+        Raises
+        ------
+        KeyError
+            If no object has the given name.
         """
         return bpy.data.objects[key]
 
@@ -58,20 +63,23 @@ bdo = ObjectDatabase()
 
 class ObjectTracker:
     """
-    A context manager for tracking new objects in Blender.
+    A context manager for finding objects added to the active scene.
 
-    This class provides a way to track new objects that are added to Blender's bpy.data.objects collection.
-    It stores the current objects when entering the context and provides a method to find new objects that were added when exiting the context.
+    Entering the context records the objects in the active scene. Objects added to the
+    scene afterwards are returned by `new_objects()` and `latest()`, including after
+    the context has exited.
 
     Methods
     -------
     new_objects()
-        Returns a list of new objects that were added to bpy.data.objects while in the context.
+        Return the objects added to the active scene since entering the context.
+    latest()
+        Return the most recently added object.
     """
 
     def __enter__(self):
         """
-        Store the current objects and their names when entering the context.
+        Record the objects currently in the active scene.
 
         Returns
         -------
@@ -87,14 +95,12 @@ class ObjectTracker:
 
     def new_objects(self):
         """
-        Find new objects that were added to bpy.data.objects while in the context.
-
-        Use new_objects()[-1] to get the most recently added object.
+        Find the objects added to the active scene since entering the context.
 
         Returns
         -------
-        list
-            A list of new objects, ordered from oldest to newest.
+        list[Object]
+            The new objects, ordered from oldest to newest.
         """
         # session_uid values increase as data-blocks are created, so they give both
         # a rename-proof identity and the creation order
@@ -107,21 +113,24 @@ class ObjectTracker:
 
     def latest(self):
         """
-        Get the most recently added object.
-
-        This method returns the most recently added object to bpy.data.objects while in the context.
+        Get the object most recently added to the active scene since entering the context.
 
         Returns
         -------
         Object
             The most recently added object.
+
+        Raises
+        ------
+        IndexError
+            If no objects have been added.
         """
         return self.new_objects()[-1]
 
 
 def get_from_uuid(uuid: str, name_hint: str | None = None) -> Object:
     """
-    Get an object from the bpy.data.objects collection using a UUID.
+    Get an object from `bpy.data.objects` by the UUID databpy stored on it.
 
     Parameters
     ----------
@@ -134,7 +143,12 @@ def get_from_uuid(uuid: str, name_hint: str | None = None) -> Object:
     Returns
     -------
     Object
-        The object from the bpy.data.objects collection.
+        The object from `bpy.data.objects`.
+
+    Raises
+    ------
+    LinkedObjectError
+        If no object has the UUID.
     """
     matches = [obj for obj in bpy.data.objects if get_uuid(obj) == uuid]
     if not matches:
@@ -151,17 +165,14 @@ class BlenderObjectBase:
     """
     Minimal base class for Blender objects with name and object access.
 
-    This provides a minimal set of functionality to persistently track an object in
-    Blender's database, providing access to its name property and also the object itself.
-    Referencing an object in the database directly can lead to ReferenceErrors as Blender
-    can _without warning_ alter the database and thus the Object's place in memory.
-
-    To get around this the object is tracked in two ways:
+    Tracks an object in Blender's database and gives access to the object and its name.
+    A direct reference to an object can raise `ReferenceError`, as Blender can
+    reallocate data-blocks without warning, so the object is tracked in two ways:
 
     - Within a session, by the object's `session_uid`, which stays the same across
       renames and internal reallocations. Duplicates of the object get a new
       `session_uid`, so they are never mistaken for the original. If the object is
-      removed a LinkedObjectError is raised.
+      removed, accessing it raises a `LinkedObjectError`.
     - Across sessions (after loading a .blend file, or in a new Python process), by a
       persistent `uuid` stored on the object as a custom property. On first access in
       a new session the object is found by its `uuid` and then tracked by its new
@@ -184,7 +195,14 @@ class BlenderObjectBase:
         Parameters
         ----------
         obj : Object | str | None
-            The Blender object to wrap.
+            The Blender object to wrap, or the name of an object in `bpy.data.objects`.
+            If the object already has a databpy UUID, it is reused. With None, no object
+            is linked and accessing `object` raises a `LinkedObjectError`.
+
+        Raises
+        ------
+        KeyError
+            If `obj` is a name that no object has.
         """
         self._uuid: str = str(uuid1())
         self._object_name: str = ""
@@ -212,8 +230,14 @@ class BlenderObjectBase:
 
         Returns
         -------
-        Object | None
-            The Blender object, or None if not found.
+        Object
+            The Blender object.
+
+        Raises
+        ------
+        LinkedObjectError
+            If the object has been removed, another wrapper has stored its own UUID on
+            the object, or no object has this wrapper's UUID after a file was loaded.
         """
 
         if self._session_token == session_token():
@@ -245,12 +269,17 @@ class BlenderObjectBase:
     @object.setter
     def object(self, value: Object) -> None:
         """
-        Set the Blender object.
+        Set the Blender object, storing this wrapper's UUID on it.
 
         Parameters
         ----------
         value : Object
             The Blender object to set.
+
+        Raises
+        ------
+        TypeError
+            If `value` is not a `bpy.types.Object`.
         """
 
         if not isinstance(value, Object):
@@ -317,7 +346,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
     data : bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
         The data block associated with this object.
     attributes
-        Get the attributes collection of the Blender object.
+        The attributes collection of the object's data-block.
     """
 
     def store_named_attribute(
@@ -335,7 +364,8 @@ class BlenderObjectAttribute(BlenderObjectBase):
         data : np.ndarray
             The data to be stored as an attribute.
         name : str
-            The name for the attribute. Will overwrite an already existing attribute.
+            The name for the attribute. An existing attribute with this name is
+            overwritten, keeping its type and domain.
         atype : str or AttributeTypes or None, optional
             The attribute type to store the data as. Either string or selection from the
             AttributeTypes enum. None uses the type of an existing attribute, otherwise
@@ -348,6 +378,19 @@ class BlenderObjectAttribute(BlenderObjectBase):
         -------
         bpy.types.Attribute
             The added or modified attribute.
+
+        Raises
+        ------
+        TypeError
+            If the object's data is not a Mesh, Curves or PointCloud.
+        ValueError
+            If `atype` or `domain` isn't a valid name, no type can be inferred, or
+            `atype` is FLOAT4 before Blender 5.2.
+        NamedAttributeError
+            If the data length doesn't match the domain size, or `atype` or `domain`
+            conflict with an existing attribute.
+        AttributeMismatchError
+            If the values can't be represented by the attribute's type.
         """
         self._check_obj()
         return attr.store_named_attribute(
@@ -362,26 +405,39 @@ class BlenderObjectAttribute(BlenderObjectBase):
         ----------
         name : str
             The name of the attribute to remove.
+
+        Raises
+        ------
+        AttributeNotFoundError
+            If the attribute doesn't exist.
+        NamedAttributeError
+            If the attribute is required by Blender (e.g. `position`) and can't be
+            removed.
         """
         self._check_obj()
         attr.remove_named_attribute(self.object, name=name)
 
     def named_attribute(self, name: str, evaluate: bool = False) -> np.ndarray:
         """
-        Retrieve a named attribute from the object.
-
-        Optionally, evaluate the object before reading the named attribute
+        Read a named attribute from the object as a numpy array.
 
         Parameters
         ----------
         name : str
             Name of the attribute to get.
         evaluate : bool, optional
-            Whether to evaluate the object before reading the attribute (default is False).
+            Whether to evaluate the object's modifiers before reading the attribute.
+            Defaults to False.
+
         Returns
         -------
         np.ndarray
-            The attribute read from the mesh as a numpy array.
+            A copy of the attribute's values, which doesn't sync back to Blender.
+
+        Raises
+        ------
+        AttributeNotFoundError
+            If the attribute doesn't exist.
         """
         self._check_obj()
         return attr.named_attribute(self.object, name=name, evaluate=evaluate)
@@ -394,7 +450,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
         Returns
         -------
         bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
-            The data block associated with this object (e.g., mesh data, curves data, or point cloud data).
+            The data-block of the object.
         """
         return self.object.data
 
@@ -405,30 +461,27 @@ class BlenderObjectAttribute(BlenderObjectBase):
 
         Returns
         -------
-        bpy.types.Attributes
-            The attributes of the Blender object.
+        bpy.types.AttributeGroupMesh | bpy.types.AttributeGroupCurves | bpy.types.AttributeGroupPointCloud
+            The attributes collection of the object's data-block.
         """
         return self.data.attributes
 
     @property
     def position(self) -> AttributeArray:
         """
-        Get the position of the vertices of the Blender object.
+        Get the positions of the object's vertices or points.
 
         Returns
         -------
-        PositionArray
-            A numpy array subclass that automatically syncs changes back to Blender.
+        AttributeArray
+            A numpy array subclass that writes changed values back to Blender.
 
         Examples
         --------
         ```
-        # Regular array operations
         pos = bob.position
-        pos[0] = [1, 2, 3]  # Set position of first vertex
-
-        # Column operations will be intercepted automatically
-        pos[:, 2] = 5.0  # Set all Z coordinates to 5.0
+        pos[0] = [1, 2, 3]  # set the position of the first vertex
+        pos[:, 2] = 5.0  # set every Z coordinate to 5.0
         ```
         """
         return AttributeArray(self.object, "position")
@@ -436,12 +489,12 @@ class BlenderObjectAttribute(BlenderObjectBase):
     @position.setter
     def position(self, value: np.ndarray) -> None:
         """
-        Set the position of the vertices of the Blender object.
+        Set the positions of the object's vertices or points.
 
         Parameters
         ----------
         value : np.ndarray
-            The position to set for the vertices of the Blender object.
+            The positions, with shape (N, 3) for the N vertices or points.
         """
         self.store_named_attribute(
             value,
@@ -454,20 +507,20 @@ class BlenderObjectAttribute(BlenderObjectBase):
         self, evaluate: bool = False, drop_hidden: bool = False
     ) -> list[str]:
         """
-        Returns a list of attribute names for the object.
+        List the names of the object's attributes.
 
         Parameters
         ----------
         evaluate : bool, optional
             Whether to first evaluate the modifiers on the object before listing the
-            available attributes.
+            available attributes. Defaults to False.
         drop_hidden : bool, optional
             Whether to drop hidden attributes (those starting with a dot). Defaults to False.
 
         Returns
         -------
-        list[str] | None
-            A list of attribute names if the molecule object exists, None otherwise.
+        list[str]
+            The attribute names.
         """
         return list_attributes(self.object, evaluate=evaluate, drop_hidden=drop_hidden)
 
@@ -475,17 +528,19 @@ class BlenderObjectAttribute(BlenderObjectBase):
         """
         Get the number of points in the Blender object.
 
-        For meshes, this returns the number of vertices. For point clouds, this
-        returns the number of points. For curves (new Curves type), this returns
-        the number of control points.
-
-        Note: Only supports Mesh, Curves (new), and PointCloud types.
-        Does not support the legacy Curve type.
+        This is the number of vertices of a mesh, points of a point cloud, or control
+        points of a Curves object.
 
         Returns
         -------
         int
             The number of points in the Blender object.
+
+        Raises
+        ------
+        TypeError
+            If the object's data is not a Mesh, Curves or PointCloud, including the
+            legacy Curve type.
         """
         if isinstance(self.data, bpy.types.Mesh):
             return len(self.data.vertices)
@@ -524,7 +579,8 @@ class BlenderObjectAttribute(BlenderObjectBase):
         Returns
         -------
         AttributeArray
-            An AttributeArray that wraps the named attribute data.
+            An AttributeArray with the attribute's values, which writes changed values
+            back to Blender.
 
         Raises
         ------
@@ -541,12 +597,24 @@ class BlenderObjectAttribute(BlenderObjectBase):
         """
         Set a named attribute using dictionary-style syntax.
 
+        An existing attribute keeps its type and domain. A new attribute is stored on
+        the POINT domain, with its type inferred from the data.
+
         Parameters
         ----------
         name : str
             The name of the attribute to set.
         data : np.ndarray
             The data to store in the attribute.
+
+        Raises
+        ------
+        ValueError
+            If no type can be inferred from the data for a new attribute.
+        NamedAttributeError
+            If the data length doesn't match the domain size.
+        AttributeMismatchError
+            If the values can't be represented by the attribute's type.
         """
         if name in self.list_attributes():
             att = Attribute(self.attributes[name])
@@ -561,12 +629,13 @@ class BlenderObjectAttribute(BlenderObjectBase):
 
     def evaluate(self) -> Object:
         """
-        Return a version of the object with all modifiers applied.
+        Return the evaluated version of the object, with all modifiers applied.
 
         Returns
         -------
         Object
-            A new Object that isn't yet registered with the database
+            The evaluated object from the dependency graph, which isn't stored in
+            `bpy.data.objects`.
         """
         return evaluate_object(self.object)
 
@@ -575,7 +644,8 @@ class BlenderObject(BlenderObjectAttribute):
     """
     A convenience class for working with Blender objects.
 
-    Extends BlenderObjectBase with creation methods and additional utility functions.
+    Extends BlenderObjectAttribute with methods for creating objects and calculating
+    centroids.
     """
 
     @classmethod
@@ -596,10 +666,11 @@ class BlenderObject(BlenderObjectAttribute):
             Array of vertex coordinates with shape (N, 3).
             Default is None.
         edges : ndarray or None, optional
-            Array of edge indices.
+            Vertex indices of each edge, with shape (M, 2).
             Default is None.
         faces : ndarray or None, optional
-            Array of face indices.
+            Vertex indices of each face. Faces with different numbers of vertices can be
+            given as a list of lists.
             Default is None.
         name : str, optional
             Name of the created object.
@@ -612,6 +683,14 @@ class BlenderObject(BlenderObjectAttribute):
         -------
         BlenderObject
             A wrapped Blender mesh object.
+
+        Raises
+        ------
+        ValueError
+            If `vertices` doesn't have the shape (N, 3), an edge doesn't have exactly 2
+            vertex indices, or an index is outside of the vertices.
+        TypeError
+            If edge or face indices aren't integers.
 
         Examples
         --------
@@ -663,6 +742,12 @@ class BlenderObject(BlenderObjectAttribute):
         -------
         BlenderObject
             A wrapped Blender curves object.
+
+        Raises
+        ------
+        ValueError
+            If only one of `positions` and `curve_sizes` is given, or their lengths
+            don't match.
 
         Examples
         --------
@@ -737,21 +822,30 @@ class BlenderObject(BlenderObjectAttribute):
         faces: npt.ArrayLike | None = None,
     ) -> Object:
         """
-        Create a new Blender object from vertex, edge and face data.
+        Replace the geometry of the object's mesh with vertex, edge and face data.
 
         Parameters
         ----------
-        vertices : np.ndarray
-            The vertices of the object.
-        edges : np.ndarray
-            The edges of the object.
-        faces : np.ndarray
-            The faces of the object.
+        vertices : np.ndarray or None, optional
+            Vertex coordinates with shape (N, 3).
+        edges : np.ndarray or None, optional
+            Vertex indices of each edge, with shape (M, 2).
+        faces : np.ndarray or None, optional
+            Vertex indices of each face. Faces with different numbers of vertices can be
+            given as a list of lists.
 
         Returns
         -------
         Object
-            The new Blender object.
+            The object, with its mesh's geometry replaced.
+
+        Raises
+        ------
+        TypeError
+            If the object is not a mesh, or edge or face indices aren't integers.
+        ValueError
+            If `vertices` doesn't have the shape (N, 3), an edge doesn't have exactly 2
+            vertex indices, or an index is outside of the vertices.
         """
         if not isinstance(self.data, bpy.types.Mesh):
             raise TypeError(
@@ -769,18 +863,25 @@ class BlenderObject(BlenderObjectAttribute):
         Parameters
         ----------
         weight : str | np.ndarray | None, optional
-            The weights or indices for calculating the centroid:
-            - If str: Name of attribute to use as weights
-            - If np.ndarray with float dtype: Weights for each position
-            - If np.ndarray with int dtype: Indices of positions to include
-            - If np.ndarray with bool dtype: Mask of positions to include
-            - If None: Use all positions equally weighted
-            Defaults to None.
+            The weights or indices for calculating the centroid. Defaults to None.
+
+            - str: the name of an attribute, whose values are used as below
+            - float array: a weight for each position
+            - int array: the indices of the positions to include
+            - bool array: a mask of the positions to include
+            - None: all positions, weighted equally
 
         Returns
         -------
         np.ndarray
-            A 3D vector representing the centroid position.
+            The centroid position, with shape (3,).
+
+        Raises
+        ------
+        TypeError
+            If `weight` isn't float, integer or boolean.
+        AttributeNotFoundError
+            If `weight` is the name of an attribute that doesn't exist.
         """
         if isinstance(weight, str):
             weight = self.named_attribute(weight)
@@ -939,9 +1040,9 @@ def _fill_mesh(
     """
     Add vertices, edges and faces to an empty mesh, from the arrays of `_mesh_arrays`.
 
-    Equivalent to `mesh.from_pydata(vertices, edges, faces)` but much faster, as the
-    data is written directly to the mesh's attributes from numpy arrays rather than
-    going through Python tuples.
+    Gives the same mesh as `mesh.from_pydata(vertices, edges, faces)`, but writes the
+    data directly to the mesh's attributes from numpy arrays rather than going through
+    Python tuples.
     """
     n_edges = len(edge_verts) // 2
     mesh.vertices.add(len(vertices))
@@ -966,7 +1067,7 @@ def _fill_mesh(
         )
 
     # match from_pydata, which marks faces as flat shaded. Writing the attribute
-    # directly is much faster than `mesh.shade_flat()`
+    # directly is faster than `mesh.shade_flat()`
     sharp_face = mesh.attributes.get("sharp_face") or mesh.attributes.new(
         "sharp_face", "BOOLEAN", "FACE"
     )
@@ -994,18 +1095,28 @@ def create_mesh_object(
     vertices : np.ndarray, optional
         The vertices as a numpy array with shape (N, 3). Defaults to None.
     edges : np.ndarray, optional
-        The edges as a numpy array. Defaults to None.
+        Vertex indices of each edge, with shape (M, 2). Defaults to None.
     faces : np.ndarray, optional
-        The faces as a numpy array. Defaults to None.
+        Vertex indices of each face. Faces with different numbers of vertices can be
+        given as a list of lists. Defaults to None.
     name : str, optional
         The name of the object. Defaults to 'Mesh'.
     collection : bpy.types.Collection, optional
-        The collection to link the object to. Defaults to None.
+        The collection to link the object to. Defaults to None, which links it to a
+        collection named "Collection", created if needed.
 
     Returns
     -------
     Object
         The created mesh object.
+
+    Raises
+    ------
+    ValueError
+        If `vertices` doesn't have the shape (N, 3), an edge doesn't have exactly 2
+        vertex indices, or an index is outside of the vertices.
+    TypeError
+        If edge or face indices aren't integers.
     """
 
     arrays = _mesh_arrays(vertices, edges, faces)
@@ -1025,7 +1136,7 @@ def create_curves_object(
     collection: bpy.types.Collection | None = None,
 ) -> Object:
     """
-    Create a new Blender curves object (new Curves type, not legacy Curve).
+    Create a new Blender Curves object (the hair curves type, not the legacy Curve type).
 
     Parameters
     ----------
@@ -1040,7 +1151,8 @@ def create_curves_object(
     name : str, optional
         The name of the object. Defaults to 'Curves'.
     collection : bpy.types.Collection, optional
-        The collection to link the object to. Defaults to None.
+        The collection to link the object to. Defaults to None, which links it to a
+        collection named "Collection", created if needed.
 
     Returns
     -------
@@ -1110,7 +1222,8 @@ def create_pointcloud_object(
     name : str, optional
         The name of the object. Defaults to 'PointCloud'.
     collection : bpy.types.Collection, optional
-        The collection to link the object to. Defaults to None.
+        The collection to link the object to. Defaults to None, which links it to a
+        collection named "Collection", created if needed.
 
     Returns
     -------
@@ -1154,23 +1267,34 @@ def create_object(
     """
     Create a new Blender mesh object.
 
+    The same as `create_mesh_object()`, with a default name of 'NewObject'.
+
     Parameters
     ----------
     vertices : np.ndarray, optional
-        The vertices as a numpy array. Defaults to None.
+        The vertices as a numpy array with shape (N, 3). Defaults to None.
     edges : np.ndarray, optional
-        The edges as a numpy array. Defaults to None.
+        Vertex indices of each edge, with shape (M, 2). Defaults to None.
     faces : np.ndarray, optional
-        The faces as a numpy array. Defaults to None.
+        Vertex indices of each face. Defaults to None.
     name : str, optional
         The name of the object. Defaults to 'NewObject'.
     collection : bpy.types.Collection, optional
-        The collection to link the object to. Defaults to None.
+        The collection to link the object to. Defaults to None, which links it to a
+        collection named "Collection", created if needed.
 
     Returns
     -------
     Object
         The created mesh object.
+
+    Raises
+    ------
+    ValueError
+        If `vertices` doesn't have the shape (N, 3), an edge doesn't have exactly 2
+        vertex indices, or an index is outside of the vertices.
+    TypeError
+        If edge or face indices aren't integers.
     """
     return create_mesh_object(vertices, edges, faces, name, collection)
 
@@ -1189,28 +1313,38 @@ def create_bob(
     Parameters
     ----------
     vertices : ndarray or None, optional
-        Array of vertex coordinates.
+        Array of vertex coordinates with shape (N, 3).
         Default is None.
     edges : ndarray or None, optional
-        Array of edge indices.
+        Vertex indices of each edge, with shape (M, 2).
         Default is None.
     faces : ndarray or None, optional
-        Array of face indices.
+        Vertex indices of each face.
         Default is None.
     name : str, optional
         Name of the created object.
         Default is "NewObject".
     collection : bpy.types.Collection or None, optional
-        Blender collection to link the object to.
+        Blender collection to link the object to. None links it to a collection
+        named "Collection", created if needed.
         Default is None.
     uuid : str or None, optional
-        Directly set the UUID on the resulting BlenderObject.
+        The UUID to store on the object and use for the BlenderObject. None
+        generates a new UUID.
         Default is None.
 
     Returns
     -------
     BlenderObject
         A wrapped Blender mesh object.
+
+    Raises
+    ------
+    ValueError
+        If `vertices` doesn't have the shape (N, 3), an edge doesn't have exactly 2
+        vertex indices, or an index is outside of the vertices.
+    TypeError
+        If edge or face indices aren't integers.
     """
 
     obj = create_mesh_object(
@@ -1225,5 +1359,5 @@ def create_bob(
     return BlenderObject(obj)
 
 
-# Friendly alias for BlenderObject - commonly used variable name
+# short alias for BlenderObject
 BOB = BlenderObject

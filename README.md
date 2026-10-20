@@ -15,15 +15,17 @@
 
 ![](docs/img/notdavid.png)
 
-A set of data-oriented wrappers around the python API of Blender.
+Data-oriented wrappers around Blender’s Python API, which read and write
+the attributes of mesh, curves and point cloud objects as NumPy arrays.
 
-This was originally used internally inside of [Molecular
-Nodes](https://github.com/BradyAJohnston/MolecularNodes) but was broken
-out into a separate python module for re-use in other projects.
+databpy started inside [Molecular
+Nodes](https://github.com/BradyAJohnston/MolecularNodes) and was split
+into a separate Python package for use in other projects.
 
 ## Installation
 
-Available on PyPI, install with pip:
+databpy supports Blender 5.1 and later, which use Python 3.13. Install
+it from PyPI with pip:
 
 ``` bash
 pip install databpy
@@ -31,44 +33,35 @@ pip install databpy
 
 > [!CAUTION]
 >
-> `bpy` (Blender as a python module) is listed as an optional
-> dependency, so that if you install `databpy` inside of Blender you
-> won’t install a redundant version of `bpy`. If you are using this
-> outside of Blender, you will need to specifically request `bpy` with
-> either of these methods:
+> `bpy` (Blender as a Python module) is an optional dependency, so
+> installing `databpy` inside Blender doesn’t install a second copy of
+> `bpy`. To use databpy outside Blender, install `bpy` as well with
+> either of these commands:
 >
 > ``` bash
-> # install wtih bpy dependency
+> # install with the bpy dependency
 > pip install "databpy[bpy]"
 >
 > # install both packages
 > pip install databpy bpy
->
-> # install with all optional dependencies
-> pip install "databpy[all]"
 > ```
 
 ## Usage
 
-The main use cases are to create objects, store and retrieve attributes
-from them. The functions are named around nodes in Geometry Nodes
-`Store Named Attribute` and `Named Attribute`
+databpy creates objects, and stores and retrieves their attributes.
+[`store_named_attribute()`](https://bradyajohnston.github.io/databpy/api/store_named_attribute.html)
+and
+[`named_attribute()`](https://bradyajohnston.github.io/databpy/api/named_attribute.html)
+are named after the `Store Named Attribute` and `Named Attribute` nodes
+in Geometry Nodes, and work on mesh, curves and point cloud objects.
 
-``` python
-import databpy as db
-
-# store and retrieve attributes from a mesh, point cloud, or curves object
-db.store_named_attribute()
-db.named_attribute()
-```
-
-Here’s an example on how to store an attribute:
+To store an attribute on a new object:
 
 ``` python
 import numpy as np
 import databpy as db
 
-coords = np.array([[0, 0, 0], [0, 5, 0], [5, 0, 0], [5, 5, 0]]))
+coords = np.array([[0, 0, 0], [0, 5, 0], [5, 0, 0], [5, 5, 0]])
 
 obj = db.create_object(coords, name="Box")
 db.store_named_attribute(obj, np.array([10, 20, 31, 42]), "vals")
@@ -76,8 +69,7 @@ db.store_named_attribute(obj, np.array([10, 20, 31, 42]), "vals")
 
 ![image](https://github.com/user-attachments/assets/2af6046a-8d73-4881-af63-8ed175fe2136.png)
 
-This module is mainly used to create mesh objects and work with their
-attributes. It is built to store and retrieve data using NumPy arrays:
+Attributes are stored and retrieved as NumPy arrays:
 
 ``` python
 import numpy as np
@@ -95,7 +87,7 @@ obj.name
 
     'RandomMesh'
 
-Access attributes from the object’s mesh.
+Read an attribute from the object’s mesh:
 
 ``` python
 db.named_attribute(obj, "position")
@@ -114,13 +106,12 @@ db.named_attribute(obj, "position")
 
 ### `BlenderObject` class (bob)
 
-This is a convenience class that wraps around the `bpy.types.Object`,
-and provides access to all of the useful functions. We can wrap an
-existing Object or return one when creating a new object.
+`BlenderObject` wraps a `bpy.types.Object` and provides databpy’s
+functions as methods. Wrap an existing object, or create a new one with
+`create_bob()`.
 
-This just gives us access to the `named_attribute()` and
-`store_named_attribute()` functions on the object class, but also
-provides a more intuitive way to access the object’s attributes.
+Attributes can be read with `named_attribute()`, or as properties and
+items such as `bob.position` and `bob["position"]`.
 
 ``` python
 # wrap an existing object or create a new one
@@ -144,8 +135,8 @@ bob.position
            [0.7091318 , 0.5409368 , 0.12482417],
            [0.9576473 , 0.4032563 , 0.21695116]], dtype=float32)
 
-We can clear all of the data from the object and initialise a new mesh
-underneath:
+`new_from_pydata()` clears the geometry of the object’s mesh and fills
+it with new vertices, edges and faces:
 
 ``` python
 bob.new_from_pydata(np.random.randn(5, 3))

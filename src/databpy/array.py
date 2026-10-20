@@ -56,15 +56,11 @@ _WRITING_FUNCTIONS = {np.copyto, np.place, np.putmask, np.fill_diagonal}
 
 class AttributeArray(np.ndarray):
     """
-    A numpy array subclass that automatically syncs changes back to the Blender object.
+    A numpy array of an attribute's values that writes changes back to Blender.
 
-    AttributeArray provides an ergonomic interface for working with Blender attributes
-    using familiar numpy operations. It automatically handles bidirectional syncing:
-    values are retrieved from Blender as a numpy array, operations are applied,
-    and results are immediately stored back to Blender.
-
-    This is the high-level interface for attribute manipulation. For low-level control,
-    see the `Attribute` class which provides manual get/set operations without auto-sync.
+    Creating the array reads the attribute's values. Modifying the array in place
+    writes the changed values back to the attribute straight away. For manual control
+    over when values are read and written, use `Attribute`.
 
     Syncing
     -------
@@ -79,22 +75,25 @@ class AttributeArray(np.ndarray):
 
     Performance Characteristics
     ---------------------------
-    - Reading the attribute copies all of its values into the array
+    - Creating the array copies all of the attribute's values.
     - Each modification writes only the values it changed, directly into the
       attribute's memory: `pos[:10, 2] = 1.0` writes 10 values however large the
-      attribute is
-    - The entire array is written with `foreach_set` instead where the attribute
-      can't be written directly, e.g. STRING attributes, a `SINGLE` value for the
-      whole domain, or an attribute that has changed size since it was read
+      attribute is.
+    - Where the attribute can't be written directly, the entire array is written
+      with `store_named_attribute` instead. This applies to STRING attributes, a
+      `SINGLE` value for the whole domain, and an attribute that was removed (which is
+      re-created). If the attribute's size, type or domain changed since the array
+      was read, this raises a `NamedAttributeError`.
 
     Supported Types
     ---------------
-    Works with all Blender attribute types:
-    - Float types: FLOAT, FLOAT2, FLOAT4, FLOAT_VECTOR, FLOAT_COLOR, FLOAT4X4, QUATERNION
-    - Integer types: INT (int32), INT8, INT16_2D, INT32_2D
+    Every attribute type in `AttributeTypes`, with values in its storage dtype:
+    - Float types (float32): FLOAT, FLOAT2, FLOAT4 (Blender 5.2+), FLOAT_VECTOR,
+      FLOAT_COLOR, FLOAT4X4, QUATERNION
+    - Integer types: INT (int32), INT8, INT16_2D (int16), INT32_2D (int32)
     - Boolean: BOOLEAN
     - Color: BYTE_COLOR (uint8)
-    - String: STRING (synced per-element as strings don't support `foreach_set`)
+    - String: STRING (str), read and written one value at a time
 
     Attributes
     ----------
@@ -114,7 +113,7 @@ class AttributeArray(np.ndarray):
 
     obj = db.create_object(np.random.rand(10, 3), name="test_bob")
     pos = db.AttributeArray(obj, "position")
-    pos[:, 2] += 1.0  # Automatically syncs to Blender
+    pos[:, 2] += 1.0  # writes the new z values to Blender
     ```
 
     Using BlenderObject for convenience:
@@ -151,14 +150,14 @@ class AttributeArray(np.ndarray):
 
     # Access as AttributeArray
     id_array = db.AttributeArray(obj, "id")
-    id_array += 100  # Automatically syncs as int32
+    id_array += 100  # stays int32 and writes to Blender
     ```
 
     See Also
     --------
-    Attribute : Low-level attribute interface without auto-sync
-    store_named_attribute : Function to create/update attributes
-    named_attribute : Function to read attribute data as regular arrays
+    Attribute : Low-level attribute interface without automatic syncing
+    store_named_attribute : Create or update an attribute
+    named_attribute : Read an attribute's values as a plain numpy array
     """
 
     def __new__(cls, obj: bpy.types.Object, name: str) -> Self:
@@ -180,6 +179,10 @@ class AttributeArray(np.ndarray):
         ------
         AttributeNotFoundError
             If the attribute doesn't exist on the object.
+        TypeError
+            If the object's data isn't a mesh, curves or point cloud.
+        NamedAttributeError
+            If the attribute has an unsupported data type.
         """
         data = _attribute_data(obj)
         try:
@@ -199,7 +202,7 @@ class AttributeArray(np.ndarray):
         return None if self._link is None else self._link.resolve()
 
     def __array_finalize__(self, obj):
-        """Initialize attributes when array is created through operations."""
+        """Link views to the attribute they were read from, and detach copies."""
         if obj is None:
             return
 
@@ -269,7 +272,7 @@ class AttributeArray(np.ndarray):
         return result
 
     def __setitem__(self, key, value):
-        """Set item and sync changes back to Blender."""
+        """Set the values at `key` and write them to Blender."""
         if self._is_writeback(key, value):
             # `pos[:, 2] += 1` assigns the already modified and synced view back to
             # itself, so there is nothing to write
@@ -320,7 +323,8 @@ class AttributeArray(np.ndarray):
 
         Only the changed values are written, directly into the attribute's memory. If
         the attribute can't be written directly, the entire root array is written with
-        `foreach_set` instead, which also re-creates an attribute that was removed.
+        `store_named_attribute` instead, which also re-creates an attribute that was
+        removed.
         """
         link = self._link
         if link is None:

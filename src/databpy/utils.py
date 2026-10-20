@@ -142,7 +142,8 @@ def centre(position: np.ndarray, weight: np.ndarray | None = None) -> np.ndarray
     position : np.ndarray
         Array of position vectors.
     weight : np.ndarray | None, optional
-        Array of weights for each position. Default is None.
+        Array of weights for each position. Default is None, which weights every
+        position equally.
 
     Returns
     -------
@@ -175,8 +176,8 @@ def lerp(
 
     Notes
     -----
-    This function performs linear interpolation between `a` and `b` using the
-    interpolation parameter `t` such that the result lies between `a` and `b`.
+    Computes `a + (b - a) * t`, so `t = 0` gives `a` and `t = 1` gives `b`. Values
+    of `t` outside [0, 1] extrapolate beyond `a` and `b`.
 
     Examples
     --------
@@ -194,6 +195,9 @@ def lerp(
 
 def path_resolve(path: str | Path) -> Path:
     """Resolve a path string or Path object to an absolute Path.
+
+    Blender-relative paths starting with `//` are resolved relative to the current
+    .blend file, or the working directory if the file hasn't been saved.
 
     Parameters
     ----------

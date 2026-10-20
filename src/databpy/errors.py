@@ -4,7 +4,10 @@ class DatabpyError(Exception):
 
 class LinkedObjectError(DatabpyError):
     """
-    Error raised when a Python object doesn't have a linked object in the 3D scene.
+    Error raised when a wrapper can no longer find the Blender object it is linked to.
+
+    Raised when the object of a `BlenderObject` or `AttributeArray` has been removed,
+    or an `AttributeArray` is synced after a file was loaded.
 
     Parameters
     ----------

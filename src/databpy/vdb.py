@@ -10,15 +10,16 @@ def import_vdb(
     file: str | Path, collection: str | bpy.types.Collection | None = None
 ) -> bpy.types.Object:
     """
-    Imports a VDB file as a Blender volume object.
+    Import a VDB file as a Blender volume object.
 
     Parameters
     ----------
     file : str | Path
         Path to the VDB file.
     collection : str | bpy.types.Collection | None, optional
-        Collection to place the imported volume in. Can be either a collection name,
-        an existing collection, or None to use the active collection.
+        Collection to place the imported volume in: a collection, the name of a
+        collection (created and linked to the scene if it doesn't exist), or None to
+        leave it in the active collection.
 
     Returns
     -------
@@ -28,7 +29,7 @@ def import_vdb(
     Raises
     ------
     RuntimeError
-        If the VDB file could not be imported (e.g., file not found).
+        If the file doesn't exist, or importing it created no object.
     """
     # Check if file exists
     file_path = Path(file)
