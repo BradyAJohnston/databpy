@@ -3,7 +3,28 @@ title: Changelog
 toc: true
 ---
 
-## 0.10.1 2026-10-08
+## 0.11.0 (2026-10-20)
+
+Support for Blender 5.1 alongside 5.2, with the tests run against each supported
+version.
+
+### Changed
+
+- Requires `bpy >= 5.1` (previously `>= 5.2`). Features that need a newer Blender
+  are only used when available, which `databpy.attribute.HAS_FLOAT4` reports for
+  the `FLOAT4` attribute type.
+- Before Blender 5.2, `guess_atype_from_array()` maps `(n, 4)` float arrays to
+  `FLOAT_COLOR`, as there is no generic `FLOAT4` type. Storing an attribute with
+  `atype="FLOAT4"` raises `ValueError` before Blender 5.2.
+- The tests run against Blender 5.1, 5.2 and the 5.3 daily builds in separate
+  workflows, each with a status badge in the README.
+
+### Fixed
+
+- The tests for the daily builds of bpy ran against the locked release instead, as
+  `uv run` reinstalled it.
+
+## 0.10.1 (2026-10-08)
 
 Faster mesh construction and attribute access, with benchmarks tracked by
 [CodSpeed](https://app.codspeed.io/BradyAJohnston/databpy).

@@ -14,7 +14,8 @@ from .errors import DatabpyError
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
 AttributeDataBlock = bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
-PossibleAttributeTypes = (
+# a lazily evaluated alias, as Float4Attribute only exists from Blender 5.2
+type PossibleAttributeTypes = (
     bpy.types.IntAttribute
     | bpy.types.BoolAttribute
     | bpy.types.Int2Attribute
@@ -98,6 +99,9 @@ def _check_obj_attributes(obj: Object) -> None:
     _attribute_data(obj)
 
 
+# the FLOAT4 attribute type was added in Blender 5.2
+HAS_FLOAT4 = hasattr(bpy.types, "Float4Attribute")
+
 # looking up classes on `bpy.types` is slow, so they are only looked up once
 _TYPED_ATTRIBUTES = (
     bpy.types.IntAttribute,
@@ -106,7 +110,6 @@ _TYPED_ATTRIBUTES = (
     bpy.types.Short2Attribute,
     bpy.types.FloatAttribute,
     bpy.types.Float2Attribute,
-    bpy.types.Float4Attribute,
     bpy.types.ByteIntAttribute,
     bpy.types.Float4x4Attribute,
     bpy.types.ByteColorAttribute,
@@ -115,6 +118,7 @@ _TYPED_ATTRIBUTES = (
     bpy.types.FloatVectorAttribute,
     bpy.types.StringAttribute,
 )
+_FLOAT4_ATTRIBUTE = bpy.types.Float4Attribute if HAS_FLOAT4 else None
 
 
 def _as_typed_attribute(attribute: bpy.types.Attribute) -> PossibleAttributeTypes:
@@ -124,6 +128,8 @@ def _as_typed_attribute(attribute: bpy.types.Attribute) -> PossibleAttributeType
     for reading and writing values.
     """
     if isinstance(attribute, _TYPED_ATTRIBUTES):
+        return attribute
+    if _FLOAT4_ATTRIBUTE is not None and isinstance(attribute, _FLOAT4_ATTRIBUTE):
         return attribute
     raise NamedAttributeError(
         f"Attribute '{attribute.name}' has an unsupported data type: "
@@ -345,7 +351,8 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
       signed types
     - Float types: all floating point arrays map to float32-based attributes
     - 4D data: uint8 maps to BYTE_COLOR, other dtypes map to the generic FLOAT4.
-      FLOAT_COLOR and QUATERNION must be explicitly requested via `atype`
+      FLOAT_COLOR and QUATERNION must be explicitly requested via `atype`. Before
+      Blender 5.2, which has no FLOAT4, other dtypes map to FLOAT_COLOR
     - Boolean types: maps bool arrays to BOOLEAN attributes
     - String types: maps string arrays to STRING attributes
 
@@ -423,7 +430,8 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
         # The color and quaternion types must be explicitly requested via `atype`
         if dtype == np.uint8:
             return AttributeTypes.BYTE_COLOR
-        return AttributeTypes.FLOAT4
+        # before Blender 5.2 there is no generic FLOAT4, so fall back to FLOAT_COLOR
+        return AttributeTypes.FLOAT4 if HAS_FLOAT4 else AttributeTypes.FLOAT_COLOR
 
     # Handle 3D arrays (matrices)
     elif shape == (n_row, 4, 4) and numeric:
@@ -686,7 +694,7 @@ class Attribute:
     @property
     def storage_type(self) -> StorageTypeNames:
         """
-        Returns how Blender stores the attribute internally (new in Blender 5.2).
+        Returns how Blender stores the attribute internally.
 
         'ARRAY' is a full array of values, while 'SINGLE' is a single value for the
         entire domain (which can appear on evaluated geometry from Geometry Nodes).
@@ -792,6 +800,11 @@ def _match_atype(
             )
     if atype is None:
         atype = guess_atype_from_array(data)
+    if atype is AttributeTypes.FLOAT4 and not HAS_FLOAT4:
+        raise ValueError(
+            "The FLOAT4 attribute type requires Blender 5.2 or later. Use FLOAT_COLOR "
+            "or QUATERNION to store 4D data in earlier versions."
+        )
     return atype
 
 
@@ -843,7 +856,8 @@ def store_named_attribute(
     Raises
     ------
     ValueError
-        If atype string doesn't match available types, or no type can be inferred.
+        If atype string doesn't match available types, no type can be inferred, or
+        atype is FLOAT4 before Blender 5.2.
     NamedAttributeError
         If data length doesn't match domain size, or the atype or domain don't match
         an existing attribute.

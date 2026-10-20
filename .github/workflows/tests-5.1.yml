@@ -1,0 +1,14 @@
+name: Blender 5.1
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  tests:
+    uses: ./.github/workflows/_tests.yml
+    with:
+      version: "5.1"
+    secrets: inherit

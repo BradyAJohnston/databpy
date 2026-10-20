@@ -3,9 +3,14 @@
 
 [![codecov](https://codecov.io/gh/BradyAJohnston/databpy/graph/badge.svg?token=KFuu67hzAz)](https://codecov.io/gh/BradyAJohnston/databpy)
 [![pypi](https://img.shields.io/pypi/v/databpy.png)](https://pypi.org/project/databpy/)
-![tests](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg)
 ![deployment](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
 [![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://app.codspeed.io/BradyAJohnston/databpy?utm_source=badge)
+
+| Blender | Tests |
+|---------|-------|
+| 5.1 | [![Blender 5.1](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.1.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.1.yml) |
+| 5.2 | [![Blender 5.2](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.2.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.2.yml) |
+| 5.3 (alpha) | [![Blender 5.3](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.3.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.3.yml) |
 
 ![](docs/img/notdavid.png)
 

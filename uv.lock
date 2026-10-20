@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = "==3.13.*"
 
 [[package]]
@@ -363,7 +363,7 @@ wheels = [
 
 [[package]]
 name = "databpy"
-version = "0.10.0"
+version = "0.11.0"
 source = { editable = "." }
 dependencies = [
     { name = "numpy" },
@@ -392,7 +392,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bpy", marker = "extra == 'bpy'", specifier = ">=5.2" },
+    { name = "bpy", marker = "extra == 'bpy'", specifier = ">=5.1" },
     { name = "numpy" },
 ]
 provides-extras = ["bpy"]
