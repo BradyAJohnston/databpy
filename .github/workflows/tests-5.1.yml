@@ -11,4 +11,6 @@ jobs:
     uses: ./.github/workflows/_tests.yml
     with:
       version: "5.1"
+      # merged with the 5.2 coverage, so code for either version is covered
+      coverage: true
     secrets: inherit
