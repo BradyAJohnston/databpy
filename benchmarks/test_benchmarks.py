@@ -167,6 +167,49 @@ def test_attribute_array_set_item(benchmark):
     benchmark(func)
 
 
+@pytest.mark.benchmark(group="attribute-array")
+def test_attribute_array_read_and_set_slice(benchmark):
+    bob = db.BlenderObject(db.create_pointcloud_object(POSITIONS))
+
+    def func():
+        bob.position[:10, 2] = 10.0
+
+    benchmark(func)
+
+
+def _attribute_array(atype: db.AttributeTypes) -> tuple[db.AttributeArray, np.ndarray]:
+    obj = db.create_pointcloud_object(POSITIONS)
+    values = _attribute_values(atype, N)
+    db.store_named_attribute(obj, values, "values", atype=atype)
+    return db.BlenderObject(obj)["values"], values
+
+
+@pytest.mark.benchmark(group="attribute-array-slice")
+@pytest.mark.parametrize("atype", NUMERIC_TYPES, ids=lambda t: t.name)
+def test_attribute_array_set_slice(benchmark, atype):
+    # writes 100 contiguous values of the attribute
+    array, values = _attribute_array(atype)
+    new = values[:100][::-1].copy()
+
+    def func():
+        array[:100] = new
+
+    benchmark(func)
+
+
+@pytest.mark.benchmark(group="attribute-array-slice")
+@pytest.mark.parametrize("atype", NUMERIC_TYPES, ids=lambda t: t.name)
+def test_attribute_array_set_strided_slice(benchmark, atype):
+    # writes every 100th value across the whole attribute
+    array, values = _attribute_array(atype)
+    new = values[::100][::-1].copy()
+
+    def func():
+        array[::100] = new
+
+    benchmark(func)
+
+
 # small geometry, where the overhead of each call matters more than copying data
 SMALL = rng.random((10, 3), dtype=np.float32)
 
