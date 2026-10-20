@@ -1,7 +1,6 @@
 """Tests for functionality deprecated for removal in databpy 0.13.0."""
 
 import importlib
-import subprocess
 import sys
 
 import bpy
@@ -17,25 +16,24 @@ def test_removal_version():
     assert REMOVAL_VERSION == "0.13.0"
 
 
-def test_import_databpy_does_not_import_nodes():
-    # run in a fresh interpreter, as the tests import databpy.nodes themselves
-    result = subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            "import sys, databpy; print('databpy.nodes' in sys.modules)",
-        ],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    assert result.stdout.strip().splitlines()[-1] == "False"
+def test_nodes_is_imported_on_first_use(monkeypatch):
+    # run databpy/__init__.py again without the nodes module, restoring both after.
+    # This runs in-process, as Blender's bundled Python can't import bpy on its own
+    monkeypatch.delitem(sys.modules, "databpy.nodes")
+    monkeypatch.delattr(db, "nodes")
+    importlib.reload(db)
+    assert "databpy.nodes" not in sys.modules
+
+    with pytest.warns(FutureWarning, match="`databpy.nodes` is deprecated") as record:
+        nodes = db.nodes
+    assert len(record) == 1
+    assert record[0].filename == __file__
+    assert sys.modules["databpy.nodes"] is nodes
 
 
 def test_importing_nodes_warns(monkeypatch):
     # import the module again, restoring the original afterwards
     monkeypatch.delitem(sys.modules, "databpy.nodes")
-    monkeypatch.setattr(db, "nodes", None, raising=False)
     monkeypatch.delattr(db, "nodes")
     with pytest.warns(FutureWarning, match="`databpy.nodes` is deprecated") as record:
         importlib.import_module("databpy.nodes")
