@@ -31,12 +31,12 @@ bob["id"][:10] = -1
 
 databpy builds meshes by writing arrays straight to their attributes, rather than through `Mesh.from_pydata()`, and an attribute array writes back only the values that change:
 
-| Operation | `bpy` | databpy | Speedup |
-|---|---|---|---|
-| Mesh from 100,000 vertices | 37 ms | 0.14 ms | ~260x |
-| Mesh from 100,000 vertices and 99,999 edges | 62 ms | 0.24 ms | ~260x |
-| Mesh from 90,000 vertices and 89,401 quads | 101 ms | 5.0 ms | ~20x |
-| Write 10 values of a 1,000,000 point attribute | 0.28 ms | 0.006 ms | ~45x |
+| Operation                                      | `bpy`   | databpy  | Speedup |
+| ---------------------------------------------- | ------- | -------- | ------- |
+| Mesh from 100,000 vertices                     | 37 ms   | 0.14 ms  | ~260x   |
+| Mesh from 100,000 vertices and 99,999 edges    | 62 ms   | 0.24 ms  | ~260x   |
+| Mesh from 90,000 vertices and 89,401 quads     | 101 ms  | 5.0 ms   | ~20x    |
+| Write 10 values of a 1,000,000 point attribute | 0.28 ms | 0.006 ms | ~45x    |
 
 The `bpy` column uses `Mesh.from_pydata()` for meshes, and for the attribute write a `foreach_get` and `foreach_set` round trip of the whole attribute. Times are medians of the workloads in [`benchmarks/test_benchmarks.py`](https://github.com/BradyAJohnston/databpy/blob/main/benchmarks/test_benchmarks.py), measured with bpy 5.2.1 and Python 3.13 on an AMD Ryzen 9 9950X (Linux), and vary by machine. [CodSpeed](https://app.codspeed.io/BradyAJohnston/databpy) tracks the benchmarks on every pull request.
 
@@ -54,11 +54,11 @@ pip install "databpy[bpy]"
 
 ## Supported Blender versions
 
-| Blender | Tests |
-|---------|-------|
-| 5.1 | [![Blender 5.1](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.1.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.1.yml) |
-| 5.2 | [![Blender 5.2](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.2.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.2.yml) |
-| 5.3 (beta) | [![Blender 5.3](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.3.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.3.yml) |
+| Blender     | Tests                                                                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 5.1         | [![Blender 5.1](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.1.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.1.yml) |
+| 5.2         | [![Blender 5.2](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.2.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.2.yml) |
+| 5.3 (beta)  | [![Blender 5.3](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.3.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.3.yml) |
 | 5.4 (alpha) | [![Blender 5.4](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.4.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.4.yml) |
 
 databpy requires Python 3.13, the version Blender 5.1 and 5.2 use.
@@ -70,4 +70,4 @@ databpy requires Python 3.13, the version Blender 5.1 and 5.2 use.
 - [API reference](https://bradyajohnston.github.io/databpy/api/)
 - [Changelog](https://bradyajohnston.github.io/databpy/changelog.html)
 
-databpy started inside [Molecular Nodes](https://github.com/BradyAJohnston/MolecularNodes) and was split into a separate package for use in other projects.
+`databpy` started inside [Molecular Nodes](https://github.com/BradyAJohnston/MolecularNodes) and was split into a separate package for use in other projects, similarly to [`nodebpy`](https://github.com/BradyAJohnston/nodebpy).
