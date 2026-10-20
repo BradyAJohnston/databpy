@@ -6,9 +6,12 @@ website:
       - api/named_attribute.qmd
       - api/store_named_attribute.qmd
       - api/remove_named_attribute.qmd
+      - api/list_attributes.qmd
       - api/AttributeDomains.qmd
       - api/AttributeTypes.qmd
       - api/AttributeArray.qmd
+      - api/Attribute.qmd
+      - api/attribute.guess_atype_from_array.qmd
       section: Attribute
     - contents:
       - api/create_collection.qmd
@@ -25,8 +28,14 @@ website:
       - api/BlenderObject.qmd
       - api/BlenderObjectAttribute.qmd
       - api/BlenderObjectBase.qmd
-      - api/LinkedObjectError.qmd
       section: Objects
+    - contents:
+      - api/DatabpyError.qmd
+      - api/NamedAttributeError.qmd
+      - api/AttributeNotFoundError.qmd
+      - api/AttributeMismatchError.qmd
+      - api/LinkedObjectError.qmd
+      section: Errors
     - contents:
       - api/require.qmd
       - api/require_data.qmd

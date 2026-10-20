@@ -76,9 +76,12 @@ quartodoc:
         - named_attribute
         - store_named_attribute
         - remove_named_attribute
+        - list_attributes
         - AttributeDomains
         - AttributeTypes
         - AttributeArray
+        - Attribute
+        - attribute.guess_atype_from_array
     - title: Collections
       desc: Working with collections in Blender
       contents:
@@ -97,6 +100,13 @@ quartodoc:
         - BlenderObject
         - BlenderObjectAttribute
         - BlenderObjectBase
+    - title: Errors
+      desc: Exceptions raised by databpy, which all inherit from DatabpyError
+      contents:
+        - DatabpyError
+        - NamedAttributeError
+        - AttributeNotFoundError
+        - AttributeMismatchError
         - LinkedObjectError
     - title: Utilities
       desc: Typed helpers that check for None or narrow data-block types, plus general utilities
