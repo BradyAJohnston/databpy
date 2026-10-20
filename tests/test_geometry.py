@@ -1,12 +1,11 @@
 import bpy
 import numpy as np
 import pytest
-from nodebpy import geometry as g
 
 import databpy as db
 
 
-def _add_points_and_instances_nodes(obj: bpy.types.Object) -> None:
+def _add_points_and_instances_nodes(obj: bpy.types.Object, g) -> None:
     """Add a modifier converting the mesh to points and cube instances."""
     with g.tree("test_gn") as tree:
         geo = tree.inputs.geometry()
@@ -41,9 +40,9 @@ def test_geometry_set_mesh():
     )
 
 
-def test_geometry_set_multiple_components():
+def test_geometry_set_multiple_components(g):
     obj = db.create_object(np.random.rand(4, 3), name="TestObject")
-    _add_points_and_instances_nodes(obj)
+    _add_points_and_instances_nodes(obj, g)
 
     geom = db.GeometrySet(obj)
     # the evaluated geometry may contain an empty mesh component, but empty
@@ -86,9 +85,9 @@ def test_geometry_set_errors():
         geom.named_attribute("position", component="POINTCLOUD")
 
 
-def test_geometry_set_repr():
+def test_geometry_set_repr(g):
     obj = db.create_object(np.random.rand(4, 3), name="TestObject")
-    _add_points_and_instances_nodes(obj)
+    _add_points_and_instances_nodes(obj, g)
 
     text = repr(db.GeometrySet(obj))
     assert "GeometrySet of 'TestObject'" in text
@@ -96,7 +95,7 @@ def test_geometry_set_repr():
     assert "INSTANCES: 4 points" in text
 
 
-def test_geometry_set_instance_positions():
+def test_geometry_set_instance_positions(g):
     # Blender doesn't fill in `position` on the instances point cloud, see #76
     points = np.random.default_rng(0).uniform(-10, 10, (20, 3))
     obj = db.create_object(points, name="TestObject")

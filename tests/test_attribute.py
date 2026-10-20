@@ -4,9 +4,15 @@ from typing import Any
 import bpy
 import numpy as np
 import pytest
-from nodebpy import geometry as g
 
 import databpy as db
+
+# 4D float arrays are guessed as FLOAT4, which only exists from Blender 5.2
+FLOAT4_GUESS = (
+    db.AttributeTypes.FLOAT4
+    if db.attribute.HAS_FLOAT4
+    else db.AttributeTypes.FLOAT_COLOR
+)
 
 
 def test_attribute_properties():
@@ -171,9 +177,7 @@ def test_guess_atype():
         db.attribute.AttributeTypes.FLOAT_VECTOR
         == db.attribute.guess_atype_from_array(np.zeros((10, 3)))
     )
-    assert db.attribute.AttributeTypes.FLOAT4 == db.attribute.guess_atype_from_array(
-        np.zeros((10, 4))
-    )
+    assert FLOAT4_GUESS == db.attribute.guess_atype_from_array(np.zeros((10, 4)))
     assert db.attribute.AttributeTypes.FLOAT4X4 == db.attribute.guess_atype_from_array(
         np.zeros((10, 4, 4))
     )
@@ -204,7 +208,7 @@ def test_guess_atype():
         db.attribute.AttributeTypes.BYTE_COLOR
         == db.attribute.guess_atype_from_array(np.zeros((10, 4), dtype=np.uint8))
     )
-    assert db.attribute.AttributeTypes.FLOAT4 == db.attribute.guess_atype_from_array(
+    assert FLOAT4_GUESS == db.attribute.guess_atype_from_array(
         np.zeros((10, 4), dtype=np.float32)
     )
 
@@ -222,6 +226,7 @@ def test_guess_atype():
     )
 
 
+@pytest.mark.skipif(not db.attribute.HAS_FLOAT4, reason="FLOAT4 requires Blender 5.2")
 def test_float4_attribute():
     obj = db.create_object(np.random.rand(4, 3), name="TestObject")
     data = np.random.rand(4, 4).astype(np.float32)
@@ -233,6 +238,20 @@ def test_float4_attribute():
 
     att = db.store_named_attribute(obj, data, "test_color", atype="FLOAT_COLOR")
     assert att.data_type == "FLOAT_COLOR"
+
+
+@pytest.mark.skipif(db.attribute.HAS_FLOAT4, reason="FLOAT4 exists from Blender 5.2")
+def test_float4_attribute_unsupported():
+    obj = db.create_object(np.random.rand(4, 3), name="TestObject")
+    data = np.random.rand(4, 4).astype(np.float32)
+    # without FLOAT4, (n, 4) float arrays fall back to FLOAT_COLOR
+    att = db.store_named_attribute(obj, data, "test_color")
+    assert att.data_type == "FLOAT_COLOR"
+    np.testing.assert_allclose(db.named_attribute(obj, "test_color"), data)
+
+    with pytest.raises(ValueError, match="FLOAT4"):
+        db.store_named_attribute(obj, data, "test_float4", atype="FLOAT4")
+    assert "test_float4" not in db.list_attributes(obj)
 
 
 def test_int16_2d_attribute():
@@ -265,7 +284,7 @@ def test_bob_store_named_attribute_returns_attribute():
     assert att.name == "test_return"
 
 
-def test_storage_type():
+def test_storage_type(g):
     obj = db.create_object(np.random.rand(4, 3), name="TestObject")
     att = db.store_named_attribute(obj, np.arange(4), "test_int")
     assert db.Attribute(att).storage_type == "ARRAY"
@@ -350,7 +369,7 @@ def test_named_attribute_name():
 @pytest.mark.parametrize(
     "evaluate, drop_hidden", itertools.product([True, False], repeat=2)
 )
-def test_list_attributes(evaluate, drop_hidden):
+def test_list_attributes(evaluate, drop_hidden, g):
     obj = bpy.data.objects["Cube"]
 
     # Get initial attributes - should include default cube attributes like position

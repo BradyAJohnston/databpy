@@ -10,6 +10,22 @@ import pytest
 os.environ["BLENDER_USER_EXTENSIONS"] = tempfile.mkdtemp(prefix="databpy-tests-")
 
 
+@pytest.fixture
+def g():
+    """The `nodebpy.geometry` module, skipping the test before Blender 5.2.
+
+    nodebpy targets Blender 5.2 and fails to import with earlier versions of bpy.
+    """
+    import bpy
+
+    if bpy.app.version < (5, 2, 0):
+        pytest.skip("nodebpy requires Blender 5.2")
+
+    from nodebpy import geometry
+
+    return geometry
+
+
 @pytest.fixture(autouse=True)
 def run_around_tests():
     import bpy
