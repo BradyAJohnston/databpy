@@ -72,7 +72,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
 <link href="../api/move_to_collection.html" rel="next">
-<link href="../api/AttributeArray.html" rel="prev">
+<link href="../api/attribute.guess_atype_from_array.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
@@ -122,7 +122,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">databpy 0.10.1</span>
+    <span class="navbar-title">databpy 0.11.0</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -206,6 +206,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/list_attributes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">list_attributes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/AttributeDomains.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">AttributeDomains</span></a>
   </div>
@@ -220,6 +226,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../api/AttributeArray.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">AttributeArray</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/Attribute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Attribute</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/attribute.guess_atype_from_array.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">attribute.guess_atype_from_array</span></a>
   </div>
 </li>
       </ul>
@@ -316,6 +334,41 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">BlenderObjectBase</span></a>
   </div>
 </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Errors</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/DatabpyError.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">DatabpyError</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/NamedAttributeError.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">NamedAttributeError</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/AttributeNotFoundError.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">AttributeNotFoundError</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/AttributeMismatchError.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">AttributeMismatchError</span></a>
+  </div>
+</li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../api/LinkedObjectError.html" class="sidebar-item-text sidebar-link">
@@ -326,13 +379,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
  <span class="menu-text">Utilities</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../api/require.html" class="sidebar-item-text sidebar-link">
@@ -397,13 +450,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
- <span class="menu-text">Nodes</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Nodes (deprecated)</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../api/nodes.new_tree.html" class="sidebar-item-text sidebar-link">
@@ -506,7 +559,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="databpy.create_collection" class="level1">
 <h1>create_collection</h1>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>create_collection(name<span class="op">=</span><span class="st">'NewCollection'</span>, parent<span class="op">=</span><span class="va">None</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Create a new Blender collection or retrieve an existing one.</p>
+<p>Create a new Blender collection or get an existing one.</p>
+<p>A collection that doesn’t exist yet is created and linked to the active scene’s collection. An existing collection is returned without changing where it is linked, unless a parent is given.</p>
 <section id="parameters" class="level2 doc-section doc-section-parameters">
 <h2 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h2>
 <table class="caption-top table">
@@ -522,13 +576,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>name</td>
 <td><a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></td>
-<td>The name of the collection to create or retrieve. Default is “NewCollection”.</td>
+<td>The name of the collection to create or get. Default is “NewCollection”.</td>
 <td><code>'NewCollection'</code></td>
 </tr>
 <tr class="even">
 <td>parent</td>
 <td><a href="https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection">Collection</a> or <a href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a> or None</td>
-<td>The parent collection to link the new collection to. If a string is provided, it will be used to find an existing collection by name. If None, the new collection will be linked to the scene’s root collection. Default is None.</td>
+<td>The collection to link the collection into, which also unlinks it from the scene’s collection. A string is the name of the parent collection, which is created and linked to the scene if it doesn’t exist. Default is None, which leaves the collection where it is.</td>
 <td><code>None</code></td>
 </tr>
 </tbody>
@@ -548,7 +602,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td></td>
 <td><a href="https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection">Collection</a></td>
-<td>The created or retrieved Blender collection.</td>
+<td>The created or existing collection.</td>
 </tr>
 </tbody>
 </table>
@@ -567,12 +621,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td></td>
 <td><a href="https://docs.python.org/3/builtins/exceptions.html#TypeError">TypeError</a></td>
-<td>If the parent parameter is not a Collection, string or None.</td>
-</tr>
-<tr class="even">
-<td></td>
-<td><a href="https://docs.python.org/3/builtins/exceptions.html#KeyError">KeyError</a></td>
-<td>If the parent collection name provided does not exist in bpy.data.collections.</td>
+<td>If <code>parent</code> is not a Collection, string or None.</td>
 </tr>
 </tbody>
 </table>
@@ -984,8 +1033,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </script>
 <nav class="page-navigation column-body">
   <div class="nav-page nav-page-previous">
-      <a href="../api/AttributeArray.html" class="pagination-link" aria-label="AttributeArray">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">AttributeArray</span>
+      <a href="../api/attribute.guess_atype_from_array.html" class="pagination-link" aria-label="attribute.guess_atype_from_array">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">attribute.guess_atype_from_array</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">

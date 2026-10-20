@@ -6,12 +6,15 @@ For interacting with attributes on meshes
 
 |  |  |
 |----|----|
-| [named_attribute](../api/named_attribute.llms.md#databpy.named_attribute) | Get the named attribute data from the object. |
-| [store_named_attribute](../api/store_named_attribute.llms.md#databpy.store_named_attribute) | Adds and sets the values of an attribute on the object. |
+| [named_attribute](../api/named_attribute.llms.md#databpy.named_attribute) | Read the values of a named attribute into a numpy array. |
+| [store_named_attribute](../api/store_named_attribute.llms.md#databpy.store_named_attribute) | Write values to a named attribute on the object, creating it if needed. |
 | [remove_named_attribute](../api/remove_named_attribute.llms.md#databpy.remove_named_attribute) | Remove a named attribute from an object. |
-| [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) | Enumeration of attribute domains in Blender. You can store an attribute onto one of |
+| [list_attributes](../api/list_attributes.llms.md#databpy.list_attributes) | List the names of the attributes on an object, sorted alphabetically. |
+| [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) | Enumeration of attribute domains in Blender. |
 | [AttributeTypes](../api/AttributeTypes.llms.md#databpy.AttributeTypes) | Enumeration of attribute types in Blender. |
-| [AttributeArray](../api/AttributeArray.llms.md#databpy.AttributeArray) | A numpy array subclass that automatically syncs changes back to the Blender object. |
+| [AttributeArray](../api/AttributeArray.llms.md#databpy.AttributeArray) | A numpy array of an attribute’s values that writes changes back to Blender. |
+| [Attribute](../api/Attribute.llms.md#databpy.Attribute) | Low-level wrapper around a Blender attribute with explicit reads and writes. |
+| [attribute.guess_atype_from_array](../api/attribute.guess_atype_from_array.llms.md#databpy.attribute.guess_atype_from_array) | Infer the attribute type for an array from its shape and dtype. |
 
 ## Collections
 
@@ -19,7 +22,7 @@ Working with collections in Blender
 
 |  |  |
 |----|----|
-| [create_collection](../api/create_collection.llms.md#databpy.create_collection) | Create a new Blender collection or retrieve an existing one. |
+| [create_collection](../api/create_collection.llms.md#databpy.create_collection) | Create a new Blender collection or get an existing one. |
 | [move_to_collection](../api/move_to_collection.llms.md#databpy.move_to_collection) | Move one or many objects into a target collection. |
 
 ## Objects
@@ -28,15 +31,26 @@ Working with collections in Blender
 |----|----|
 | [create_object](../api/create_object.llms.md#databpy.create_object) | Create a new Blender mesh object. |
 | [create_mesh_object](../api/create_mesh_object.llms.md#databpy.create_mesh_object) | Create a new Blender mesh object. |
-| [create_curves_object](../api/create_curves_object.llms.md#databpy.create_curves_object) | Create a new Blender curves object (new Curves type, not legacy Curve). |
+| [create_curves_object](../api/create_curves_object.llms.md#databpy.create_curves_object) | Create a new Blender Curves object (the hair curves type, not the legacy Curve type). |
 | [create_pointcloud_object](../api/create_pointcloud_object.llms.md#databpy.create_pointcloud_object) | Create a new Blender point cloud object. |
 | [create_bob](../api/create_bob.llms.md#databpy.create_bob) | Create a BlenderObject wrapper around a new Blender mesh object. |
-| [evaluate_object](../api/evaluate_object.llms.md#databpy.evaluate_object) | Return an object which has the modifiers evaluated. |
+| [evaluate_object](../api/evaluate_object.llms.md#databpy.evaluate_object) | Return the object with its modifiers evaluated. |
 | [GeometrySet](../api/GeometrySet.llms.md#databpy.GeometrySet) | Access the evaluated geometry of an object (`bpy.types.GeometrySet`). |
 | [BlenderObject](../api/BlenderObject.llms.md#databpy.BlenderObject) | A convenience class for working with Blender objects. |
 | [BlenderObjectAttribute](../api/BlenderObjectAttribute.llms.md#databpy.BlenderObjectAttribute) | Minimal base class for Blender objects with attribute access. |
 | [BlenderObjectBase](../api/BlenderObjectBase.llms.md#databpy.BlenderObjectBase) | Minimal base class for Blender objects with name and object access. |
-| [LinkedObjectError](../api/LinkedObjectError.llms.md#databpy.LinkedObjectError) | Error raised when a Python object doesn’t have a linked object in the 3D scene. |
+
+## Errors
+
+Exceptions raised by databpy, which all inherit from DatabpyError
+
+|  |  |
+|----|----|
+| [DatabpyError](../api/DatabpyError.llms.md#databpy.DatabpyError) | Base class for all errors raised by databpy. |
+| [NamedAttributeError](../api/NamedAttributeError.llms.md#databpy.NamedAttributeError) | Base exception for all attribute-related errors in databpy. |
+| [AttributeNotFoundError](../api/AttributeNotFoundError.llms.md#databpy.AttributeNotFoundError) | Exception raised when a named attribute doesn’t exist. |
+| [AttributeMismatchError](../api/AttributeMismatchError.llms.md#databpy.AttributeMismatchError) | Exception raised when data doesn’t fit an attribute. |
+| [LinkedObjectError](../api/LinkedObjectError.llms.md#databpy.LinkedObjectError) | Error raised when a wrapper can no longer find the Blender object it is linked to. |
 
 ## Utilities
 
@@ -55,9 +69,9 @@ Typed helpers that check for None or narrow data-block types, plus general utili
 | [centre](../api/centre.llms.md#databpy.centre) | Calculate the weighted centroid of the vectors. |
 | [lerp](../api/lerp.llms.md#databpy.lerp) | Linearly interpolate between two values. |
 
-## Nodes
+## Nodes (deprecated)
 
-Helpers for building and manipulating geometry node trees
+Deprecated and removed in databpy 0.13.0, as node groups are handled by nodebpy (https://pypi.org/project/nodebpy/). Importing `databpy.nodes` warns with a FutureWarning.
 
 |  |  |
 |----|----|

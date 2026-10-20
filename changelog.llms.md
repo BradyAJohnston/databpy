@@ -1,6 +1,35 @@
 # Changelog
 
-## 0.10.1 2026-10-08
+## 0.11.0 (2026-10-20)
+
+Support for Blender 5.1 alongside 5.2, with the tests run against each supported version, and much faster small writes through `AttributeArray`.
+
+### Changed
+
+- `AttributeArray` writes only the values that changed, directly into the attribute’s memory, rather than writing the entire attribute with `foreach_set`. `bob.position[:10, 2] = 10` on 1M points is ~6x faster, and a single-row write to a held array is ~25x faster. Values changed in Blender since the array was read are no longer overwritten by writes elsewhere in the array. STRING attributes and attributes that can’t be written directly still write the entire array.
+
+- Reading an `AttributeArray` is up to ~6x faster for large attributes, as arrays are freed as soon as they are unused instead of waiting for the garbage collector.
+
+- Requires `bpy >= 5.1` (previously `>= 5.2`). Features that need a newer Blender are only used when available, which `databpy.attribute.HAS_FLOAT4` reports for the `FLOAT4` attribute type.
+
+- Before Blender 5.2, `guess_atype_from_array()` maps `(n, 4)` float arrays to `FLOAT_COLOR`, as there is no generic `FLOAT4` type. Storing an attribute with `atype="FLOAT4"` raises `ValueError` before Blender 5.2.
+
+- The tests run against Blender 5.1, 5.2 5.3, and the 5.4 daily builds in separate workflows, each with a status badge in the README.
+
+### Deprecated
+
+Node groups and appending from .blend files are handled by [nodebpy](https://pypi.org/project/nodebpy/), so databpy no longer ships them. Everything deprecated is removed in databpy 0.13.0, a release later than the 0.12.0 announced previously, so the new deprecations have the same window.
+
+- `import databpy` no longer imports `databpy.nodes`. It is imported when first used, and importing it warns with a `FutureWarning`.
+- `databpy.material.append_from_blend()` is deprecated.
+- `BlenderObject.vertices`, `BlenderObject.edges` and `Attribute.n_values` warn with a `FutureWarning` instead of a `DeprecationWarning`, which Python hides by default, and are removed in 0.13.0 (previously 1.0.0, or unspecified for `n_values`).
+- `databpy.register()`, `databpy.unregister()` and the `AttributeError` base of `NamedAttributeError` are removed in 0.13.0 (previously 0.12.0).
+
+### Fixed
+
+- The tests for the daily builds of bpy ran against the locked release instead, as `uv run` reinstalled it.
+
+## 0.10.1 (2026-10-08)
 
 Faster mesh construction and attribute access, with benchmarks tracked by [CodSpeed](https://app.codspeed.io/BradyAJohnston/databpy).
 

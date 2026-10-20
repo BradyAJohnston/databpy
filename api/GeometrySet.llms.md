@@ -6,7 +6,7 @@ GeometrySet(obj, context=None)
 
 Access the evaluated geometry of an object (`bpy.types.GeometrySet`).
 
-Evaluating an object normally only exposes a single geometry data-block, but Geometry Nodes can output multiple components at once - a mesh, a point cloud, curves and instances. This class evaluates the object’s modifiers and provides access to all of the resulting components and their attributes, which is particularly useful for testing node group outputs.
+Evaluating an object normally only exposes a single geometry data-block, but Geometry Nodes can output multiple components at once: a mesh, a point cloud, curves and instances. This class evaluates the object’s modifiers and gives access to all of the resulting components and their attributes, for example to test the output of a node group.
 
 ## Parameters
 
@@ -83,7 +83,7 @@ Get the attribute-holding components present in the evaluated geometry.
 
 | Name | Type | Description |
 |----|----|----|
-|  | [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)\[`GeometryComponents`, `AttributeDataBlock`\] | A mapping of component names to their data-blocks, containing only the components that are present and contain geometry. Blender can include empty components (e.g. a 0-vertex mesh) in the evaluated geometry, which are excluded here - access the `mesh` etc. properties directly if you need them. |
+|  | [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)\[`GeometryComponents`, `AttributeDataBlock`\] | A mapping of component names to their data-blocks, containing only the components that are present and contain geometry. Blender can include empty components (e.g. a 0-vertex mesh) in the evaluated geometry, which are excluded here; the `mesh`, `pointcloud`, `curves` and `instances` properties still return them. |
 
 ### list_attributes
 
@@ -130,5 +130,5 @@ Get named attribute data from the evaluated geometry.
 
 | Name | Type | Description |
 |----|----|----|
-|  | `AttributeNotFoundError` | If the attribute does not exist on the given (or any) component. |
-|  | `NamedAttributeError` | If the given component isn’t present. |
+|  | [AttributeNotFoundError](../api/AttributeNotFoundError.llms.md#databpy.AttributeNotFoundError) | If the attribute does not exist on the given (or any) component. |
+|  | [NamedAttributeError](../api/NamedAttributeError.llms.md#databpy.NamedAttributeError) | If the given component isn’t present. |

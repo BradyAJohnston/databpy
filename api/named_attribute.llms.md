@@ -4,7 +4,7 @@
 named_attribute(obj, name='position', evaluate=False)
 ```
 
-Get the named attribute data from the object.
+Read the values of a named attribute into a numpy array.
 
 ## Parameters
 
@@ -24,7 +24,8 @@ Get the named attribute data from the object.
 
 | Name | Type | Description |
 |----|----|----|
-|  | `AttributeNotFoundError` | If the named attribute does not exist on the object. |
+|  | [AttributeNotFoundError](../api/AttributeNotFoundError.llms.md#databpy.AttributeNotFoundError) | If the named attribute does not exist on the object. |
+|  | [TypeError](https://docs.python.org/3/builtins/exceptions.html#TypeError) | If `obj` isn’t an object, or its data isn’t a mesh, curves or point cloud. |
 
 ## Examples
 

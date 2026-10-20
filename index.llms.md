@@ -2,25 +2,25 @@
 
 > **WARNING:**
 >
-> Active development and refinements are still ongoing. We are not yet past the `1.0` milestone and there may be breaking breaking changes before we get there. `databpy` has matured a lot and the primary interfaces of getting and setting attributes should mostly remain stable.
+> databpy is still before its `1.0` release, so there may be breaking changes before then. The main interfaces for getting and setting attributes are expected to stay stable.
 
-[![codecov](https://codecov.io/gh/BradyAJohnston/databpy/graph/badge.svg?token=KFuu67hzAz)](https://codecov.io/gh/BradyAJohnston/databpy) [![pypi](https://img.shields.io/pypi/v/databpy.png)](https://pypi.org/project/databpy/) ![tests](https://github.com/bradyajohnston/databpy/actions/workflows/tests.yml/badge.svg) ![deployment](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
+[![codecov](https://codecov.io/gh/BradyAJohnston/databpy/graph/badge.svg?token=KFuu67hzAz)](https://codecov.io/gh/BradyAJohnston/databpy) [![pypi](https://img.shields.io/pypi/v/databpy.png)](https://pypi.org/project/databpy/) ![deployment](https://github.com/bradyajohnston/databpy/actions/workflows/ci-cd.yml/badge.svg)
 
 ![](img/notdavid.png)
 
-This is intended as a cleaner way to work with data and attributes on mesh objects in Blender. The goal is to help make importing and working with tabular datasets from outside of Blender as objects *inside* of blender a whole lot easier.
+databpy reads and writes the attributes of mesh, curves and point cloud objects in Blender as NumPy arrays. It is built for importing tabular data from outside Blender as objects *inside* Blender, and working with it there. It supports Blender 5.1 and later.
 
 > **TIP:**
 >
-> Check out the [**Attributes guid**](attributes.llms.md) for a comprehensive overview of the attribute system, including performance tips, best practices, and examples for all attribute types.
+> The [**attributes guide**](attributes.llms.md) covers the attribute system: the attribute types and domains, reading and writing attributes, performance, and errors.
 
-`databpy` originally started as a submodule inside of [Molecular Nodes](https://github.com/BradyAJohnston/MolecularNodes) but has been split off into it’s own package for use by other projects. Some internal code is still quite specific to the use case of Molecular Nodes, but the majority is more general.
+`databpy` started as a submodule of [Molecular Nodes](https://github.com/BradyAJohnston/MolecularNodes) and was split off into its own package for use by other projects. Some internal code is still specific to Molecular Nodes, but most of it is general.
 
-## Hello World
+## Hello world
 
-The ‘Hello World’ example is storing and retrieving data from a mesh objects inside of Blender.
+The ‘Hello world’ example stores data on a mesh object in Blender and reads it back.
 
-While the `bpy` API is robust, it is a bit too verbose for what we are after, and there are many particulars that you can’t intuit (you have to store the `value` for floats, `vector` for 2 & 3 component vectors, but `value` for a Quaternion which is a 4-component vector).
+The `bpy` API needs several calls for this, and the property that holds the values depends on the type: `value` for floats, `vector` for 2 and 3 component vectors, but `value` for a quaternion, which also has 4 components.
 
 See the enums in the API documentation for the different [`AttributeTypes`](api/AttributeTypes.llms.md#databpy.AttributeTypes) and [`AttributeDomains`](api/AttributeDomains.llms.md#databpy.AttributeDomains).
 
@@ -57,7 +57,7 @@ empty_vector.reshape((-1, 3))
 
 ### `databpy` API
 
-We can get and set values with single function calls. Data types are inferred from the numpy array data types, but can be manually specified. The point domain is the default domain, but domain can also be specified. See the [`AttributeDomains`](api/AttributeDomains.llms.md#databpy.AttributeDomains) for more which domains can be chosen.
+Getting and setting values takes one function call each. The attribute type is inferred from the array’s dtype and shape, or can be given explicitly. Attributes are stored on the point domain unless another domain is given; see [`AttributeDomains`](api/AttributeDomains.llms.md#databpy.AttributeDomains) for the domains available.
 
 ``` python
 import databpy as db
@@ -74,11 +74,11 @@ db.named_attribute(obj, "example_values")
            [ 0.63422537,  0.810655  ,  0.3548086 ],
            [ 1.8125904 , -1.3564758 , -0.46363196]], dtype=float32)
 
-## A more friendly Blender Object (bob)
+## A friendlier Blender object (bob)
 
-Doing some common data-oriented operations on objects in Blender can be a bit of a pain, so `databpy` provides a [`BlenderObject`](api/BlenderObject.llms.md#databpy.BlenderObject) class that wraps mesh objects and provides some convenience functions.
+The [`BlenderObject`](api/BlenderObject.llms.md#databpy.BlenderObject) class wraps a mesh, curves or point cloud object and adds methods for data-oriented work on it.
 
-The most useful are the [`store_named_attribute()`](api/BlenderObject.llms.md#databpy.BlenderObject.store_named_attribute) and [`named_attribute()`](api/BlenderObject.llms.md#databpy.BlenderObject.named_attribute) methods that just work on the mesh object, so you can quickly get and set attributes with bob.
+Its [`store_named_attribute()`](api/BlenderObject.llms.md#databpy.BlenderObject.store_named_attribute) and [`named_attribute()`](api/BlenderObject.llms.md#databpy.BlenderObject.named_attribute) methods get and set attributes on the wrapped object.
 
 ``` python
 bob = db.BlenderObject(bpy.data.objects["Cube"])

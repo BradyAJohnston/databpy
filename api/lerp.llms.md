@@ -22,7 +22,7 @@ Linearly interpolate between two values.
 
 ## Notes
 
-This function performs linear interpolation between `a` and `b` using the interpolation parameter `t` such that the result lies between `a` and `b`.
+Computes `a + (b - a) * t`, so `t = 0` gives `a` and `t = 1` gives `b`. Values of `t` outside \[0, 1\] extrapolate beyond `a` and `b`.
 
 ## Examples
 

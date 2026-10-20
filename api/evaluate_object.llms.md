@@ -4,7 +4,7 @@
 evaluate_object(obj, context=None)
 ```
 
-Return an object which has the modifiers evaluated.
+Return the object with its modifiers evaluated.
 
 ## Parameters
 
@@ -19,9 +19,15 @@ Return an object which has the modifiers evaluated.
 |----|----|----|
 |  | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Object](https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object) | The evaluated object with modifiers applied. |
 
+## Raises
+
+| Name | Type | Description |
+|----|----|----|
+|  | [TypeError](https://docs.python.org/3/builtins/exceptions.html#TypeError) | If `obj` isn’t an object, or its data isn’t a mesh, curves or point cloud. |
+
 ## Notes
 
-This function evaluates the object’s modifiers using the current depsgraph. If no context is provided, it uses the current bpy.context.
+The object is tagged for an update, then read from the evaluated depsgraph of `context`, or of `bpy.context` if no context is given.
 
 ## Examples
 

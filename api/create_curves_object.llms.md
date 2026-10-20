@@ -9,7 +9,7 @@ create_curves_object(
 )
 ```
 
-Create a new Blender curves object (new Curves type, not legacy Curve).
+Create a new Blender Curves object (the hair curves type, not the legacy Curve type).
 
 ## Parameters
 
@@ -18,7 +18,7 @@ Create a new Blender curves object (new Curves type, not legacy Curve).
 | positions | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | The control point positions as a numpy array with shape (N, 3). If None, creates an empty curves object. Defaults to None. | `None` |
 | curve_sizes | [list](https://docs.python.org/3/builtins/stdtypes.html#list)\[[int](https://docs.python.org/3/builtins/functions.html#int)\] \| [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | Number of points in each curve. For example, \[4, 5, 6\] creates 3 curves with 4, 5, and 6 control points respectively. Total must equal len(positions). If None, creates an empty curves object. Defaults to None. | `None` |
 | name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name of the object. Defaults to ‘Curves’. | `'Curves'` |
-| collection | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Collection](https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection) | The collection to link the object to. Defaults to None. | `None` |
+| collection | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Collection](https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection) | The collection to link the object to. Defaults to None, which links it to a collection named “Collection”, created if needed. | `None` |
 
 ## Returns
 

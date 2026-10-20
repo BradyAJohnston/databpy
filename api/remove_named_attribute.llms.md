@@ -17,8 +17,9 @@ Remove a named attribute from an object.
 
 | Name | Type | Description |
 |----|----|----|
-|  | `AttributeNotFoundError` | If the named attribute does not exist on the object. |
-|  | `NamedAttributeError` | If the attribute is required by Blender (e.g. `position`) and can’t be removed. |
+|  | [AttributeNotFoundError](../api/AttributeNotFoundError.llms.md#databpy.AttributeNotFoundError) | If the named attribute does not exist on the object. |
+|  | [TypeError](https://docs.python.org/3/builtins/exceptions.html#TypeError) | If `obj` isn’t an object, or its data isn’t a mesh, curves or point cloud. |
+|  | [NamedAttributeError](../api/NamedAttributeError.llms.md#databpy.NamedAttributeError) | If the attribute is required by Blender (e.g. `position`) and can’t be removed. |
 
 ## Examples
 

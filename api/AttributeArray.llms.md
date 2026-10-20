@@ -4,11 +4,9 @@
 AttributeArray()
 ```
 
-A numpy array subclass that automatically syncs changes back to the Blender object.
+A numpy array of an attribute’s values that writes changes back to Blender.
 
-AttributeArray provides an ergonomic interface for working with Blender attributes using familiar numpy operations. It automatically handles bidirectional syncing: values are retrieved from Blender as a numpy array, operations are applied, and results are immediately stored back to Blender.
-
-This is the high-level interface for attribute manipulation. For low-level control, see the `Attribute` class which provides manual get/set operations without auto-sync.
+Creating the array reads the attribute’s values. Modifying the array in place writes the changed values back to the attribute straight away. For manual control over when values are read and written, use `Attribute`.
 
 ## Syncing
 
@@ -18,21 +16,20 @@ Other operations (`pos + 1`, `pos.copy()`, `pos[mask]`) return plain or detached
 
 ## Performance Characteristics
 
-- Every modification syncs the ENTIRE attribute array to Blender, not just changed values
-- This is due to Blender’s foreach_set API requiring the complete array
-- For large meshes (10K+ elements), consider batching multiple operations
-- Example: `pos[:, 2] += 1.0` writes all position data, not just Z coordinates
+- Creating the array copies all of the attribute’s values.
+- Each modification writes only the values it changed, directly into the attribute’s memory: `pos[:10, 2] = 1.0` writes 10 values however large the attribute is.
+- Where the attribute can’t be written directly, the entire array is written with `store_named_attribute` instead. This applies to STRING attributes, a `SINGLE` value for the whole domain, and an attribute that was removed (which is re-created). If the attribute’s size, type or domain changed since the array was read, this raises a `NamedAttributeError`.
 
 ## Supported Types
 
-Works with all Blender attribute types: - Float types: FLOAT, FLOAT2, FLOAT4, FLOAT_VECTOR, FLOAT_COLOR, FLOAT4X4, QUATERNION - Integer types: INT (int32), INT8, INT16_2D, INT32_2D - Boolean: BOOLEAN - Color: BYTE_COLOR (uint8) - String: STRING (synced per-element as strings don’t support `foreach_set`)
+Every attribute type in `AttributeTypes`, with values in its storage dtype: - Float types (float32): FLOAT, FLOAT2, FLOAT4 (Blender 5.2+), FLOAT_VECTOR, FLOAT_COLOR, FLOAT4X4, QUATERNION - Integer types: INT (int32), INT8, INT16_2D (int16), INT32_2D (int32) - Boolean: BOOLEAN - Color: BYTE_COLOR (uint8) - String: STRING (str), read and written one value at a time
 
 ## Attributes
 
 | Name | Type | Description |
 |----|----|----|
 | \_link | `_AttributeLink` \| None | Link to the Blender object and attribute, or None for detached copies. |
-| \_root | [AttributeArray](../api/AttributeArray.llms.md#databpy.AttributeArray) | Reference to the root array for handling views/slices correctly. |
+| \_root | [AttributeArray](../api/AttributeArray.llms.md#databpy.AttributeArray) \| None | The array read from Blender that this array is a view of, or None if this is that array (or a detached copy). |
 
 ## Examples
 
@@ -44,7 +41,7 @@ import numpy as np
 
 obj = db.create_object(np.random.rand(10, 3), name="test_bob")
 pos = db.AttributeArray(obj, "position")
-pos[:, 2] += 1.0  # Automatically syncs to Blender
+pos[:, 2] += 1.0  # writes the new z values to Blender
 ```
 
 Using BlenderObject for convenience:
@@ -60,16 +57,16 @@ print(bob.position)  # Returns an AttributeArray
 
     Initial position:
     AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-    [[0.48502824 0.12580061 0.68266964]
-     [0.5622778  0.23907903 0.76705015]
-     [0.7883804  0.5068856  0.88814545]
-     [0.10328422 0.06856792 0.02738627]
-     [0.7032019  0.7865987  0.18700255]
-     [0.36087787 0.03626047 0.94998133]
-     [0.6315301  0.8413392  0.830439  ]
-     [0.7609557  0.03354281 0.8797158 ]
-     [0.9447759  0.14737082 0.6215003 ]
-     [0.6028101  0.53551394 0.41635346]]
+    [[0.49380335 0.54814744 0.156861  ]
+     [0.6733092  0.5566672  0.2299055 ]
+     [0.97007465 0.7340033  0.18820074]
+     [0.43912286 0.16842613 0.12857619]
+     [0.6590555  0.68918794 0.15912811]
+     [0.86672425 0.25925    0.15036027]
+     [0.65641624 0.73891366 0.525099  ]
+     [0.5851678  0.89754236 0.23033239]
+     [0.7843679  0.44323304 0.38795355]
+     [0.76223564 0.199833   0.55054206]]
 
 ``` python
 bob.position[:, 2] += 1.0
@@ -79,16 +76,16 @@ print(bob.position)
 
     Updated position:
     AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-    [[0.48502824 0.12580061 1.6826696 ]
-     [0.5622778  0.23907903 1.7670501 ]
-     [0.7883804  0.5068856  1.8881454 ]
-     [0.10328422 0.06856792 1.0273863 ]
-     [0.7032019  0.7865987  1.1870025 ]
-     [0.36087787 0.03626047 1.9499813 ]
-     [0.6315301  0.8413392  1.830439  ]
-     [0.7609557  0.03354281 1.8797158 ]
-     [0.9447759  0.14737082 1.6215003 ]
-     [0.6028101  0.53551394 1.4163535 ]]
+    [[0.49380335 0.54814744 1.1568611 ]
+     [0.6733092  0.5566672  1.2299055 ]
+     [0.97007465 0.7340033  1.1882007 ]
+     [0.43912286 0.16842613 1.1285762 ]
+     [0.6590555  0.68918794 1.1591281 ]
+     [0.86672425 0.25925    1.1503602 ]
+     [0.65641624 0.73891366 1.525099  ]
+     [0.5851678  0.89754236 1.2303324 ]
+     [0.7843679  0.44323304 1.3879535 ]
+     [0.76223564 0.199833   1.5505421 ]]
 
 ``` python
 # Convert to regular numpy array (no sync)
@@ -97,16 +94,16 @@ print(np.asarray(bob.position))
 ```
 
     As Array:
-    [[0.48502824 0.12580061 1.6826696 ]
-     [0.5622778  0.23907903 1.7670501 ]
-     [0.7883804  0.5068856  1.8881454 ]
-     [0.10328422 0.06856792 1.0273863 ]
-     [0.7032019  0.7865987  1.1870025 ]
-     [0.36087787 0.03626047 1.9499813 ]
-     [0.6315301  0.8413392  1.830439  ]
-     [0.7609557  0.03354281 1.8797158 ]
-     [0.9447759  0.14737082 1.6215003 ]
-     [0.6028101  0.53551394 1.4163535 ]]
+    [[0.49380335 0.54814744 1.1568611 ]
+     [0.6733092  0.5566672  1.2299055 ]
+     [0.97007465 0.7340033  1.1882007 ]
+     [0.43912286 0.16842613 1.1285762 ]
+     [0.6590555  0.68918794 1.1591281 ]
+     [0.86672425 0.25925    1.1503602 ]
+     [0.65641624 0.73891366 1.525099  ]
+     [0.5851678  0.89754236 1.2303324 ]
+     [0.7843679  0.44323304 1.3879535 ]
+     [0.76223564 0.199833   1.5505421 ]]
 
 Working with integer attributes:
 
@@ -121,12 +118,12 @@ db.store_named_attribute(obj, ids, "id", atype="INT")
 
 # Access as AttributeArray
 id_array = db.AttributeArray(obj, "id")
-id_array += 100  # Automatically syncs as int32
+id_array += 100  # stays int32 and writes to Blender
 ```
 
 ## See Also
 
-Attribute : Low-level attribute interface without auto-sync store_named_attribute : Function to create/update attributes named_attribute : Function to read attribute data as regular arrays
+Attribute : Low-level attribute interface without automatic syncing store_named_attribute : Create or update an attribute named_attribute : Read an attribute’s values as a plain numpy array
 
 ## Methods
 

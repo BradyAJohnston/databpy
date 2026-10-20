@@ -12,7 +12,7 @@ Create a new Blender point cloud object.
 |----|----|----|----|
 | positions | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | The point positions as a numpy array with shape (N, 3). If None, creates an empty point cloud object. Defaults to None. | `None` |
 | name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name of the object. Defaults to ‘PointCloud’. | `'PointCloud'` |
-| collection | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Collection](https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection) | The collection to link the object to. Defaults to None. | `None` |
+| collection | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Collection](https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection) | The collection to link the object to. Defaults to None, which links it to a collection named “Collection”, created if needed. | `None` |
 
 ## Returns
 

@@ -71,7 +71,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../api/create_collection.html" rel="next">
+<link href="../api/Attribute.html" rel="next">
 <link href="../api/AttributeTypes.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -122,7 +122,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">databpy 0.10.1</span>
+    <span class="navbar-title">databpy 0.11.0</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -206,6 +206,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../api/list_attributes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">list_attributes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../api/AttributeDomains.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">AttributeDomains</span></a>
   </div>
@@ -220,6 +226,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="sidebar-item-container"> 
   <a href="../api/AttributeArray.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">AttributeArray</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/Attribute.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Attribute</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/attribute.guess_atype_from_array.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">attribute.guess_atype_from_array</span></a>
   </div>
 </li>
       </ul>
@@ -316,6 +334,41 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">BlenderObjectBase</span></a>
   </div>
 </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Errors</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/DatabpyError.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">DatabpyError</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/NamedAttributeError.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">NamedAttributeError</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/AttributeNotFoundError.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">AttributeNotFoundError</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../api/AttributeMismatchError.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">AttributeMismatchError</span></a>
+  </div>
+</li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../api/LinkedObjectError.html" class="sidebar-item-text sidebar-link">
@@ -326,13 +379,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
  <span class="menu-text">Utilities</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../api/require.html" class="sidebar-item-text sidebar-link">
@@ -397,13 +450,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
- <span class="menu-text">Nodes</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Nodes (deprecated)</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../api/nodes.new_tree.html" class="sidebar-item-text sidebar-link">
@@ -521,9 +574,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>AttributeArray()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>A numpy array subclass that automatically syncs changes back to the Blender object.</p>
-<p>AttributeArray provides an ergonomic interface for working with Blender attributes using familiar numpy operations. It automatically handles bidirectional syncing: values are retrieved from Blender as a numpy array, operations are applied, and results are immediately stored back to Blender.</p>
-<p>This is the high-level interface for attribute manipulation. For low-level control, see the <code>Attribute</code> class which provides manual get/set operations without auto-sync.</p>
+<p>A numpy array of an attribute’s values that writes changes back to Blender.</p>
+<p>Creating the array reads the attribute’s values. Modifying the array in place writes the changed values back to the attribute straight away. For manual control over when values are read and written, use <code>Attribute</code>.</p>
 <section id="syncing" class="level2 doc-section doc-section-syncing">
 <h2 class="doc-section doc-section-syncing anchored" data-anchor-id="syncing">Syncing</h2>
 <p>Changes are written back to Blender by item assignment (<code>pos[0] = ...</code>), in-place operators (<code>pos += 1</code>, <code>pos[:, 2] *= 2</code>), ufuncs with <code>out=</code> or <code>.at</code>, the <code>fill</code>, <code>sort</code>, <code>put</code> and <code>partition</code> methods, and <code>np.copyto</code>, <code>np.place</code>, <code>np.putmask</code> and <code>np.fill_diagonal</code>. Writes through <code>.flat</code> are not synced.</p>
@@ -532,15 +584,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="performance-characteristics" class="level2 doc-section doc-section-performance-characteristics">
 <h2 class="doc-section doc-section-performance-characteristics anchored" data-anchor-id="performance-characteristics">Performance Characteristics</h2>
 <ul>
-<li>Every modification syncs the ENTIRE attribute array to Blender, not just changed values</li>
-<li>This is due to Blender’s foreach_set API requiring the complete array</li>
-<li>For large meshes (10K+ elements), consider batching multiple operations</li>
-<li>Example: <code>pos[:, 2] += 1.0</code> writes all position data, not just Z coordinates</li>
+<li>Creating the array copies all of the attribute’s values.</li>
+<li>Each modification writes only the values it changed, directly into the attribute’s memory: <code>pos[:10, 2] = 1.0</code> writes 10 values however large the attribute is.</li>
+<li>Where the attribute can’t be written directly, the entire array is written with <code>store_named_attribute</code> instead. This applies to STRING attributes, a <code>SINGLE</code> value for the whole domain, and an attribute that was removed (which is re-created). If the attribute’s size, type or domain changed since the array was read, this raises a <code>NamedAttributeError</code>.</li>
 </ul>
 </section>
 <section id="supported-types" class="level2 doc-section doc-section-supported-types">
 <h2 class="doc-section doc-section-supported-types anchored" data-anchor-id="supported-types">Supported Types</h2>
-<p>Works with all Blender attribute types: - Float types: FLOAT, FLOAT2, FLOAT4, FLOAT_VECTOR, FLOAT_COLOR, FLOAT4X4, QUATERNION - Integer types: INT (int32), INT8, INT16_2D, INT32_2D - Boolean: BOOLEAN - Color: BYTE_COLOR (uint8) - String: STRING (synced per-element as strings don’t support <code>foreach_set</code>)</p>
+<p>Every attribute type in <code>AttributeTypes</code>, with values in its storage dtype: - Float types (float32): FLOAT, FLOAT2, FLOAT4 (Blender 5.2+), FLOAT_VECTOR, FLOAT_COLOR, FLOAT4X4, QUATERNION - Integer types: INT (int32), INT8, INT16_2D (int16), INT32_2D (int32) - Boolean: BOOLEAN - Color: BYTE_COLOR (uint8) - String: STRING (str), read and written one value at a time</p>
 </section>
 <section id="attributes" class="level2 doc-section doc-section-attributes">
 <h2 class="doc-section doc-section-attributes anchored" data-anchor-id="attributes">Attributes</h2>
@@ -560,8 +611,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td>_root</td>
-<td><a href="../api/AttributeArray.html#databpy.AttributeArray">AttributeArray</a></td>
-<td>Reference to the root array for handling views/slices correctly.</td>
+<td><a href="../api/AttributeArray.html#databpy.AttributeArray">AttributeArray</a> | None</td>
+<td>The array read from Blender that this array is a view of, or None if this is that array (or a detached copy).</td>
 </tr>
 </tbody>
 </table>
@@ -569,16 +620,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="examples" class="level2 doc-section doc-section-examples">
 <h2 class="doc-section doc-section-examples anchored" data-anchor-id="examples">Examples</h2>
 <p>Basic usage:</p>
-<div id="355ad8a7" class="cell" data-execution_count="1">
+<div id="07f4108c" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>obj <span class="op">=</span> db.create_object(np.random.rand(<span class="dv">10</span>, <span class="dv">3</span>), name<span class="op">=</span><span class="st">"test_bob"</span>)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>pos <span class="op">=</span> db.AttributeArray(obj, <span class="st">"position"</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>pos[:, <span class="dv">2</span>] <span class="op">+=</span> <span class="fl">1.0</span>  <span class="co"># Automatically syncs to Blender</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>pos[:, <span class="dv">2</span>] <span class="op">+=</span> <span class="fl">1.0</span>  <span class="co"># writes the new z values to Blender</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Using BlenderObject for convenience:</p>
-<div id="bb724b08" class="cell" data-execution_count="2">
+<div id="6e6d5122" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -588,57 +639,57 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell-output cell-output-stdout">
 <pre><code>Initial position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-[[0.48502824 0.12580061 0.68266964]
- [0.5622778  0.23907903 0.76705015]
- [0.7883804  0.5068856  0.88814545]
- [0.10328422 0.06856792 0.02738627]
- [0.7032019  0.7865987  0.18700255]
- [0.36087787 0.03626047 0.94998133]
- [0.6315301  0.8413392  0.830439  ]
- [0.7609557  0.03354281 0.8797158 ]
- [0.9447759  0.14737082 0.6215003 ]
- [0.6028101  0.53551394 0.41635346]]</code></pre>
+[[0.49380335 0.54814744 0.156861  ]
+ [0.6733092  0.5566672  0.2299055 ]
+ [0.97007465 0.7340033  0.18820074]
+ [0.43912286 0.16842613 0.12857619]
+ [0.6590555  0.68918794 0.15912811]
+ [0.86672425 0.25925    0.15036027]
+ [0.65641624 0.73891366 0.525099  ]
+ [0.5851678  0.89754236 0.23033239]
+ [0.7843679  0.44323304 0.38795355]
+ [0.76223564 0.199833   0.55054206]]</code></pre>
 </div>
 </div>
-<div id="2653b94a" class="cell" data-execution_count="3">
+<div id="b0b6de94" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bob.position[:, <span class="dv">2</span>] <span class="op">+=</span> <span class="fl">1.0</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Updated position:'</span>)</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(bob.position)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Updated position:
 AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape: (10, 3), dtype: float32)
-[[0.48502824 0.12580061 1.6826696 ]
- [0.5622778  0.23907903 1.7670501 ]
- [0.7883804  0.5068856  1.8881454 ]
- [0.10328422 0.06856792 1.0273863 ]
- [0.7032019  0.7865987  1.1870025 ]
- [0.36087787 0.03626047 1.9499813 ]
- [0.6315301  0.8413392  1.830439  ]
- [0.7609557  0.03354281 1.8797158 ]
- [0.9447759  0.14737082 1.6215003 ]
- [0.6028101  0.53551394 1.4163535 ]]</code></pre>
+[[0.49380335 0.54814744 1.1568611 ]
+ [0.6733092  0.5566672  1.2299055 ]
+ [0.97007465 0.7340033  1.1882007 ]
+ [0.43912286 0.16842613 1.1285762 ]
+ [0.6590555  0.68918794 1.1591281 ]
+ [0.86672425 0.25925    1.1503602 ]
+ [0.65641624 0.73891366 1.525099  ]
+ [0.5851678  0.89754236 1.2303324 ]
+ [0.7843679  0.44323304 1.3879535 ]
+ [0.76223564 0.199833   1.5505421 ]]</code></pre>
 </div>
 </div>
-<div id="cb6fae91" class="cell" data-execution_count="4">
+<div id="106d9a60" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to regular numpy array (no sync)</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'As Array:'</span>)</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(np.asarray(bob.position))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>As Array:
-[[0.48502824 0.12580061 1.6826696 ]
- [0.5622778  0.23907903 1.7670501 ]
- [0.7883804  0.5068856  1.8881454 ]
- [0.10328422 0.06856792 1.0273863 ]
- [0.7032019  0.7865987  1.1870025 ]
- [0.36087787 0.03626047 1.9499813 ]
- [0.6315301  0.8413392  1.830439  ]
- [0.7609557  0.03354281 1.8797158 ]
- [0.9447759  0.14737082 1.6215003 ]
- [0.6028101  0.53551394 1.4163535 ]]</code></pre>
+[[0.49380335 0.54814744 1.1568611 ]
+ [0.6733092  0.5566672  1.2299055 ]
+ [0.97007465 0.7340033  1.1882007 ]
+ [0.43912286 0.16842613 1.1285762 ]
+ [0.6590555  0.68918794 1.1591281 ]
+ [0.86672425 0.25925    1.1503602 ]
+ [0.65641624 0.73891366 1.525099  ]
+ [0.5851678  0.89754236 1.2303324 ]
+ [0.7843679  0.44323304 1.3879535 ]
+ [0.76223564 0.199833   1.5505421 ]]</code></pre>
 </div>
 </div>
 <p>Working with integer attributes:</p>
-<div id="684c2546" class="cell" data-execution_count="5">
+<div id="8f2d6448" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -649,12 +700,12 @@ AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Access as AttributeArray</span></span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>id_array <span class="op">=</span> db.AttributeArray(obj, <span class="st">"id"</span>)</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>id_array <span class="op">+=</span> <span class="dv">100</span>  <span class="co"># Automatically syncs as int32</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>id_array <span class="op">+=</span> <span class="dv">100</span>  <span class="co"># stays int32 and writes to Blender</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="see-also" class="level2 doc-section doc-section-see-also">
 <h2 class="doc-section doc-section-see-also anchored" data-anchor-id="see-also">See Also</h2>
-<p>Attribute : Low-level attribute interface without auto-sync store_named_attribute : Function to create/update attributes named_attribute : Function to read attribute data as regular arrays</p>
+<p>Attribute : Low-level attribute interface without automatic syncing store_named_attribute : Create or update an attribute named_attribute : Read an attribute’s values as a plain numpy array</p>
 </section>
 <section id="methods" class="level2">
 <h2 class="anchored" data-anchor-id="methods">Methods</h2>
@@ -1116,8 +1167,8 @@ AttributeArray 'position' from test_bob.001('test_bob.001')(domain: POINT, shape
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../api/create_collection.html" class="pagination-link" aria-label="create_collection">
-        <span class="nav-page-text">create_collection</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../api/Attribute.html" class="pagination-link" aria-label="Attribute">
+        <span class="nav-page-text">Attribute</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
