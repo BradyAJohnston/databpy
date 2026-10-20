@@ -9,7 +9,10 @@ from .attribute import (
     AttributeDomains,
     AttributeNotFoundError,
     AttributeTypes,
+    _as_typed_attribute,
     _attribute_data,
+    _attribute_memory,
+    _trigger_data_update,
     store_named_attribute,
 )
 from .errors import LinkedObjectError
@@ -76,10 +79,13 @@ class AttributeArray(np.ndarray):
 
     Performance Characteristics
     ---------------------------
-    - Every modification syncs the ENTIRE attribute array to Blender, not just changed values
-    - This is due to Blender's foreach_set API requiring the complete array
-    - For large meshes (10K+ elements), consider batching multiple operations
-    - Example: `pos[:, 2] += 1.0` writes all position data, not just Z coordinates
+    - Reading the attribute copies all of its values into the array
+    - Each modification writes only the values it changed, directly into the
+      attribute's memory: `pos[:10, 2] = 1.0` writes 10 values however large the
+      attribute is
+    - The entire array is written with `foreach_set` instead where the attribute
+      can't be written directly, e.g. STRING attributes, a `SINGLE` value for the
+      whole domain, or an attribute that has changed size since it was read
 
     Supported Types
     ---------------
@@ -94,8 +100,9 @@ class AttributeArray(np.ndarray):
     ----------
     _link : _AttributeLink | None
         Link to the Blender object and attribute, or None for detached copies.
-    _root : AttributeArray
-        Reference to the root array for handling views/slices correctly.
+    _root : AttributeArray | None
+        The array read from Blender that this array is a view of, or None if this is
+        that array (or a detached copy).
 
     Examples
     --------
@@ -184,8 +191,6 @@ class AttributeArray(np.ndarray):
             ) from None
         arr = np.asarray(attr.as_array()).view(cls)
         arr._link = _AttributeLink(obj, attr)
-        # Track the root array so that views can sync the full data
-        arr._root = arr
         return arr
 
     @property
@@ -203,10 +208,21 @@ class AttributeArray(np.ndarray):
         # that no longer sync
         if np.may_share_memory(self, obj):
             self._link = getattr(obj, "_link", None)
-            self._root = getattr(obj, "_root", self)
+            # views refer to the root array, which never refers to itself or its views,
+            # so arrays are freed as soon as they are unused rather than waiting for
+            # the garbage collector
+            root = getattr(obj, "_root", None)
+            if root is None and isinstance(obj, AttributeArray):
+                root = obj
+            self._root = root
         else:
             self._link = None
-            self._root = self
+            self._root = None
+
+    @property
+    def _root_array(self) -> "AttributeArray":
+        """The array read from Blender that this array is a view of."""
+        return self if self._root is None else self._root
 
     def __array_wrap__(self, out_arr, context=None, return_scalar=False):
         """Return plain numpy arrays from operations that produce new arrays."""
@@ -259,13 +275,13 @@ class AttributeArray(np.ndarray):
             # itself, so there is nothing to write
             return
         super().__setitem__(key, value)
-        self._sync_to_blender()
+        self._sync_to_blender(key)
 
     def _is_writeback(self, key, value) -> bool:
         if (
             not isinstance(value, AttributeArray)
             or value._link is None
-            or value._root is not self._root
+            or value._root_array is not self._root_array
         ):
             return False
         try:
@@ -299,27 +315,71 @@ class AttributeArray(np.ndarray):
         super().partition(*args, **kwargs)
         self._sync_to_blender()
 
-    def _sync_to_blender(self):
-        """Sync the current array data back to the Blender object.
+    def _sync_to_blender(self, key=None):
+        """Sync the values of this array, or `self[key]`, back to the Blender object.
 
-        Note: This syncs the ENTIRE array to Blender on every modification,
-        even for single element changes. This is due to Blender's foreach_set
-        API requiring the full array. For large meshes, consider batching
-        multiple modifications before triggering a sync.
+        Only the changed values are written, directly into the attribute's memory. If
+        the attribute can't be written directly, the entire root array is written with
+        `foreach_set` instead, which also re-creates an attribute that was removed.
         """
         link = self._link
         if link is None:
             # a detached copy with no linked attribute; nothing to sync
             return
 
-        # Always sync using the root array to ensure full shape
-        store_named_attribute(
-            link.resolve(),
-            self._root.view(np.ndarray),
-            name=link.name,
-            atype=link.atype,
-            domain=link.domain,
+        obj = link.resolve()
+        root = self._root_array
+        if not self._write_directly(obj, link, root, key):
+            store_named_attribute(
+                obj,
+                root.view(np.ndarray),
+                name=link.name,
+                atype=link.atype,
+                domain=link.domain,
+            )
+
+    def _write_directly(
+        self, obj: bpy.types.Object, link: _AttributeLink, root: "AttributeArray", key
+    ) -> bool:
+        """Write the values of this array, or `self[key]`, into the attribute's memory.
+
+        Returns False without writing anything if the attribute can't be written
+        directly, or no longer matches the array that was read from it.
+        """
+        obj_data = _attribute_data(obj)
+        attribute = obj_data.attributes.get(link.name)
+        if (
+            attribute is None
+            or attribute.data_type != link.atype.value.type_name
+            or attribute.domain != link.domain.value
+            or self.dtype != root.dtype
+            or not root.flags.c_contiguous
+        ):
+            return False
+        memory = _attribute_memory(_as_typed_attribute(attribute), link.atype)
+        if memory is None or memory.shape != root.shape:
+            return False
+
+        # this array is a view into the root array, so the same view into Blender's
+        # memory covers exactly the values this array holds
+        values = self.view(np.ndarray)
+        offset = (
+            values.__array_interface__["data"][0] - root.__array_interface__["data"][0]
         )
+        target = np.ndarray(
+            values.shape,
+            dtype=values.dtype,
+            buffer=memory,
+            offset=offset,
+            strides=values.strides,
+        )
+
+        if key is None:
+            target[...] = values
+        else:
+            target[key] = values[key]
+        _trigger_data_update(obj_data)
+        return True
 
     def _describe(self) -> tuple[str, str, str, str, str]:
         """Names of the attribute, domain, type, object and data-block for printing."""

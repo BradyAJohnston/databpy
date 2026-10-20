@@ -81,13 +81,15 @@ def test_new_arrays_do_not_sync(bob):
 
 def test_view_augmented_assignment_syncs_once(bob, monkeypatch):
     calls = []
-    original = databpy.array.store_named_attribute
+    original = databpy.array.AttributeArray._sync_to_blender
 
-    def counting(*args, **kwargs):
-        calls.append(1)
-        return original(*args, **kwargs)
+    def counting(arr, *args, **kwargs):
+        # detached copies (e.g. `pos[mask]`) have nothing to sync
+        if arr._link is not None:
+            calls.append(1)
+        return original(arr, *args, **kwargs)
 
-    monkeypatch.setattr(databpy.array, "store_named_attribute", counting)
+    monkeypatch.setattr(databpy.array.AttributeArray, "_sync_to_blender", counting)
     pos = bob.position
     pos[:, 2] += 1
     assert len(calls) == 1
