@@ -22,6 +22,7 @@ _session_token = uuid.uuid4().hex
 
 
 def session_token() -> str:
+    """Return a token that changes on every file load, to invalidate cached `session_uid` values."""
     return _session_token
 
 
@@ -102,10 +103,17 @@ def set_uuid(obj: bpy.types.Object, value: str) -> None:
 
 def register() -> None:
     """
-    Deprecated: databpy no longer needs registering.
+    Deprecated: databpy doesn't need registering.
 
     Objects are identified through a plain custom property, which requires no
-    registration.
+    registration. This only registers the legacy `Object.uuid` property, which is
+    also registered automatically when it is needed. It will be removed in databpy
+    0.12.0.
+
+    Warns
+    -----
+    FutureWarning
+        Always, as the function is deprecated.
     """
     warnings.warn(
         "`databpy.register()` is no longer required and will be removed in databpy "
@@ -118,10 +126,15 @@ def register() -> None:
 
 def unregister() -> None:
     """
-    Deprecated: this is now a no-op.
+    Deprecated: does nothing.
 
     databpy is shared between add-ons, so removing `Object.uuid` from one add-on would
-    break every other add-on that uses databpy.
+    break every other add-on that uses databpy. It will be removed in databpy 0.12.0.
+
+    Warns
+    -----
+    FutureWarning
+        Always, as the function is deprecated.
     """
     warnings.warn(
         "`databpy.unregister()` no longer does anything and will be removed in databpy "

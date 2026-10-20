@@ -56,9 +56,11 @@ class NamedAttributeError(DatabpyError, AttributeError):
     """
     Base exception for all attribute-related errors in databpy.
 
-    This exception is raised when operations on Blender named attributes fail,
-    such as when an attribute doesn't exist, has incorrect dimensions, or
-    cannot be created.
+    Raised when an operation on a named attribute fails, such as data that doesn't
+    match the size of the domain, a conflict with the type or domain of an existing
+    attribute, or an attribute that can't be created. Subclasses cover a missing
+    attribute (`AttributeNotFoundError`) and values that don't fit the attribute
+    (`AttributeMismatchError`).
 
     Notes
     -----
@@ -141,6 +143,29 @@ def _as_typed_attribute(attribute: bpy.types.Attribute) -> PossibleAttributeType
 def list_attributes(
     obj: Object, evaluate: bool = False, drop_hidden: bool = False
 ) -> list[str]:
+    """
+    List the names of the attributes on an object, sorted alphabetically.
+
+    Parameters
+    ----------
+    obj : bpy.types.Object
+        The Blender object, with mesh, curves or point cloud data.
+    evaluate : bool, optional
+        Whether to list the attributes after evaluating modifiers, by default False.
+    drop_hidden : bool, optional
+        Whether to leave out hidden attributes, whose names start with `.`, by
+        default False.
+
+    Returns
+    -------
+    list[str]
+        The attribute names.
+
+    Raises
+    ------
+    TypeError
+        If the object's data isn't a mesh, curves or point cloud.
+    """
     if evaluate:
         strings = list(_attribute_data(evaluate_object(obj)).attributes.keys())
     else:
@@ -158,18 +183,20 @@ def list_attributes(
 
 class AttributeMismatchError(NamedAttributeError):
     """
-    Exception raised when attribute data doesn't match expected dimensions or types.
+    Exception raised when data doesn't fit an attribute.
 
-    This is a specialized NamedAttributeError for situations where an attribute
-    exists but the data being written doesn't match the attribute's expected
-    shape, size, or type.
+    Raised when the number of values written with `Attribute.from_array` doesn't
+    match the attribute, or when values can't be represented by the attribute's type
+    (complex numbers, or integers outside the range of the storage type).
     """
 
 
 class AttributeDomains(Enum):
     """
-    Enumeration of attribute domains in Blender. You can store an attribute onto one of
-    these domains if there is corressponding geometry. All data is on a domain on geometry.
+    Enumeration of attribute domains in Blender.
+
+    Every attribute is stored on a domain, and has one value per element of that
+    domain. An attribute can only be stored on a domain the geometry has.
 
     [More Info](https://docs.blender.org/api/current/bpy_types_enum_items/attribute_domain_items.html#rna-enum-attribute-domain-items)
 
@@ -182,7 +209,7 @@ class AttributeDomains(Enum):
     FACE : str
         The face domain of meshes, defined as groups of edges.
     CORNER : str
-        The face domain of meshes, defined as pairs of edges that share a vertex.
+        The face corners of meshes, one for each vertex of each face.
     CURVE : str
         The Spline domain, which includes the individual splines that each contain at least one control point.
     INSTANCE : str
@@ -205,6 +232,21 @@ ValueNames = Literal["value", "vector", "color", "color_srgb"]
 
 @dataclass(frozen=True)
 class AttributeType:
+    """
+    How databpy reads and writes one Blender attribute type.
+
+    Attributes
+    ----------
+    type_name : str
+        The Blender data type name, e.g. 'FLOAT_VECTOR'.
+    value_name : str
+        The property of each attribute value that is read and written, e.g. 'vector'.
+    dtype : type
+        The numpy dtype that values are stored in.
+    dimensions : tuple[int, ...]
+        The shape of a single value, e.g. (3,) or (4, 4).
+    """
+
     type_name: AttributeTypeNames
     value_name: ValueNames
     dtype: type
@@ -241,7 +283,8 @@ class AttributeTypes(Enum):
         2D vector of floats with dimensions (2,). Dtype: np.float32
         [More Info](https://docs.blender.org/api/current/bpy.types.Float2Attribute.html#bpy.types.Float2Attribute)
     FLOAT4 : AttributeType
-        4D vector of floats with dimensions (4,). Dtype: np.float32
+        4D vector of floats with dimensions (4,). Dtype: np.float32. Requires
+        Blender 5.2 or later, see `HAS_FLOAT4`.
         [More Info](https://docs.blender.org/api/current/bpy.types.Float4Attribute.html#bpy.types.Float4Attribute)
     FLOAT_COLOR : AttributeType
         RGBA color values as floats with dimensions (4,). Dtype: np.float32
@@ -272,9 +315,10 @@ class AttributeTypes(Enum):
         [More Info](https://docs.blender.org/api/current/bpy.types.BoolAttribute.html#bpy.types.BoolAttribute)
     STRING : AttributeType
         Text string value with dimensions (1,). Dtype: np.str_. Stored by Blender as
-        bytes, and read/written per-element as `foreach_get`/`foreach_set` do not
-        support string properties. Experimental: string attributes are not yet properly
-        supported within Geometry Nodes, so using them raises a warning for now.
+        bytes, and read and written one value at a time as `foreach_get` and
+        `foreach_set` don't support string properties. Experimental: string attributes
+        aren't yet properly supported within Geometry Nodes, so reading or writing them
+        emits a warning.
         [More Info](https://docs.blender.org/api/current/bpy.types.StringAttribute.html#bpy.types.StringAttribute)
     """
 
@@ -343,19 +387,18 @@ class AttributeTypes(Enum):
 
 def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
     """
-    Determine the appropriate AttributeType based on array shape and dtype.
+    Infer the attribute type for an array from its shape and dtype.
 
-    This function matches arrays broadly to Blender attribute types while ensuring
-    they are categorized correctly based on both shape and dtype. It handles:
-    - Integer types: distinguishes int8, int32, int16_2d and int32_2d based on dtype and shape.
-      Unsigned integers map to the 32-bit types, as their values may not fit the smaller
-      signed types
-    - Float types: all floating point arrays map to float32-based attributes
-    - 4D data: uint8 maps to BYTE_COLOR, other dtypes map to the generic FLOAT4.
-      FLOAT_COLOR and QUATERNION must be explicitly requested via `atype`. Before
-      Blender 5.2, which has no FLOAT4, other dtypes map to FLOAT_COLOR
-    - Boolean types: maps bool arrays to BOOLEAN attributes
-    - String types: maps string arrays to STRING attributes
+    - `(n,)` or `(n, 1)`: bool to BOOLEAN, int8 to INT8, other integers to INT,
+      floats to FLOAT, and strings to STRING. Unsigned integers map to INT, as their
+      values may not fit INT8.
+    - `(n, 2)`: int16 to INT16_2D, other integers to INT32_2D, and floats to FLOAT2.
+    - `(n, 3)`: any numeric dtype to FLOAT_VECTOR.
+    - `(n, 4)`: uint8 to BYTE_COLOR, and other numeric dtypes to FLOAT4. Before
+      Blender 5.2, which has no FLOAT4, they map to FLOAT_COLOR.
+    - `(n, 4, 4)`: any numeric dtype to FLOAT4X4.
+
+    FLOAT_COLOR and QUATERNION are never inferred, and must be passed as `atype`.
 
     Parameters
     ----------
@@ -372,15 +415,16 @@ def guess_atype_from_array(array: np.ndarray) -> AttributeTypes:
     TypeError
         If input is not a numpy array.
     ValueError
-        If no attribute type matches the array's shape and dtype.
+        If the array has no dimensions, or no attribute type matches its shape and
+        dtype.
 
     Examples
     --------
-    >>> guess_atype_from_array(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    >>> print(guess_atype_from_array(np.array([1.0, 2.0, 3.0], dtype=np.float32)))
     AttributeTypes.FLOAT
-    >>> guess_atype_from_array(np.array([[1, 2], [3, 4]], dtype=np.int32))
+    >>> print(guess_atype_from_array(np.array([[1, 2], [3, 4]], dtype=np.int32)))
     AttributeTypes.INT32_2D
-    >>> guess_atype_from_array(np.array([[255, 0, 0, 255]], dtype=np.uint8))
+    >>> print(guess_atype_from_array(np.array([[255, 0, 0, 255]], dtype=np.uint8)))
     AttributeTypes.BYTE_COLOR
     """
 
@@ -585,27 +629,31 @@ def _write_string_values(attribute: bpy.types.Attribute, array: np.ndarray) -> N
 
 class Attribute:
     """
-    Low-level wrapper around a Blender attribute providing manual get/set operations.
+    Low-level wrapper around a Blender attribute with explicit reads and writes.
 
-    This class provides direct, stateless access to Blender attributes with explicit
-    control over when data is read from or written to Blender. Use this when you need:
-    - Fine-grained control over read/write timing
-    - One-time read or write operations without auto-sync overhead
-    - To work with attribute metadata (type, domain, shape)
+    Values are only read by `as_array` and only written by `from_array`. Use this
+    class to control when values are transferred, for example to apply several
+    whole-array operations with a single write, or to inspect an attribute's type,
+    domain and shape without reading its values.
 
-    For interactive workflows with automatic syncing, use `AttributeArray` instead,
-    which subclasses numpy.ndarray and automatically writes changes back to Blender.
+    For automatic syncing, use `AttributeArray`, a numpy array subclass that writes
+    changes back to Blender as they are made.
 
     Architecture
     ------------
     - `Attribute`: Low-level, manual control (this class)
-    - `AttributeArray`: High-level, auto-syncing numpy subclass
+    - `AttributeArray`: High-level, automatically syncing numpy subclass
     - `BlenderObject["attr"]`: Convenience accessor returning AttributeArray
 
     Parameters
     ----------
     attribute : bpy.types.Attribute
         The Blender attribute to wrap.
+
+    Raises
+    ------
+    NamedAttributeError
+        If the attribute has an unsupported data type.
 
     Attributes
     ----------
@@ -641,19 +689,19 @@ class Attribute:
     attr.from_array(positions)
     ```
 
-    Compare with AttributeArray auto-sync:
+    Compare with AttributeArray, which writes each change as it is made:
 
     ```python
     import databpy as db
+    import numpy as np
 
     bob = db.create_bob(np.random.rand(10, 3))
-    # Each operation automatically syncs
-    bob.position[:, 2] += 1.0  # Writes immediately
+    bob.position[:, 2] += 1.0  # writes the new z values immediately
     ```
 
     See Also
     --------
-    AttributeArray : Auto-syncing numpy subclass for interactive workflows
+    AttributeArray : Automatically syncing numpy subclass
     store_named_attribute : Create or update attributes
     named_attribute : Convenience function to read attribute data
     """
@@ -730,7 +778,7 @@ class Attribute:
 
         'ARRAY' is a full array of values, while 'SINGLE' is a single value for the
         entire domain (which can appear on evaluated geometry from Geometry Nodes).
-        Reading is transparent either way - `data` exposes the full domain length.
+        Reading works the same either way, as `data` has one item per element.
         """
         return self.attribute.storage_type
 
@@ -746,7 +794,10 @@ class Attribute:
 
     @property
     def n_values(self) -> int:
-        """Returns the total number of scalar values in the attribute."""
+        """Returns the total number of scalar values in the attribute.
+
+        Deprecated: use `size` instead.
+        """
         # TODO: remove in future version
         # added in 0.4.2
         warnings.warn(
@@ -762,22 +813,22 @@ class Attribute:
 
     def from_array(self, array: npt.ArrayLike) -> None:
         """
-        Set the attribute data from a numpy array.
+        Write the values of an array to the attribute.
 
-        If the array is 1D and can be reshaped to match the attribute shape,
-        it will be automatically reshaped.
+        The array can have any shape with the same number of values as the attribute,
+        such as a flat array, and is read in C order. Values are cast to the
+        attribute's storage dtype.
 
         Parameters
         ----------
         array : npt.ArrayLike
-            Array containing the data to set. Must have the same total number
-            of elements as the attribute.
+            The values to write, as a numpy array or anything convertible to one.
 
         Raises
         ------
         AttributeMismatchError
-            If array cannot be reshaped to match attribute shape, or its values
-            can't be represented by the attribute's type.
+            If the number of values doesn't match the attribute's `size`, or the
+            values can't be represented by the attribute's type.
         """
         array = np.asarray(array)
         if array.size != self.size:
@@ -797,12 +848,13 @@ class Attribute:
 
     def as_array(self) -> np.ndarray:
         """
-        Returns the attribute data as a numpy array.
+        Read the attribute's values into a new numpy array.
 
         Returns
         -------
         np.ndarray
-            Array containing the attribute data with appropriate shape and dtype.
+            The values, with the attribute's `shape` and `dtype`. BYTE_COLOR values
+            are uint8 from 0 to 255.
         """
 
         atype = self.atype
@@ -861,13 +913,13 @@ def store_named_attribute(
     overwrite: bool = True,
 ) -> bpy.types.Attribute:
     """
-    Adds and sets the values of an attribute on the object.
+    Write values to a named attribute on the object, creating it if needed.
 
     Parameters
     ----------
     obj : bpy.types.Object
-        The Blender object.
-    data : np.ndarray
+        The Blender object, with mesh, curves or point cloud data.
+    data : npt.ArrayLike
         The attribute data, as a numpy array or anything convertible to one.
     name : str
         The name of the attribute.
@@ -878,21 +930,24 @@ def store_named_attribute(
         The domain of the attribute. If None, the domain of an existing attribute is
         used, otherwise 'POINT'.
     overwrite : bool, optional
-        Whether to overwrite existing attribute, by default True.
+        Whether to write to an existing attribute with the same name, by default
+        True. If False, a new attribute is created, which Blender gives a unique name
+        such as `name.001`.
 
     Returns
     -------
     bpy.types.Attribute
-        The added or modified attribute.
+        The created or modified attribute.
 
     Raises
     ------
     ValueError
-        If atype string doesn't match available types, no type can be inferred, or
-        atype is FLOAT4 before Blender 5.2.
+        If atype or domain doesn't match an available type or domain, no type can be
+        inferred, or atype is FLOAT4 before Blender 5.2.
     NamedAttributeError
-        If data length doesn't match domain size, or the atype or domain don't match
-        an existing attribute.
+        If the object doesn't hold attributes, the name is empty, the data size
+        doesn't match the domain, the atype or domain conflict with an existing
+        attribute, or the attribute can't be created on the domain.
     AttributeMismatchError
         If the values can't be represented by the attribute's type.
 
@@ -1008,7 +1063,7 @@ def evaluate_object(
     obj: bpy.types.Object, context: bpy.types.Context | None = None
 ) -> bpy.types.Object:
     """
-    Return an object which has the modifiers evaluated.
+    Return the object with its modifiers evaluated.
 
     Parameters
     ----------
@@ -1022,10 +1077,15 @@ def evaluate_object(
     bpy.types.Object
         The evaluated object with modifiers applied.
 
+    Raises
+    ------
+    TypeError
+        If `obj` isn't an object, or its data isn't a mesh, curves or point cloud.
+
     Notes
     -----
-    This function evaluates the object's modifiers using the current depsgraph.
-    If no context is provided, it uses the current bpy.context.
+    The object is tagged for an update, then read from the evaluated depsgraph of
+    `context`, or of `bpy.context` if no context is given.
 
     Examples
     --------
@@ -1047,7 +1107,7 @@ def named_attribute(
     obj: bpy.types.Object, name: str = "position", evaluate: bool = False
 ) -> np.ndarray:
     """
-    Get the named attribute data from the object.
+    Read the values of a named attribute into a numpy array.
 
     Parameters
     ----------
@@ -1067,6 +1127,8 @@ def named_attribute(
     ------
     AttributeNotFoundError
         If the named attribute does not exist on the object.
+    TypeError
+        If `obj` isn't an object, or its data isn't a mesh, curves or point cloud.
 
     Examples
     --------
@@ -1112,6 +1174,8 @@ def remove_named_attribute(obj: bpy.types.Object, name: str) -> None:
     ------
     AttributeNotFoundError
         If the named attribute does not exist on the object.
+    TypeError
+        If `obj` isn't an object, or its data isn't a mesh, curves or point cloud.
     NamedAttributeError
         If the attribute is required by Blender (e.g. `position`) and can't be removed.
 

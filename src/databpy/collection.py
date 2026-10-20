@@ -4,17 +4,17 @@ from bpy.types import Collection
 
 def _get_collection(name: str) -> Collection:
     """
-    Retrieve a Blender collection by name, if it doesn't exist, create it and link to scene.
+    Get a collection by name, creating it and linking it to the scene if it doesn't exist.
 
     Parameters
     ----------
     name : str
-        The name of the collection to retrieve or create
+        The name of the collection to get or create.
 
     Returns
     -------
     Collection
-        The retrieved or created Blender collection
+        The existing or newly created collection.
     """
     if name in bpy.data.collections:
         return bpy.data.collections[name]
@@ -29,28 +29,31 @@ def create_collection(
     name: str = "NewCollection", parent: Collection | str | None = None
 ) -> Collection:
     """
-    Create a new Blender collection or retrieve an existing one.
+    Create a new Blender collection or get an existing one.
+
+    A collection that doesn't exist yet is created and linked to the active scene's
+    collection. An existing collection is returned without changing where it is linked,
+    unless a parent is given.
 
     Parameters
     ----------
     name : str, optional
-        The name of the collection to create or retrieve. Default is "NewCollection".
+        The name of the collection to create or get. Default is "NewCollection".
     parent : Collection or str or None, optional
-        The parent collection to link the new collection to. If a string is provided,
-        it will be used to find an existing collection by name. If None, the new collection
-        will be linked to the scene's root collection. Default is None.
+        The collection to link the collection into, which also unlinks it from the
+        scene's collection. A string is the name of the parent collection, which is
+        created and linked to the scene if it doesn't exist. Default is None, which
+        leaves the collection where it is.
 
     Returns
     -------
     Collection
-        The created or retrieved Blender collection.
+        The created or existing collection.
 
     Raises
     ------
     TypeError
-        If the parent parameter is not a Collection, string or None.
-    KeyError
-        If the parent collection name provided does not exist in bpy.data.collections.
+        If `parent` is not a Collection, string or None.
     """
     if not isinstance(parent, (Collection, str, type(None))):
         raise TypeError("Parent must be a Collection, string or None")
@@ -85,12 +88,8 @@ def move_to_collection(
     objs : bpy.types.Object or list[bpy.types.Object]
         A single object or list of objects to move.
     target_collection : bpy.types.Collection
-        The collection to move the objects into.
-
-    Returns
-    -------
-    None
-        This function does not return a value.
+        The collection to move the objects into. Each object is unlinked from all
+        of the collections it is currently in.
     """
     # Allow single object
     if isinstance(objs, bpy.types.Object):
