@@ -1,4 +1,5 @@
 import tempfile
+import warnings
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -7,17 +8,21 @@ import bpy
 import pytest
 
 import databpy as db
-from databpy.nodes import (
-    MaintainConnections,
-    NodeGroupCreationError,
-    custom_string_iswitch,
-    input_socket,
-    new_socket,
-    set_socket_value,
-    socket_value,
-    swap_tree,
-    tree_interface,
-)
+
+# importing the deprecated module warns, which test_deprecations.py checks
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", FutureWarning)
+    from databpy.nodes import (
+        MaintainConnections,
+        NodeGroupCreationError,
+        custom_string_iswitch,
+        input_socket,
+        new_socket,
+        set_socket_value,
+        socket_value,
+        swap_tree,
+        tree_interface,
+    )
 
 
 def _get_iswitch(tree: bpy.types.NodeTree) -> bpy.types.GeometryNodeIndexSwitch:

@@ -3,11 +3,17 @@ from pathlib import Path
 import bpy
 from bpy.types import Material
 
+from ._deprecation import deprecated
 
-# TODO: use DuplicatePrevention when adding material node trees
+
+@deprecated
 def append_from_blend(name: str, filepath: str) -> Material:
     """
     Append a material from a .blend file, or get it if it is already loaded.
+
+    Deprecated: appending from .blend files is handled by
+    [nodebpy](https://pypi.org/project/nodebpy/), and this will be removed in databpy
+    0.13.0.
 
     Parameters
     ----------
@@ -28,6 +34,11 @@ def append_from_blend(name: str, filepath: str) -> Material:
         If `filepath` doesn't exist, even when the material is already loaded.
     KeyError
         If the file has no material named `name`.
+
+    Warns
+    -----
+    FutureWarning
+        Always, as the function is deprecated.
     """
     file_path = Path(filepath)
     if not file_path.exists():

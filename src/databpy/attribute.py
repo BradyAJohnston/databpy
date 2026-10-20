@@ -11,6 +11,7 @@ import numpy as np
 import numpy.typing as npt
 from bpy.types import Object
 
+from ._deprecation import REMOVAL_VERSION
 from .errors import DatabpyError
 
 COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
@@ -65,7 +66,7 @@ class NamedAttributeError(DatabpyError, AttributeError):
     Notes
     -----
     This currently also subclasses `AttributeError`, which will be removed in databpy
-    0.12.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch
+    0.13.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch
     `NamedAttributeError` or `DatabpyError` instead.
     """
 
@@ -796,13 +797,13 @@ class Attribute:
     def n_values(self) -> int:
         """Returns the total number of scalar values in the attribute.
 
-        Deprecated: use `size` instead.
+        Deprecated: use `size` instead, as this will be removed in databpy 0.13.0.
         """
-        # TODO: remove in future version
-        # added in 0.4.2
         warnings.warn(
-            message="`self.n_values` has been deprecated in favor of `self.size` and will be removed in future versions.",
-            category=DeprecationWarning,
+            "`Attribute.n_values` is deprecated in favour of `Attribute.size` and will be "
+            f"removed in databpy {REMOVAL_VERSION}.",
+            FutureWarning,
+            stacklevel=2,
         )
         return self.size
 

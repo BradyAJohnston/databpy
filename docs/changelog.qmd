@@ -28,6 +28,22 @@ version, and much faster small writes through `AttributeArray`.
 - The tests run against Blender 5.1, 5.2 5.3, and the 5.4 daily builds in separate
   workflows, each with a status badge in the README.
 
+### Deprecated
+
+Node groups and appending from .blend files are handled by
+[nodebpy](https://pypi.org/project/nodebpy/), so databpy no longer ships them. Everything
+deprecated is removed in databpy 0.13.0, a release later than the 0.12.0 announced
+previously, so the new deprecations have the same window.
+
+- `import databpy` no longer imports `databpy.nodes`. It is imported when first used,
+  and importing it warns with a `FutureWarning`.
+- `databpy.material.append_from_blend()` is deprecated.
+- `BlenderObject.vertices`, `BlenderObject.edges` and `Attribute.n_values` warn with a
+  `FutureWarning` instead of a `DeprecationWarning`, which Python hides by default,
+  and are removed in 0.13.0 (previously 1.0.0, or unspecified for `n_values`).
+- `databpy.register()`, `databpy.unregister()` and the `AttributeError` base of
+  `NamedAttributeError` are removed in 0.13.0 (previously 0.12.0).
+
 ### Fixed
 
 - The tests for the daily builds of bpy ran against the locked release instead, as

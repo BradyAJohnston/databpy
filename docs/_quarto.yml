@@ -121,8 +121,8 @@ quartodoc:
         - active_object
         - centre
         - lerp
-    - title: Nodes
-      desc: Helpers for building and manipulating geometry node trees
+    - title: Nodes (deprecated)
+      desc: Deprecated and removed in databpy 0.13.0, as node groups are handled by nodebpy (https://pypi.org/project/nodebpy/). Importing `databpy.nodes` warns with a FutureWarning.
       contents:
         - nodes.new_tree
         - nodes.swap_tree

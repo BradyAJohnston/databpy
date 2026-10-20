@@ -5,7 +5,7 @@ from pathlib import Path
 
 import bpy
 
-from ._deprecation import deprecated
+from .._deprecation import deprecated
 from .utils import NODE_DUP_SUFFIX
 
 

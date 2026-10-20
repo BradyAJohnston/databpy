@@ -273,7 +273,7 @@ class TestDeprecationWarnings:
         """Test BlenderObject.vertices shows deprecation warning."""
         bob = db.BlenderObject.from_mesh([[0, 0, 0], [1, 0, 0]])
 
-        with pytest.warns(DeprecationWarning, match="vertices is deprecated"):
+        with pytest.warns(FutureWarning, match="vertices is deprecated"):
             vertices = bob.vertices
 
         assert len(vertices) == 2
@@ -282,7 +282,7 @@ class TestDeprecationWarnings:
         """Test BlenderObject.edges shows deprecation warning."""
         bob = db.BlenderObject.from_mesh([[0, 0, 0], [1, 0, 0]])
 
-        with pytest.warns(DeprecationWarning, match="edges is deprecated"):
+        with pytest.warns(FutureWarning, match="edges is deprecated"):
             edges = bob.edges
 
         # Edges might be empty but property should work
@@ -295,7 +295,7 @@ class TestDeprecationWarnings:
         )
 
         with (
-            pytest.warns(DeprecationWarning),
+            pytest.warns(FutureWarning),
             pytest.raises(TypeError, match="only works with Mesh"),
         ):
             _ = bob.vertices
@@ -307,7 +307,7 @@ class TestDeprecationWarnings:
         )
 
         with (
-            pytest.warns(DeprecationWarning),
+            pytest.warns(FutureWarning),
             pytest.raises(TypeError, match="only works with Mesh"),
         ):
             _ = bob.edges

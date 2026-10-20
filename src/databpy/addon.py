@@ -4,6 +4,8 @@ import warnings
 import bpy
 from bpy.app.handlers import persistent
 
+from ._deprecation import REMOVAL_VERSION
+
 # Persistent identifier for objects tracked by databpy. Stored as a plain custom
 # property so it needs no registration and is saved with the .blend file. The leading
 # underscore hides it from the Custom Properties panel.
@@ -14,7 +16,6 @@ UUID_KEY = "_databpy_uuid"
 # `getattr` / `setattr` with this constant
 UUID_PROP_NAME = "uuid"
 
-LEGACY_REMOVAL_VERSION = "0.12.0"
 
 # Changes on every file load and is unique per process, so `session_uid` values cached
 # in a previous session (or a pickled wrapper) are never trusted in the current one.
@@ -108,7 +109,7 @@ def register() -> None:
     Objects are identified through a plain custom property, which requires no
     registration. This only registers the legacy `Object.uuid` property, which is
     also registered automatically when it is needed. It will be removed in databpy
-    0.12.0.
+    0.13.0.
 
     Warns
     -----
@@ -117,7 +118,7 @@ def register() -> None:
     """
     warnings.warn(
         "`databpy.register()` is no longer required and will be removed in databpy "
-        f"{LEGACY_REMOVAL_VERSION}.",
+        f"{REMOVAL_VERSION}.",
         FutureWarning,
         stacklevel=2,
     )
@@ -129,7 +130,7 @@ def unregister() -> None:
     Deprecated: does nothing.
 
     databpy is shared between add-ons, so removing `Object.uuid` from one add-on would
-    break every other add-on that uses databpy. It will be removed in databpy 0.12.0.
+    break every other add-on that uses databpy. It will be removed in databpy 0.13.0.
 
     Warns
     -----
@@ -138,7 +139,7 @@ def unregister() -> None:
     """
     warnings.warn(
         "`databpy.unregister()` no longer does anything and will be removed in databpy "
-        f"{LEGACY_REMOVAL_VERSION}. It previously removed `Object.uuid`, which broke "
+        f"{REMOVAL_VERSION}. It previously removed `Object.uuid`, which broke "
         "other add-ons using databpy.",
         FutureWarning,
         stacklevel=2,

@@ -1,7 +1,29 @@
 """
-Deprecated: node-related functionality is moving to nodebpy and this module will be
-removed in databpy 0.12.0. Each function warns with a `FutureWarning` when used.
+Deprecated: node groups are handled by nodebpy (https://pypi.org/project/nodebpy/),
+and this module will be removed in databpy 0.13.0.
+
+Importing the module warns with a `FutureWarning`, as does each use of its functions
+and classes. `import databpy` doesn't import it.
 """
+
+import importlib
+import os
+import warnings
+
+from .._deprecation import REMOVAL_VERSION
+
+# point the warning at the code importing this module, skipping the import system and
+# databpy's own lazy import of it
+warnings.warn(
+    f"`databpy.nodes` is deprecated and will be removed in databpy {REMOVAL_VERSION}. "
+    "Node groups are handled by nodebpy (https://pypi.org/project/nodebpy/).",
+    FutureWarning,
+    skip_file_prefixes=(
+        os.path.dirname(os.path.dirname(__file__)) + os.sep,
+        os.path.dirname(importlib.__file__) + os.sep,
+        "<frozen importlib",
+    ),
+)
 
 from .appending import (
     DuplicatePrevention,
