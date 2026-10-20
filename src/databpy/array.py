@@ -329,7 +329,7 @@ class AttributeArray(np.ndarray):
 
         obj = link.resolve()
         root = self._root_array
-        if not self._write_directly(obj, root, key):
+        if not self._write_directly(obj, link, root, key):
             store_named_attribute(
                 obj,
                 root.view(np.ndarray),
@@ -339,16 +339,13 @@ class AttributeArray(np.ndarray):
             )
 
     def _write_directly(
-        self, obj: bpy.types.Object, root: "AttributeArray", key
+        self, obj: bpy.types.Object, link: _AttributeLink, root: "AttributeArray", key
     ) -> bool:
         """Write the values of this array, or `self[key]`, into the attribute's memory.
 
         Returns False without writing anything if the attribute can't be written
         directly, or no longer matches the array that was read from it.
         """
-        link = self._link
-        if link is None:
-            return False
         obj_data = _attribute_data(obj)
         attribute = obj_data.attributes.get(link.name)
         if (
@@ -369,16 +366,13 @@ class AttributeArray(np.ndarray):
         offset = (
             values.__array_interface__["data"][0] - root.__array_interface__["data"][0]
         )
-        try:
-            target = np.ndarray(
-                values.shape,
-                dtype=values.dtype,
-                buffer=memory,
-                offset=offset,
-                strides=values.strides,
-            )
-        except (TypeError, ValueError):
-            return False
+        target = np.ndarray(
+            values.shape,
+            dtype=values.dtype,
+            buffer=memory,
+            offset=offset,
+            strides=values.strides,
+        )
 
         if key is None:
             target[...] = values

@@ -2,13 +2,15 @@
 
 import gc
 import weakref
+from types import SimpleNamespace
+from typing import Any, cast
 
 import numpy as np
 import pytest
 
 import databpy as db
 import databpy.array
-from databpy.attribute import HAS_FLOAT4, AttributeTypes
+from databpy.attribute import HAS_FLOAT4, AttributeTypes, _attribute_memory
 
 
 @pytest.fixture
@@ -38,6 +40,8 @@ WRITES = {
     "fill": lambda a: a.fill(3),
     "sort": lambda a: a.sort(axis=0),
     "putmask": lambda a: np.putmask(a, a > 0.5, 0.25),
+    "empty slice": lambda a: a.__setitem__(slice(5, 5), 1),
+    "empty view at end": lambda a: a[20:].__iadd__(1),
 }
 
 
@@ -124,6 +128,44 @@ def test_strings_write_entire_attribute(bob, monkeypatch):
     names[0] = "b"
     assert len(calls) == 1
     assert bob.named_attribute("names")[0] == "b"
+
+
+def test_empty_attribute(bob):
+    # the mesh has no faces, so there are no values to write directly
+    bob.store_named_attribute(np.zeros(0), "face_values", domain="FACE")
+    values = bob["face_values"]
+    values += 1
+    assert bob.named_attribute("face_values").shape == (0,)
+
+
+def test_removed_attribute_is_created_again(bob):
+    bob.store_named_attribute(np.arange(20), "ids")
+    ids = bob["ids"]
+    db.remove_named_attribute(bob.object, "ids")
+    ids[0] = 99
+    np.testing.assert_array_equal(bob.named_attribute("ids"), [99, *range(1, 20)])
+
+
+class _Value:
+    def __init__(self, pointer: int):
+        self.pointer = pointer
+
+    def as_pointer(self) -> int:
+        return self.pointer
+
+
+@pytest.mark.parametrize(
+    "pointers",
+    [[1000, 1012, 2000], [0, 12, 24]],
+    ids=["not contiguous", "null pointer"],
+)
+def test_attribute_memory_requires_contiguous_values(pointers):
+    # Blender's values are always contiguous, but nothing is written directly into
+    # memory that isn't laid out as expected
+    attribute = SimpleNamespace(
+        storage_type="ARRAY", data=[_Value(p) for p in pointers]
+    )
+    assert _attribute_memory(cast(Any, attribute), AttributeTypes.FLOAT_VECTOR) is None
 
 
 def test_resized_attribute_is_not_written_directly(bob):
