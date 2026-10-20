@@ -16,7 +16,7 @@ version.
 - Before Blender 5.2, `guess_atype_from_array()` maps `(n, 4)` float arrays to
   `FLOAT_COLOR`, as there is no generic `FLOAT4` type. Storing an attribute with
   `atype="FLOAT4"` raises `ValueError` before Blender 5.2.
-- The tests run against Blender 5.1, 5.2 and the 5.3 daily builds in separate
+- The tests run against Blender 5.1, 5.2 5.3, and the 5.4 daily builds in separate
   workflows, each with a status badge in the README.
 
 ### Fixed
