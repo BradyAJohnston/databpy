@@ -10,4 +10,4 @@ Raised when an operation on a named attribute fails, such as data that doesn’t
 
 ## Notes
 
-This currently also subclasses `AttributeError`, which will be removed in databpy 0.13.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch `NamedAttributeError` or `DatabpyError` instead.
+This currently also subclasses `AttributeError`, which will be removed in databpy 0.14.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch `NamedAttributeError` or `DatabpyError` instead.

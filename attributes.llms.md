@@ -219,7 +219,7 @@ names = np.array([f"point_{i}" for i in range(10)])
 bob["name"] = names
 ```
 
-    /tmp/ipykernel_2632/2168651459.py:3: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
+    /tmp/ipykernel_2479/2168651459.py:3: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
       bob["name"] = names
 
 > **WARNING:**
@@ -451,7 +451,7 @@ bob.position[selected_mask, 2] = 1.0
       - Used for: shape mismatches, values that don’t fit the attribute’s type
   - **`db.LinkedObjectError`** - raised when an `AttributeArray` can’t sync because its object was removed or a file was loaded
 
-`NamedAttributeError` currently also inherits from `AttributeError`, which will be removed in databpy 0.13.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch `NamedAttributeError` or `DatabpyError` instead.
+`NamedAttributeError` currently also inherits from `AttributeError`, which will be removed in databpy 0.14.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch `NamedAttributeError` or `DatabpyError` instead.
 
 ### Common errors
 
@@ -541,14 +541,14 @@ db.store_named_attribute(
 db.named_attribute(obj, "my_attr")
 ```
 
-    array([[0.53907025, 0.29898933, 0.37800607],
-           [0.9290844 , 0.32685682, 0.8981513 ],
-           [0.56450593, 0.7567582 , 0.4331677 ],
-           [0.01150827, 0.7891584 , 0.9120895 ],
-           [0.03559079, 0.04118609, 0.6577564 ],
-           [0.40975833, 0.50005865, 0.1216043 ],
-           [0.5727442 , 0.08088566, 0.37693074],
-           [0.69431007, 0.10804583, 0.03235256]], dtype=float32)
+    array([[0.9750285 , 0.08667673, 0.49700275],
+           [0.66136825, 0.38908848, 0.8730912 ],
+           [0.85950947, 0.6629881 , 0.89181316],
+           [0.58619   , 0.9454641 , 0.6272559 ],
+           [0.45847479, 0.09856461, 0.18376356],
+           [0.24154556, 0.11576019, 0.16681688],
+           [0.1462744 , 0.5558091 , 0.6741673 ],
+           [0.31889647, 0.5030935 , 0.8983455 ]], dtype=float32)
 
 ### 5. Remove temporary attributes
 
