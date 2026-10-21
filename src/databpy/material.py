@@ -13,7 +13,7 @@ def append_from_blend(name: str, filepath: str) -> Material:
 
     Deprecated: appending from .blend files is handled by
     [nodebpy](https://pypi.org/project/nodebpy/), and this will be removed in databpy
-    0.13.0.
+    0.14.0.
 
     Parameters
     ----------

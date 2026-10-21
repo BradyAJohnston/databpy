@@ -109,7 +109,7 @@ def register() -> None:
     Objects are identified through a plain custom property, which requires no
     registration. This only registers the legacy `Object.uuid` property, which is
     also registered automatically when it is needed. It will be removed in databpy
-    0.13.0.
+    0.14.0.
 
     Warns
     -----
@@ -130,7 +130,7 @@ def unregister() -> None:
     Deprecated: does nothing.
 
     databpy is shared between add-ons, so removing `Object.uuid` from one add-on would
-    break every other add-on that uses databpy. It will be removed in databpy 0.13.0.
+    break every other add-on that uses databpy. It will be removed in databpy 0.14.0.
 
     Warns
     -----

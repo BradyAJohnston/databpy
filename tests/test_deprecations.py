@@ -1,4 +1,4 @@
-"""Tests for functionality deprecated for removal in databpy 0.13.0."""
+"""Tests for functionality deprecated for removal in databpy 0.14.0."""
 
 import importlib
 import sys
@@ -13,7 +13,7 @@ from databpy._deprecation import REMOVAL_VERSION
 
 
 def test_removal_version():
-    assert REMOVAL_VERSION == "0.13.0"
+    assert REMOVAL_VERSION == "0.14.0"
 
 
 def test_nodes_is_imported_on_first_use(monkeypatch):

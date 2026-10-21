@@ -14,6 +14,11 @@ toc: true
   The arrays are transposed views of Blender's layout rather than copies, so they
   aren't C-contiguous.
 
+### Deprecated
+
+- Everything deprecated in 0.11.0 is removed in databpy 0.14.0 (previously 0.13.0),
+  as this breaking fix took the 0.12.0 release.
+
 ## 0.11.0 (2026-10-20)
 
 Support for Blender 5.1 alongside 5.2, with the tests run against each supported

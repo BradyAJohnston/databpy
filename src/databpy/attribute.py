@@ -66,7 +66,7 @@ class NamedAttributeError(DatabpyError, AttributeError):
     Notes
     -----
     This currently also subclasses `AttributeError`, which will be removed in databpy
-    0.13.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch
+    0.14.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch
     `NamedAttributeError` or `DatabpyError` instead.
     """
 
@@ -803,7 +803,7 @@ class Attribute:
     def n_values(self) -> int:
         """Returns the total number of scalar values in the attribute.
 
-        Deprecated: use `size` instead, as this will be removed in databpy 0.13.0.
+        Deprecated: use `size` instead, as this will be removed in databpy 0.14.0.
         """
         warnings.warn(
             "`Attribute.n_values` is deprecated in favour of `Attribute.size` and will be "

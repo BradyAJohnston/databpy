@@ -1,6 +1,6 @@
 """
 Deprecated: node groups are handled by nodebpy (https://pypi.org/project/nodebpy/),
-and this module will be removed in databpy 0.13.0.
+and this module will be removed in databpy 0.14.0.
 
 Importing the module warns with a `FutureWarning`, as does each use of its functions
 and classes. `import databpy` doesn't import it.
