@@ -3,6 +3,22 @@ title: Changelog
 toc: true
 ---
 
+## 0.12.0 (2026-10-21)
+
+### Fixed
+
+- **Breaking**: `FLOAT4X4` attributes were read and written transposed, as Blender
+  stores matrices column-major. Arrays are now row-major like `mathutils.Matrix` and
+  `attribute.data[i].value`, with the translation in the last column. Code that
+  transposed the arrays with `.T` to compensate must stop doing so.
+  The arrays are transposed views of Blender's layout rather than copies, so they
+  aren't C-contiguous.
+
+### Deprecated
+
+- Everything deprecated in 0.11.0 is removed in databpy 0.14.0 (previously 0.13.0),
+  as this breaking fix took the 0.12.0 release.
+
 ## 0.11.0 (2026-10-20)
 
 Support for Blender 5.1 alongside 5.2, with the tests run against each supported

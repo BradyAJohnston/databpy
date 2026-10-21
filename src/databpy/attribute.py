@@ -66,7 +66,7 @@ class NamedAttributeError(DatabpyError, AttributeError):
     Notes
     -----
     This currently also subclasses `AttributeError`, which will be removed in databpy
-    0.13.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch
+    0.14.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch
     `NamedAttributeError` or `DatabpyError` instead.
     """
 
@@ -309,7 +309,8 @@ class AttributeTypes(Enum):
         2D vector of 32-bit integers with dimensions (2,). Dtype: np.int32
         [More Info](https://docs.blender.org/api/current/bpy.types.Int2Attribute.html#bpy.types.Int2Attribute)
     FLOAT4X4 : AttributeType
-        4x4 transformation matrix of floats with dimensions (4, 4). Dtype: np.float32
+        4x4 transformation matrix of floats with dimensions (4, 4). Dtype: np.float32.
+        Row-major like `mathutils.Matrix`, with the translation in the last column.
         [More Info](https://docs.blender.org/api/current/bpy.types.Float4x4Attribute.html#bpy.types.Float4x4Attribute)
     BOOLEAN : AttributeType
         Single boolean value with dimensions (1,). Dtype: bool
@@ -529,6 +530,10 @@ def _as_storage_array(data: np.ndarray, atype: AttributeTypes) -> np.ndarray:
                 f"[{info.min}, {info.max}]."
             )
 
+    if atype == AttributeTypes.FLOAT4X4:
+        # Blender stores matrices column-major, so they are transposed, which doesn't
+        # copy for matrices read from Blender as those are transposed views
+        data = np.swapaxes(np.reshape(data, (-1, 4, 4)), -1, -2)
     return np.ravel(data).astype(target, copy=False)
 
 
@@ -563,8 +568,9 @@ def _attribute_memory(
 ) -> np.ndarray | None:
     """A writable view of a numeric attribute's values in Blender's own memory.
 
-    The values are laid out exactly as databpy reads them (BYTE_COLOR as raw bytes), so
-    a few values can be written without transferring the whole attribute. Returns None
+    The values are laid out exactly as databpy reads them (BYTE_COLOR as raw bytes, and
+    FLOAT4X4 as column-major matrices, which databpy reads as transposed views), so a
+    few values can be written without transferring the whole attribute. Returns None
     where the values aren't stored as one contiguous array, e.g. a `SINGLE` value for
     the whole domain.
 
@@ -797,7 +803,7 @@ class Attribute:
     def n_values(self) -> int:
         """Returns the total number of scalar values in the attribute.
 
-        Deprecated: use `size` instead, as this will be removed in databpy 0.13.0.
+        Deprecated: use `size` instead, as this will be removed in databpy 0.14.0.
         """
         warnings.warn(
             "`Attribute.n_values` is deprecated in favour of `Attribute.size` and will be "
@@ -867,6 +873,10 @@ class Attribute:
         # if the attribute has more than one dimension reshape the array before returning
         if atype.value.dimensions == (1,):
             return array
+        if atype == AttributeTypes.FLOAT4X4:
+            # Blender stores matrices column-major, so they are read as a transposed
+            # view to be row-major like mathutils
+            return np.swapaxes(array.reshape(-1, 4, 4), -1, -2)
         return array.reshape(-1, *atype.value.dimensions)
 
     def __str__(self) -> str:

@@ -115,7 +115,7 @@ class GeometrySet:
             # each instance's transform
             transforms = Attribute(pointcloud.attributes["instance_transform"])
             position = Attribute(pointcloud.attributes["position"])
-            position.from_array(transforms.as_array()[:, 3, :3])
+            position.from_array(transforms.as_array()[:, :3, 3])
         return pointcloud
 
     @property

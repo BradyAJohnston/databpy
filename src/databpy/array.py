@@ -357,11 +357,17 @@ class AttributeArray(np.ndarray):
             or attribute.data_type != link.atype.value.type_name
             or attribute.domain != link.domain.value
             or self.dtype != root.dtype
-            or not root.flags.c_contiguous
         ):
             return False
         memory = _attribute_memory(_as_typed_attribute(attribute), link.atype)
-        if memory is None or memory.shape != root.shape:
+        if memory is None:
+            return False
+        # the root array must be laid out like Blender's memory, which FLOAT4X4 arrays
+        # read from Blender are as transposed views of the column-major matrices
+        layout = memory
+        if link.atype == AttributeTypes.FLOAT4X4:
+            layout = np.swapaxes(memory, -1, -2)
+        if layout.shape != root.shape or layout.strides != root.strides:
             return False
 
         # this array is a view into the root array, so the same view into Blender's

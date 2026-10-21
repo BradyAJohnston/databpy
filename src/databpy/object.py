@@ -907,7 +907,7 @@ class BlenderObject(BlenderObjectAttribute):
         Get the vertices of the Blender mesh object.
 
         .. deprecated:: 0.5.0
-            This property is mesh-specific and will be removed in databpy 0.13.0.
+            This property is mesh-specific and will be removed in databpy 0.14.0.
             Use ``bob.data.vertices`` directly for mesh objects, or use
             the attribute system (``bob['position']`` or ``bob.named_attribute('position')``)
             which works across all geometry types.
@@ -942,7 +942,7 @@ class BlenderObject(BlenderObjectAttribute):
         Get the edges of the Blender mesh object.
 
         .. deprecated:: 0.5.0
-            This property is mesh-specific and will be removed in databpy 0.13.0.
+            This property is mesh-specific and will be removed in databpy 0.14.0.
             Use ``bob.data.edges`` directly for mesh objects.
 
         Returns

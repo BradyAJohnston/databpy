@@ -4,7 +4,7 @@ from collections.abc import Callable
 from typing import overload
 
 # the version that removes everything deprecated in databpy
-REMOVAL_VERSION = "0.13.0"
+REMOVAL_VERSION = "0.14.0"
 
 # depth of nested deprecated calls, so a deprecated function that internally uses
 # other deprecated functions only warns once for the user's outermost call
