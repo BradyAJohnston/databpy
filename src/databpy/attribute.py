@@ -309,7 +309,8 @@ class AttributeTypes(Enum):
         2D vector of 32-bit integers with dimensions (2,). Dtype: np.int32
         [More Info](https://docs.blender.org/api/current/bpy.types.Int2Attribute.html#bpy.types.Int2Attribute)
     FLOAT4X4 : AttributeType
-        4x4 transformation matrix of floats with dimensions (4, 4). Dtype: np.float32
+        4x4 transformation matrix of floats with dimensions (4, 4). Dtype: np.float32.
+        Row-major like `mathutils.Matrix`, with the translation in the last column.
         [More Info](https://docs.blender.org/api/current/bpy.types.Float4x4Attribute.html#bpy.types.Float4x4Attribute)
     BOOLEAN : AttributeType
         Single boolean value with dimensions (1,). Dtype: bool
@@ -546,6 +547,9 @@ def _read_values(
         return np.rint(values * 255).astype(np.uint8)
     values = np.empty(size, dtype=info.dtype)
     attribute.data.foreach_get(info.value_name, values)
+    if atype == AttributeTypes.FLOAT4X4:
+        # Blender stores matrices column-major, read them row-major like mathutils
+        return np.ravel(np.swapaxes(values.reshape(-1, 4, 4), -1, -2))
     return values
 
 
@@ -555,6 +559,9 @@ def _write_values(
     """Write a flat array from `_as_storage_array` to a numeric attribute."""
     if atype == AttributeTypes.BYTE_COLOR:
         values = values / np.float32(255)
+    elif atype == AttributeTypes.FLOAT4X4:
+        # Blender stores matrices column-major, so row-major matrices are transposed
+        values = np.ravel(np.swapaxes(values.reshape(-1, 4, 4), -1, -2))
     attribute.data.foreach_set(atype.value.value_name, values)
 
 
@@ -586,6 +593,9 @@ def _attribute_memory(
         return None
     buffer = (ctypes.c_char * (n * item_size)).from_address(start)
     values = np.frombuffer(buffer, dtype=info.dtype)
+    if atype == AttributeTypes.FLOAT4X4:
+        # matrices are stored column-major, so the view is transposed to be row-major
+        return np.swapaxes(values.reshape(n, 4, 4), -1, -2)
     return values if info.dimensions == (1,) else values.reshape(n, *info.dimensions)
 
 

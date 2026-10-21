@@ -264,6 +264,40 @@ def test_int16_2d_attribute():
     np.testing.assert_array_equal(result, data)
 
 
+def test_float4x4_matches_mathutils():
+    from mathutils import Matrix
+
+    obj = db.create_object(np.zeros((2, 3)), name="TestObject")
+    expected = np.array(Matrix.Translation((1, 2, 3)), dtype=np.float32)
+    # row-major like mathutils, with the translation in the last column
+    np.testing.assert_array_equal(expected[:3, 3], [1, 2, 3])
+
+    att = db.store_named_attribute(
+        obj, np.zeros((2, 4, 4)), "matrix_read", atype="FLOAT4X4"
+    )
+    assert isinstance(att, bpy.types.Float4x4Attribute)
+    att.data[1].value = Matrix.Translation((1, 2, 3))
+    np.testing.assert_array_equal(db.named_attribute(obj, "matrix_read")[1], expected)
+
+    att = db.store_named_attribute(obj, np.stack([expected] * 2), "matrix_write")
+    assert isinstance(att, bpy.types.Float4x4Attribute)
+    np.testing.assert_array_equal(np.array(att.data[1].value), expected)
+
+    # writes through an AttributeArray go directly into the attribute's memory
+    att = db.mesh_data(obj).attributes["matrix_read"]
+    assert isinstance(att, bpy.types.Float4x4Attribute)
+    arr = db.BlenderObject(obj)["matrix_read"]
+    arr[0] = np.array(Matrix.Translation((4, 5, 6)))
+    arr[1, 0, 3] = 7
+    values = att.data
+    np.testing.assert_array_equal(
+        np.array(values[0].value), np.array(Matrix.Translation((4, 5, 6)))
+    )
+    np.testing.assert_array_equal(
+        np.array(values[1].value), np.array(Matrix.Translation((7, 2, 3)))
+    )
+
+
 def test_setitem_preserves_existing_type():
     bob = db.create_bob(np.random.rand(5, 3), name="TestObject")
     color = np.random.rand(5, 4)

@@ -370,6 +370,18 @@ class AttributeArray(np.ndarray):
         offset = (
             values.__array_interface__["data"][0] - root.__array_interface__["data"][0]
         )
+        if not memory.flags.c_contiguous:
+            # FLOAT4X4 memory is a transposed view that doesn't share the array's
+            # layout, so write every matrix this array spans
+            if values.size:
+                low, high = np.lib.array_utils.byte_bounds(values)
+                base = root.__array_interface__["data"][0]
+                item_size = root[0].nbytes
+                start = (low - base) // item_size
+                stop = -(-(high - base) // item_size)
+                memory[start:stop] = root[start:stop]
+            _trigger_data_update(obj_data)
+            return True
         target = np.ndarray(
             values.shape,
             dtype=values.dtype,
