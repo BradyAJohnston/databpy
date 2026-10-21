@@ -658,5 +658,6 @@ def test_float4x4_attribute_array_writes():
     arr[[7, 1]] = rng.random((2, 4, 4))  # fancy index
     expected = np.asarray(arr).copy()
     att = db.mesh_data(obj).attributes["m"]
+    assert isinstance(att, bpy.types.Float4x4Attribute)
     actual = np.array([np.array(d.value) for d in att.data], dtype=np.float32)
     np.testing.assert_array_equal(actual, expected)
