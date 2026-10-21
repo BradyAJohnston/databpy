@@ -645,3 +645,18 @@ def test_store_named_attribute_unsupported_domain():
     with pytest.raises(db.NamedAttributeError, match="Could not create attribute"):
         db.store_named_attribute(obj, np.arange(4), "bad_domain", domain="CURVE")
     assert "bad_domain" not in db.list_attributes(obj)
+
+
+def test_float4x4_attribute_array_writes():
+    rng = np.random.default_rng(0)
+    obj = db.create_object(np.zeros((10, 3)), name="TestObject")
+    db.store_named_attribute(obj, rng.random((10, 4, 4)), "m", atype="FLOAT4X4")
+    arr = db.BlenderObject(obj)["m"]
+    arr[::3] = rng.random((4, 4, 4))  # strided write on the root array
+    arr[5][2, 1] = 9.0  # write through a view
+    arr[2:4] += 1.0  # in-place op on a view
+    arr[[7, 1]] = rng.random((2, 4, 4))  # fancy index
+    expected = np.asarray(arr).copy()
+    att = db.mesh_data(obj).attributes["m"]
+    actual = np.array([np.array(d.value) for d in att.data], dtype=np.float32)
+    np.testing.assert_array_equal(actual, expected)

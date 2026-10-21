@@ -530,6 +530,10 @@ def _as_storage_array(data: np.ndarray, atype: AttributeTypes) -> np.ndarray:
                 f"[{info.min}, {info.max}]."
             )
 
+    if atype == AttributeTypes.FLOAT4X4:
+        # Blender stores matrices column-major, so they are transposed, which doesn't
+        # copy for matrices read from Blender as those are transposed views
+        data = np.swapaxes(np.reshape(data, (-1, 4, 4)), -1, -2)
     return np.ravel(data).astype(target, copy=False)
 
 
@@ -547,9 +551,6 @@ def _read_values(
         return np.rint(values * 255).astype(np.uint8)
     values = np.empty(size, dtype=info.dtype)
     attribute.data.foreach_get(info.value_name, values)
-    if atype == AttributeTypes.FLOAT4X4:
-        # Blender stores matrices column-major, read them row-major like mathutils
-        return np.ravel(np.swapaxes(values.reshape(-1, 4, 4), -1, -2))
     return values
 
 
@@ -559,9 +560,6 @@ def _write_values(
     """Write a flat array from `_as_storage_array` to a numeric attribute."""
     if atype == AttributeTypes.BYTE_COLOR:
         values = values / np.float32(255)
-    elif atype == AttributeTypes.FLOAT4X4:
-        # Blender stores matrices column-major, so row-major matrices are transposed
-        values = np.ravel(np.swapaxes(values.reshape(-1, 4, 4), -1, -2))
     attribute.data.foreach_set(atype.value.value_name, values)
 
 
@@ -570,8 +568,9 @@ def _attribute_memory(
 ) -> np.ndarray | None:
     """A writable view of a numeric attribute's values in Blender's own memory.
 
-    The values are laid out exactly as databpy reads them (BYTE_COLOR as raw bytes), so
-    a few values can be written without transferring the whole attribute. Returns None
+    The values are laid out exactly as databpy reads them (BYTE_COLOR as raw bytes, and
+    FLOAT4X4 as column-major matrices, which databpy reads as transposed views), so a
+    few values can be written without transferring the whole attribute. Returns None
     where the values aren't stored as one contiguous array, e.g. a `SINGLE` value for
     the whole domain.
 
@@ -593,9 +592,6 @@ def _attribute_memory(
         return None
     buffer = (ctypes.c_char * (n * item_size)).from_address(start)
     values = np.frombuffer(buffer, dtype=info.dtype)
-    if atype == AttributeTypes.FLOAT4X4:
-        # matrices are stored column-major, so the view is transposed to be row-major
-        return np.swapaxes(values.reshape(n, 4, 4), -1, -2)
     return values if info.dimensions == (1,) else values.reshape(n, *info.dimensions)
 
 
@@ -877,6 +873,10 @@ class Attribute:
         # if the attribute has more than one dimension reshape the array before returning
         if atype.value.dimensions == (1,):
             return array
+        if atype == AttributeTypes.FLOAT4X4:
+            # Blender stores matrices column-major, so they are read as a transposed
+            # view to be row-major like mathutils
+            return np.swapaxes(array.reshape(-1, 4, 4), -1, -2)
         return array.reshape(-1, *atype.value.dimensions)
 
     def __str__(self) -> str:

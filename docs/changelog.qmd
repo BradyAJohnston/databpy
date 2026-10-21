@@ -11,6 +11,8 @@ toc: true
   stores matrices column-major. Arrays are now row-major like `mathutils.Matrix` and
   `attribute.data[i].value`, with the translation in the last column. Code that
   transposed the arrays with `.T` to compensate must stop doing so.
+  The arrays are transposed views of Blender's layout rather than copies, so they
+  aren't C-contiguous.
 
 ## 0.11.0 (2026-10-20)
 

@@ -357,11 +357,17 @@ class AttributeArray(np.ndarray):
             or attribute.data_type != link.atype.value.type_name
             or attribute.domain != link.domain.value
             or self.dtype != root.dtype
-            or not root.flags.c_contiguous
         ):
             return False
         memory = _attribute_memory(_as_typed_attribute(attribute), link.atype)
-        if memory is None or memory.shape != root.shape:
+        if memory is None:
+            return False
+        # the root array must be laid out like Blender's memory, which FLOAT4X4 arrays
+        # read from Blender are as transposed views of the column-major matrices
+        layout = memory
+        if link.atype == AttributeTypes.FLOAT4X4:
+            layout = np.swapaxes(memory, -1, -2)
+        if layout.shape != root.shape or layout.strides != root.strides:
             return False
 
         # this array is a view into the root array, so the same view into Blender's
@@ -370,18 +376,6 @@ class AttributeArray(np.ndarray):
         offset = (
             values.__array_interface__["data"][0] - root.__array_interface__["data"][0]
         )
-        if not memory.flags.c_contiguous:
-            # FLOAT4X4 memory is a transposed view that doesn't share the array's
-            # layout, so write every matrix this array spans
-            if values.size:
-                low, high = np.lib.array_utils.byte_bounds(values)
-                base = root.__array_interface__["data"][0]
-                item_size = root[0].nbytes
-                start = (low - base) // item_size
-                stop = -(-(high - base) // item_size)
-                memory[start:stop] = root[start:stop]
-            _trigger_data_update(obj_data)
-            return True
         target = np.ndarray(
             values.shape,
             dtype=values.dtype,
