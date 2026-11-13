@@ -39,6 +39,7 @@ A [`BlenderObject`](`databpy.BlenderObject`) has a view of each domain, [`Attrib
 | `bob.face` | `FACE` | Mesh faces | Material indices, face areas |
 | `bob.corner` | `CORNER` | Face corners, one per vertex of each face | UV coordinates, split normals |
 | `bob.curve` | `CURVE` | Curve splines | Per-spline properties |
+| `bob.layer` | `LAYER` | Grease pencil layers | Per-layer properties |
 
 `len()` of a view is the number of elements in the domain, which is the length an array stored on it needs:
 
@@ -71,6 +72,33 @@ except db.NamedAttributeError as e:
 ## Domain sizes
 The length of your data must match the number of elements in the domain. A cube has 8 vertices, 12 edges, 6 faces and 24 corners, so arrays stored on it need those lengths. A domain the geometry doesn't have, such as `bob.face` on a point cloud, has a length of 0 and can't store attributes.
 :::
+
+### Grease pencil layers
+
+A grease pencil object only holds attributes on its layers. Its points and strokes are on the drawing of each layer's frames, not the object, so `bob.point` and `bob.curve` are empty and `bob.layer` is the only domain view with elements. New attributes on a grease pencil object are stored on the `LAYER` domain:
+
+```{python}
+gp = db.BlenderObject(
+    db.create_grease_pencil_object(
+        {
+            "Lines": (np.random.random((7, 3)), [3, 4]),
+            "Outline": (np.random.random((5, 3)), [5]),
+        }
+    )
+)
+gp.layer["weight"] = db.float32(np.array([0.5, 1.0]))
+print(len(gp.layer), len(gp.point))
+gp.layer["weight"]
+```
+
+### Instances
+
+Instance attributes only exist in the evaluated geometry of an object, such as the output of Geometry Nodes. [`GeometrySet.instance`](`databpy.GeometrySet`) is a read-only view of them, [`InstanceDomainView`](`databpy.InstanceDomainView`), which reads copies of the values:
+
+```python
+geom = db.GeometrySet(obj)
+geom.instance["instance_transform", db.mat4]
+```
 
 ## Types: `db.vec3`, `db.color`, ...
 
@@ -555,6 +583,7 @@ bob.remove_named_attribute("my_attr")
 - [`AttributeArray`](`databpy.AttributeArray`) - Syncing NumPy array subclass, and base of the typed arrays
 - [`Attribute`](`databpy.Attribute`) - Low-level attribute wrapper with manual control
 - [`GeometrySet`](`databpy.GeometrySet`) - The evaluated geometry of an object, with every component
+- [`InstanceDomainView`](`databpy.InstanceDomainView`) - Read-only access to the instance attributes of evaluated geometry
 
 ### Functions
 - [`named_attribute()`](`databpy.named_attribute`) - Read attribute data as NumPy array
@@ -563,6 +592,7 @@ bob.remove_named_attribute("my_attr")
 - [`list_attributes()`](`databpy.list_attributes`) - List all attributes on an object
 - [`create_bob()`](`databpy.create_bob`) - Create a new BlenderObject
 - [`create_object()`](`databpy.create_object`) - Create a new Blender object
+- [`create_grease_pencil_object()`](`databpy.create_grease_pencil_object`) - Create a grease pencil object from arrays of points
 
 ### Enums
 - [`AttributeTypes`](`databpy.AttributeTypes`) - Blender's attribute types, which the typed arrays stand for

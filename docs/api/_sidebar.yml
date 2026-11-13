@@ -44,6 +44,7 @@ website:
       - api/GeometrySet.qmd
       - api/BlenderObject.qmd
       - api/AttributeDomainView.qmd
+      - api/InstanceDomainView.qmd
       - api/BlenderObjectAttribute.qmd
       - api/BlenderObjectBase.qmd
       section: Objects

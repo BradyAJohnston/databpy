@@ -35,7 +35,7 @@ from .attribute import (
 )
 from .collection import create_collection, move_to_collection
 from .errors import DatabpyError
-from .geometry import GeometrySet
+from .geometry import GeometrySet, InstanceDomainView
 from .object import (
     BOB,
     AttributeDomainView,
@@ -81,6 +81,7 @@ __all__ = [
     "BlenderObjectBase",
     "DatabpyError",
     "GeometrySet",
+    "InstanceDomainView",
     "LinkedObjectError",
     "NamedAttributeError",
     "ObjectTracker",

@@ -334,7 +334,8 @@ class AttributeDomainView:
     """
     Dictionary-style access to the attributes on a single domain of an object.
 
-    Available on a `BlenderObject` as `point`, `edge`, `face`, `corner` and `curve`.
+    Available on a `BlenderObject` as `point`, `edge`, `face`, `corner`, `curve` and
+    `layer`.
     New attributes are stored on this domain, with their type inferred from the data.
 
     Examples
@@ -637,6 +638,16 @@ class BlenderObjectAttribute(BlenderObjectBase):
     def curve(self) -> AttributeDomainView:
         """Attributes on the CURVE domain."""
         return AttributeDomainView(self, AttributeDomains.CURVE)
+
+    @property
+    def layer(self) -> AttributeDomainView:
+        """
+        Attributes on the LAYER domain of a grease pencil object.
+
+        The points and strokes of a grease pencil are on each layer's drawings, not
+        the object, so the other domains are empty for grease pencil objects.
+        """
+        return AttributeDomainView(self, AttributeDomains.LAYER)
 
     def list_attributes(
         self, evaluate: bool = False, drop_hidden: bool = False

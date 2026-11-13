@@ -26,6 +26,9 @@ toc: true
   `named_attribute()`, `BlenderObject.named_attribute()` and
   `GeometrySet.named_attribute()` check the attribute's type, and return that typed
   array so type checkers see its dtype and shape.
+- `bob.layer` is the domain view for the `LAYER` domain of grease pencil objects.
+- `GeometrySet.instance` gives read-only access to the attributes on the instances
+  of evaluated geometry, as `geom.instance["instance_transform", db.mat4]`.
 
 ### Changed
 

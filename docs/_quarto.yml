@@ -119,6 +119,7 @@ quartodoc:
         - GeometrySet
         - BlenderObject
         - AttributeDomainView
+        - InstanceDomainView
         - BlenderObjectAttribute
         - BlenderObjectBase
     - title: Errors
