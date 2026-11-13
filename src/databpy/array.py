@@ -180,7 +180,7 @@ class AttributeArray(np.ndarray):
         AttributeNotFoundError
             If the attribute doesn't exist on the object.
         TypeError
-            If the object's data isn't a mesh, curves or point cloud.
+            If the object's data isn't a mesh, curves, point cloud or grease pencil.
         NamedAttributeError
             If the attribute has an unsupported data type.
         """

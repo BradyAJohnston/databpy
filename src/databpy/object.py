@@ -1,6 +1,6 @@
 import itertools
 import warnings
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from typing import cast
 from uuid import uuid1
 
@@ -1254,6 +1254,81 @@ def create_pointcloud_object(
         positions = np.asarray(positions)
         pointcloud.resize(len(positions))
         attr.store_named_attribute(obj, positions, "position")
+
+    return obj
+
+
+def create_grease_pencil_object(
+    layers: Mapping[str, tuple[npt.ArrayLike, list[int] | npt.ArrayLike]] | None = None,
+    name: str = "GreasePencil",
+    collection: bpy.types.Collection | None = None,
+) -> Object:
+    """
+    Create a new Blender grease pencil object.
+
+    Each layer gets one drawing on the scene's current frame, holding its strokes.
+
+    Parameters
+    ----------
+    layers : Mapping[str, tuple[np.ndarray, list[int] | np.ndarray]], optional
+        The layers to create, mapping each layer's name to the positions of its points
+        with shape (N, 3) and the number of points in each stroke. If None, creates
+        an empty grease pencil object. Defaults to None.
+    name : str, optional
+        The name of the object. Defaults to 'GreasePencil'.
+    collection : bpy.types.Collection, optional
+        The collection to link the object to. Defaults to None, which links it to a
+        collection named "Collection", created if needed.
+
+    Returns
+    -------
+    Object
+        The created grease pencil object.
+
+    Raises
+    ------
+    ValueError
+        If the stroke sizes of a layer don't add up to the number of its positions.
+
+    Examples
+    --------
+    ```python
+    import numpy as np
+    from databpy import create_grease_pencil_object
+
+    # Create two layers, with 2 strokes and 1 stroke
+    gp_obj = create_grease_pencil_object(
+        {
+            "Lines": (np.random.random((7, 3)), [3, 4]),
+            "Outline": (np.random.random((5, 3)), [5]),
+        }
+    )
+    ```
+    """
+    grease_pencil = bpy.data.grease_pencils.new(name)
+    obj = bpy.data.objects.new(name, grease_pencil)
+
+    if collection is None:
+        collection = create_collection("Collection")
+    collection.objects.link(obj)
+
+    frame_number = active_scene().frame_current
+    for layer_name, (positions, stroke_sizes) in (layers or {}).items():
+        positions = np.asarray(positions)
+        stroke_sizes = np.asarray(stroke_sizes, dtype=int)
+        if len(positions) != np.sum(stroke_sizes):
+            raise ValueError(
+                f"Total points in the stroke sizes of layer `{layer_name}` "
+                f"({np.sum(stroke_sizes)}) must equal the number of positions "
+                f"({len(positions)})"
+            )
+        layer = grease_pencil.layers.new(layer_name)
+        # a new frame always has a drawing, though the stubs allow None
+        drawing = cast(
+            bpy.types.GreasePencilDrawing, layer.frames.new(frame_number).drawing
+        )
+        drawing.add_strokes(stroke_sizes.tolist())
+        attr.Attribute(drawing.attributes["position"]).from_array(positions)
 
     return obj
 

@@ -14,8 +14,15 @@ from bpy.types import Object
 from ._deprecation import REMOVAL_VERSION
 from .errors import DatabpyError
 
-COMPATIBLE_TYPES = [bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud]
-AttributeDataBlock = bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
+COMPATIBLE_TYPES = [
+    bpy.types.Mesh,
+    bpy.types.Curves,
+    bpy.types.PointCloud,
+    bpy.types.GreasePencil,
+]
+AttributeDataBlock = (
+    bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud | bpy.types.GreasePencil
+)
 # a lazily evaluated alias, as Float4Attribute only exists from Blender 5.2
 type PossibleAttributeTypes = (
     bpy.types.IntAttribute
@@ -90,7 +97,7 @@ class AttributeNotFoundError(NamedAttributeError, KeyError):
 def _attribute_data(obj: Object) -> AttributeDataBlock:
     """Return the object's data-block, checked to be a type that holds attributes."""
     data = obj.data
-    if not isinstance(data, (bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud)):
+    if not isinstance(data, tuple(COMPATIBLE_TYPES)):
         raise TypeError(
             f"The object is not a compatible type.\n- Obj: {obj}\n- Compatible Types: {COMPATIBLE_TYPES}"
         )
@@ -150,7 +157,7 @@ def list_attributes(
     Parameters
     ----------
     obj : bpy.types.Object
-        The Blender object, with mesh, curves or point cloud data.
+        The Blender object, with mesh, curves, point cloud or grease pencil data.
     evaluate : bool, optional
         Whether to list the attributes after evaluating modifiers, by default False.
     drop_hidden : bool, optional
@@ -165,7 +172,7 @@ def list_attributes(
     Raises
     ------
     TypeError
-        If the object's data isn't a mesh, curves or point cloud.
+        If the object's data isn't a mesh, curves, point cloud or grease pencil.
     """
     if evaluate:
         strings = list(_attribute_data(evaluate_object(obj)).attributes.keys())
@@ -971,7 +978,7 @@ def store_named_attribute(
     Parameters
     ----------
     obj : bpy.types.Object
-        The Blender object, with mesh, curves or point cloud data.
+        The Blender object, with mesh, curves, point cloud or grease pencil data.
     data : npt.ArrayLike
         The attribute data, as a numpy array or anything convertible to one.
     name : str
@@ -981,7 +988,7 @@ def store_named_attribute(
         attribute is used, otherwise the type is inferred from data.
     domain : str or AttributeDomains or None, optional
         The domain of the attribute. If None, the domain of an existing attribute is
-        used, otherwise 'POINT'.
+        used, otherwise 'POINT' ('LAYER' for grease pencil).
     overwrite : bool, optional
         Whether to write to an existing attribute with the same name, by default
         True. If False, a new attribute is created, which Blender gives a unique name
@@ -1025,11 +1032,10 @@ def store_named_attribute(
     data = np.asarray(data)
     obj_data = obj.data
 
-    if not isinstance(
-        obj_data, (bpy.types.Mesh, bpy.types.Curves, bpy.types.PointCloud)
-    ):
+    if not isinstance(obj_data, tuple(COMPATIBLE_TYPES)):
         raise NamedAttributeError(
-            f"Object must be a mesh, curve or point cloud to store attributes, not {type(obj_data)}"
+            "Object must be a mesh, curves, point cloud or grease pencil to store "
+            f"attributes, not {type(obj_data)}"
         )
 
     if name == "":
@@ -1050,7 +1056,14 @@ def store_named_attribute(
         domain = attribute.domain
     else:
         atype = _match_atype(atype, data)
-        domain = _match_domain(AttributeDomains.POINT if domain is None else domain)
+        if domain is None:
+            # a grease pencil's own attributes can only be on its layers
+            domain = (
+                AttributeDomains.LAYER
+                if isinstance(obj_data, bpy.types.GreasePencil)
+                else AttributeDomains.POINT
+            )
+        domain = _match_domain(domain)
         current_names = obj_data.attributes.keys()
         try:
             new_attribute = obj_data.attributes.new(name, atype.value.type_name, domain)
@@ -1108,7 +1121,8 @@ def evaluate_object(
     Raises
     ------
     TypeError
-        If `obj` isn't an object, or its data isn't a mesh, curves or point cloud.
+        If `obj` isn't an object, or its data isn't a mesh, curves, point cloud or
+        grease pencil.
 
     Notes
     -----
@@ -1156,7 +1170,8 @@ def named_attribute(
     AttributeNotFoundError
         If the named attribute does not exist on the object.
     TypeError
-        If `obj` isn't an object, or its data isn't a mesh, curves or point cloud.
+        If `obj` isn't an object, or its data isn't a mesh, curves, point cloud or
+        grease pencil.
 
     Examples
     --------
@@ -1203,7 +1218,8 @@ def remove_named_attribute(obj: bpy.types.Object, name: str) -> None:
     AttributeNotFoundError
         If the named attribute does not exist on the object.
     TypeError
-        If `obj` isn't an object, or its data isn't a mesh, curves or point cloud.
+        If `obj` isn't an object, or its data isn't a mesh, curves, point cloud or
+        grease pencil.
     NamedAttributeError
         If the attribute is required by Blender (e.g. `position`) and can't be removed.
 
