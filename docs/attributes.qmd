@@ -75,7 +75,7 @@ The length of your data must match the number of elements in the domain. A cube 
 
 ### Grease pencil layers
 
-A grease pencil object only holds attributes on its layers. Its points and strokes are on the drawing of each layer's frames, not the object, so `bob.point` and `bob.curve` are empty and `bob.layer` is the only domain view with elements. New attributes on a grease pencil object are stored on the `LAYER` domain:
+A grease pencil object only holds attributes on its layers. Its points and strokes are on the drawing of each layer's frames, not the object, so `bob.point` and `bob.curve` are empty and `bob.layer` is the only domain view with elements. New attributes on a grease pencil object need the `LAYER` domain to be given, so `bob["name"] = values` raises rather than storing one value per layer when one per point was meant:
 
 ```{python}
 gp = db.BlenderObject(
