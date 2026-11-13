@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- A failed `store_named_attribute()`, such as for data of the wrong length or with values that don’t fit the type, no longer leaves behind the new attribute it created.
+
 ## 0.12.0 (2026-10-21)
 
 ### Fixed

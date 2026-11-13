@@ -45,7 +45,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-fd8f39ddaa4a173d884f4226f2d8a7f9.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-5a0171e344e1a467f4b1484338e11dd4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -127,7 +127,8 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul class="collapse">
-  <li><a href="#section" id="toc-section" class="nav-link active" data-scroll-target="#section">0.12.0 (2026-10-21)</a></li>
+  <li><a href="#unreleased" id="toc-unreleased" class="nav-link active" data-scroll-target="#unreleased">Unreleased</a></li>
+  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section">0.12.0 (2026-10-21)</a></li>
   <li><a href="#section-1" id="toc-section-1" class="nav-link" data-scroll-target="#section-1">0.11.0 (2026-10-20)</a></li>
   <li><a href="#section-2" id="toc-section-2" class="nav-link" data-scroll-target="#section-2">0.10.1 (2026-10-08)</a></li>
   <li><a href="#section-3" id="toc-section-3" class="nav-link" data-scroll-target="#section-3">0.10.0 (2026-09-27)</a></li>
@@ -166,10 +167,19 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="section" class="level2">
-<h2 class="anchored" data-anchor-id="section">0.12.0 (2026-10-21)</h2>
+<section id="unreleased" class="level2">
+<h2 class="anchored" data-anchor-id="unreleased">Unreleased</h2>
 <section id="fixed" class="level3">
 <h3 class="anchored" data-anchor-id="fixed">Fixed</h3>
+<ul>
+<li>A failed <code>store_named_attribute()</code>, such as for data of the wrong length or with values that don’t fit the type, no longer leaves behind the new attribute it created.</li>
+</ul>
+</section>
+</section>
+<section id="section" class="level2">
+<h2 class="anchored" data-anchor-id="section">0.12.0 (2026-10-21)</h2>
+<section id="fixed-1" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-1">Fixed</h3>
 <ul>
 <li><strong>Breaking</strong>: <code>FLOAT4X4</code> attributes were read and written transposed, as Blender stores matrices column-major. Arrays are now row-major like <code>mathutils.Matrix</code> and <code>attribute.data[i].value</code>, with the translation in the last column. Code that transposed the arrays with <code>.T</code> to compensate must stop doing so. The arrays are transposed views of Blender’s layout rather than copies, so they aren’t C-contiguous.</li>
 </ul>
@@ -204,8 +214,8 @@ ul.task-list li input[type="checkbox"] {
 <li><code>databpy.register()</code>, <code>databpy.unregister()</code> and the <code>AttributeError</code> base of <code>NamedAttributeError</code> are removed in 0.13.0 (previously 0.12.0).</li>
 </ul>
 </section>
-<section id="fixed-1" class="level3">
-<h3 class="anchored" data-anchor-id="fixed-1">Fixed</h3>
+<section id="fixed-2" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-2">Fixed</h3>
 <ul>
 <li>The tests for the daily builds of bpy ran against the locked release instead, as <code>uv run</code> reinstalled it.</li>
 </ul>
@@ -223,8 +233,8 @@ ul.task-list li input[type="checkbox"] {
 <li><code>AttributeTypes.BYTE_COLOR</code> reads and writes through Blender’s <code>color_srgb</code> property, so its <code>value_name</code> is <code>"color_srgb"</code>.</li>
 </ul>
 </section>
-<section id="fixed-2" class="level3">
-<h3 class="anchored" data-anchor-id="fixed-2">Fixed</h3>
+<section id="fixed-3" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-3">Fixed</h3>
 <ul>
 <li>Reading or writing <code>BYTE_COLOR</code> attributes truncated every value to 0 or 1. Values from 0 to 255 now round-trip, and reading and writing is 4-7x faster.</li>
 <li><code>GeometrySet.instances</code> and reading <code>position</code> from the <code>INSTANCES</code> component returned uninitialised values, as Blender doesn’t set the positions of the instances point cloud. They are now filled from <code>instance_transform</code>.</li>
@@ -278,8 +288,8 @@ ul.task-list li input[type="checkbox"] {
 <li><code>AttributeArray</code> no longer has the private <code>_attribute</code> and <code>_attr_name</code> attributes. <code>_blender_object</code> is kept as a read-only lookup.</li>
 </ul>
 </section>
-<section id="fixed-3" class="level3">
-<h3 class="anchored" data-anchor-id="fixed-3">Fixed</h3>
+<section id="fixed-4" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-4">Fixed</h3>
 <ul>
 <li>In-place operations other than <code>+=</code>, <code>-=</code>, <code>*=</code> and <code>/=</code> modified an <code>AttributeArray</code> without syncing to Blender.</li>
 <li>Writing attributes to empty geometry raised <code>IndexError</code> or <code>KeyError</code>.</li>
@@ -321,8 +331,8 @@ ul.task-list li input[type="checkbox"] {
 <li><code>custom_string_iswitch()</code> catches specific exception types during node group creation (rather than a blind <code>except Exception</code>) and chains the original error onto the raised <code>NodeGroupCreationError</code>.</li>
 </ul>
 </section>
-<section id="fixed-4" class="level3">
-<h3 class="anchored" data-anchor-id="fixed-4">Fixed</h3>
+<section id="fixed-5" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-5">Fixed</h3>
 <ul>
 <li><code>from databpy import utils</code> was shadowed by <code>databpy.nodes.utils</code> in the package namespace, so static analysis (and potentially import order) resolved <code>databpy.utils</code> to the wrong module.</li>
 <li>Docs builds failed with the latest griffe (quartodoc 0.11.1 is incompatible with griffe 2.x); griffe is now pinned to <code>&lt;2</code> in the dev dependencies.</li>
@@ -358,8 +368,8 @@ ul.task-list li input[type="checkbox"] {
 <li>Improved type hints throughout the attribute module: precise <code>Literal</code> types for attribute type and domain names, <code>tuple[int, ...]</code> shapes, and an immutable <code>AttributeType</code> dataclass.</li>
 </ul>
 </section>
-<section id="fixed-5" class="level3">
-<h3 class="anchored" data-anchor-id="fixed-5">Fixed</h3>
+<section id="fixed-6" class="level3">
+<h3 class="anchored" data-anchor-id="fixed-6">Fixed</h3>
 <ul>
 <li>Setting an existing attribute with dictionary syntax (<code>bob["color"] = data</code>) no longer performs a second, redundant write with a re-guessed attribute type, which could raise a type mismatch error for color and quaternion attributes.</li>
 <li><code>Attribute.from_array()</code> now triggers the same object-data refresh workaround as <code>store_named_attribute()</code>, so writes through the low-level interface update reliably in the viewport.</li>

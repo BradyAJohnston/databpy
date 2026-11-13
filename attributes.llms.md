@@ -219,7 +219,7 @@ names = np.array([f"point_{i}" for i in range(10)])
 bob["name"] = names
 ```
 
-    /tmp/ipykernel_2479/2168651459.py:3: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
+    /tmp/ipykernel_3365/2168651459.py:3: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
       bob["name"] = names
 
 > **WARNING:**
@@ -541,14 +541,14 @@ db.store_named_attribute(
 db.named_attribute(obj, "my_attr")
 ```
 
-    array([[0.9750285 , 0.08667673, 0.49700275],
-           [0.66136825, 0.38908848, 0.8730912 ],
-           [0.85950947, 0.6629881 , 0.89181316],
-           [0.58619   , 0.9454641 , 0.6272559 ],
-           [0.45847479, 0.09856461, 0.18376356],
-           [0.24154556, 0.11576019, 0.16681688],
-           [0.1462744 , 0.5558091 , 0.6741673 ],
-           [0.31889647, 0.5030935 , 0.8983455 ]], dtype=float32)
+    array([[1.0056997e-01, 7.1476221e-01, 8.4402794e-03],
+           [2.0575060e-01, 6.0277432e-01, 9.9980509e-01],
+           [5.0928622e-01, 9.9682516e-01, 2.5297114e-01],
+           [8.1423974e-01, 1.3696136e-04, 1.7226782e-03],
+           [4.9179700e-01, 3.6426693e-01, 2.5939482e-01],
+           [2.9276401e-01, 5.1423055e-01, 6.9928057e-02],
+           [2.7819740e-02, 5.8434740e-02, 9.1396523e-01],
+           [2.3299269e-01, 5.5487525e-01, 2.0763622e-01]], dtype=float32)
 
 ### 5. Remove temporary attributes
 
@@ -561,7 +561,7 @@ except db.NamedAttributeError as e:
     print(e)
 ```
 
-    The selected attribute 'my_attr' does not exist on the object. Available attributes: ['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', '.uv_select_edge', '.uv_select_face', '.uv_select_vert', 'UVMap', 'edge_attr', 'face_attr', 'position', 'sharp_face', 'test', 'vertex_attr']
+    The selected attribute 'my_attr' does not exist on the object. Available attributes: ['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', '.uv_select_edge', '.uv_select_face', '.uv_select_vert', 'UVMap', 'edge_attr', 'face_attr', 'position', 'sharp_face', 'vertex_attr']
 
 ## See also
 
