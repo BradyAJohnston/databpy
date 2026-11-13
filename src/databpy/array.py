@@ -478,22 +478,27 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         ----------
         data : npt.ArrayLike
             The values, with one value per element of the domain they will be stored
-            on.
+            on, or a single value such as `db.color([1, 0.5, 0, 1])` to store for
+            every element.
 
         Raises
         ------
         ValueError
-            If the data doesn't have the shape of an array of this type.
+            If the data doesn't have the shape of an array of this type, or of one
+            value of it.
         AttributeMismatchError
             If the values can't be represented by this type.
         """
         arr = np.asarray(data)
         value_shape = cls._value_shape
-        if arr.ndim != 1 + len(value_shape) or arr.shape[1:] != value_shape:
+        if arr.shape != value_shape and (
+            arr.ndim != 1 + len(value_shape) or arr.shape[1:] != value_shape
+        ):
             expected = ("N", *value_shape)
             raise ValueError(
                 f"`{cls.__name__}` needs data of shape ({', '.join(map(str, expected))}"
-                f"{',' if not value_shape else ''}), not {arr.shape}."
+                f"{',' if not value_shape else ''}), or {value_shape} for a single "
+                f"value, not {arr.shape}."
             )
         if cls.atype != AttributeTypes.STRING:
             _check_storable(arr, cls.atype)

@@ -385,7 +385,7 @@ class AttributeDomainView:
         self._check_domain(name)
         return self._bob[key]
 
-    def __setitem__(self, name: str, data: np.ndarray) -> None:
+    def __setitem__(self, name: str, data: npt.ArrayLike) -> None:
         """
         Store an attribute on this domain, creating it if needed.
 
@@ -442,7 +442,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
 
     def store_named_attribute(
         self,
-        data: np.ndarray,
+        data: npt.ArrayLike,
         name: str,
         atype: AttributeTypeNames | AttributeTypes | None = None,
         domain: DomainNames | AttributeDomains | None = None,
@@ -452,8 +452,9 @@ class BlenderObjectAttribute(BlenderObjectBase):
 
         Parameters
         ----------
-        data : np.ndarray
-            The data to be stored as an attribute.
+        data : npt.ArrayLike
+            The data to be stored as an attribute, with one value per element, or a
+            single value for every element.
         name : str
             The name for the attribute. An existing attribute with this name is
             overwritten, keeping its type and domain.
@@ -763,7 +764,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
             _check_array_type(name, type(arr).atype, atype)
         return arr
 
-    def __setitem__(self, name: str, data: np.ndarray) -> None:
+    def __setitem__(self, name: str, data: npt.ArrayLike) -> None:
         """
         Set a named attribute using dictionary-style syntax.
 
@@ -776,8 +777,9 @@ class BlenderObjectAttribute(BlenderObjectBase):
         ----------
         name : str
             The name of the attribute to set.
-        data : np.ndarray
-            The data to store in the attribute.
+        data : npt.ArrayLike
+            The data to store in the attribute, with one value per element, or a
+            single value for every element.
 
         Raises
         ------
