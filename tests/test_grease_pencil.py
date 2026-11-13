@@ -1,3 +1,5 @@
+from typing import assert_type
+
 import bpy
 import numpy as np
 import pytest
@@ -106,3 +108,37 @@ def test_layer_attributes_created_by_blender(gp_obj: bpy.types.Object):
     assert bob["tint"].shape == (2, 4)
     bob["tint"] = np.ones((2, 4))
     np.testing.assert_allclose(bob["tint"], 1)
+
+
+def test_layer_view(gp_obj: bpy.types.Object):
+    bob = db.BlenderObject(gp_obj)
+    assert len(bob.layer) == 2
+    # the points and strokes aren't on the object, so these views are empty
+    assert len(bob.point) == 0
+    assert len(bob.curve) == 0
+    assert bob.point.list_attributes() == []
+
+    bob.layer["weight"] = db.float32(np.array([0.5, 1.0]))
+    assert "weight" in bob.layer
+    assert bob.layer.list_attributes() == ["weight"]
+
+    weight = bob.layer["weight", db.float32]
+    assert_type(weight, db.float32)
+    weight[1] = 2.0
+    np.testing.assert_allclose(db.named_attribute(gp_obj, "weight"), [0.5, 2.0])
+
+    with pytest.raises(db.NamedAttributeError, match="FLOAT"):
+        bob.layer["weight", db.vec3]
+    with pytest.raises(db.NamedAttributeError, match="POINT"):
+        bob.point["x"] = np.zeros(12)
+
+
+def test_layer_view_reads_typed_arrays(gp_obj: bpy.types.Object):
+    bob = db.BlenderObject(gp_obj)
+    bob.layer["id"] = np.array([1, 2])
+    assert type(bob.layer["id"]) is db.int32
+
+    _data(gp_obj).attributes.new("tint", "FLOAT_COLOR", "LAYER")
+    assert bob.layer["tint", db.color].shape == (2, 4)
+    bob.layer["tint"] = db.color(np.ones((2, 4)))
+    np.testing.assert_allclose(bob.layer["tint"], 1)

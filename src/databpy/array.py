@@ -1,7 +1,8 @@
-from typing import Self
+from typing import Any, ClassVar, Self
 
 import bpy
 import numpy as np
+import numpy.typing as npt
 
 from .addon import find_by_session_uid, session_token
 from .attribute import (
@@ -12,7 +13,9 @@ from .attribute import (
     _as_typed_attribute,
     _attribute_data,
     _attribute_memory,
+    _check_storable,
     _trigger_data_update,
+    _value_shape,
     store_named_attribute,
 )
 from .errors import LinkedObjectError
@@ -54,7 +57,9 @@ class _AttributeLink:
 _WRITING_FUNCTIONS = {np.copyto, np.place, np.putmask, np.fill_diagonal}
 
 
-class AttributeArray(np.ndarray):
+class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
+    np.ndarray[ShapeT, DTypeT]
+):
     """
     A numpy array of an attribute's values that writes changes back to Blender.
 
@@ -160,7 +165,10 @@ class AttributeArray(np.ndarray):
     named_attribute : Read an attribute's values as a plain numpy array
     """
 
-    def __new__(cls, obj: bpy.types.Object, name: str) -> Self:
+    # the attribute type of a typed subclass such as `vec3`, None for this base class
+    atype: ClassVar[AttributeTypes | None] = None
+
+    def __new__(cls, obj: bpy.types.Object, name: str) -> "AttributeArray[Any, Any]":
         """Create a new AttributeArray that wraps a Blender attribute.
 
         Parameters
@@ -192,7 +200,8 @@ class AttributeArray(np.ndarray):
                 f"The attribute '{name}' does not exist on '{obj.name}'. "
                 f"Available attributes: {sorted(data.attributes.keys())}"
             ) from None
-        arr = np.asarray(attr.as_array()).view(cls)
+        # the array is the typed subclass for the attribute's type, such as `vec3`
+        arr = np.asarray(attr.as_array()).view(ARRAY_TYPES[attr.atype])
         arr._link = _AttributeLink(obj, attr)
         return arr
 
@@ -271,7 +280,7 @@ class AttributeArray(np.ndarray):
                 target._sync_to_blender()
         return result
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value):  # ty: ignore[invalid-method-override]
         """Set the values at `key` and write them to Blender."""
         if self._is_writeback(key, value):
             # `pos[:, 2] += 1` assigns the already modified and synced view back to
@@ -313,7 +322,7 @@ class AttributeArray(np.ndarray):
         super().put(*args, **kwargs)
         self._sync_to_blender()
 
-    def partition(self, *args, **kwargs):
+    def partition(self, *args, **kwargs):  # ty: ignore[invalid-method-override]
         """Partition the array in-place and sync to Blender."""
         super().partition(*args, **kwargs)
         self._sync_to_blender()
@@ -433,3 +442,177 @@ class AttributeArray(np.ndarray):
             f"domain={domain_name}, type={type_name}, shape={self.shape}, dtype={self.dtype})\n"
             f"{array_repr}"
         )
+
+
+class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
+    AttributeArray[ShapeT, DTypeT]
+):
+    """Base for arrays that declare the attribute type they are stored as."""
+
+    atype: ClassVar[AttributeTypes]
+    # the shape of a single value, () for single values
+    _value_shape: ClassVar[tuple[int, ...]]
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._value_shape = _value_shape(cls.atype)
+
+    def __getitem__(self, key):  # ty: ignore[invalid-method-override]
+        """Index the array, keeping this type only while it has that shape."""
+        out = super().__getitem__(key)
+        # `vec[:, 0]` is still a view that syncs, but no longer an array of vectors.
+        # Assigning the class avoids `view()` re-running `__array_finalize__`.
+        if type(out) is type(self) and (
+            out.ndim != 1 + len(self._value_shape) or out.shape[1:] != self._value_shape
+        ):
+            out.__class__ = AttributeArray
+        return out
+
+    def __new__(cls, data: npt.ArrayLike) -> Self:
+        """
+        Wrap values as an array of this attribute type, ready to be stored.
+
+        The values are only copied if they need casting to the storage dtype.
+
+        Parameters
+        ----------
+        data : npt.ArrayLike
+            The values, with one value per element of the domain they will be stored
+            on, or a single value such as `db.color([1, 0.5, 0, 1])` to store for
+            every element.
+
+        Raises
+        ------
+        ValueError
+            If the data doesn't have the shape of an array of this type, or of one
+            value of it.
+        AttributeMismatchError
+            If the values can't be represented by this type.
+        """
+        arr = np.asarray(data)
+        value_shape = cls._value_shape
+        if arr.shape != value_shape and (
+            arr.ndim != 1 + len(value_shape) or arr.shape[1:] != value_shape
+        ):
+            expected = ("N", *value_shape)
+            raise ValueError(
+                f"`{cls.__name__}` needs data of shape ({', '.join(map(str, expected))}"
+                f"{',' if not value_shape else ''}), or {value_shape} for a single "
+                f"value, not {arr.shape}."
+            )
+        if cls.atype != AttributeTypes.STRING:
+            _check_storable(arr, cls.atype)
+        # a plain view, so that wrapping an AttributeArray gives an unlinked array
+        return arr.astype(cls.atype.value.dtype, copy=False).view(np.ndarray).view(cls)
+
+
+type _Shape1 = tuple[int]
+type _Shape2 = tuple[int, int]
+type _Shape3 = tuple[int, int, int]
+type _Float32 = np.dtype[np.float32]
+type _Int32 = np.dtype[np.int32]
+
+
+class float32(_TypedArray[_Shape1, _Float32]):
+    """A `FLOAT` attribute: one float32 value per element."""
+
+    atype = AttributeTypes.FLOAT
+
+
+class vec2(_TypedArray[_Shape2, _Float32]):
+    """A `FLOAT2` attribute: a 2D float32 vector per element."""
+
+    atype = AttributeTypes.FLOAT2
+
+
+class vec3(_TypedArray[_Shape2, _Float32]):
+    """A `FLOAT_VECTOR` attribute: a 3D float32 vector per element."""
+
+    atype = AttributeTypes.FLOAT_VECTOR
+
+
+class vec4(_TypedArray[_Shape2, _Float32]):
+    """A `FLOAT4` attribute: a 4D float32 vector per element (Blender 5.2+)."""
+
+    atype = AttributeTypes.FLOAT4
+
+
+class color(_TypedArray[_Shape2, _Float32]):
+    """A `FLOAT_COLOR` attribute: a linear RGBA float32 color per element."""
+
+    atype = AttributeTypes.FLOAT_COLOR
+
+
+class color8(_TypedArray[_Shape2, np.dtype[np.uint8]]):
+    """A `BYTE_COLOR` attribute: an sRGB RGBA uint8 color per element."""
+
+    atype = AttributeTypes.BYTE_COLOR
+
+
+class quat(_TypedArray[_Shape2, _Float32]):
+    """A `QUATERNION` attribute: a (w, x, y, z) float32 rotation per element."""
+
+    atype = AttributeTypes.QUATERNION
+
+
+class mat4(_TypedArray[_Shape3, _Float32]):
+    """A `FLOAT4X4` attribute: a row-major 4x4 float32 matrix per element."""
+
+    atype = AttributeTypes.FLOAT4X4
+
+
+class int32(_TypedArray[_Shape1, _Int32]):
+    """An `INT` attribute: one int32 value per element."""
+
+    atype = AttributeTypes.INT
+
+
+class int8(_TypedArray[_Shape1, np.dtype[np.int8]]):
+    """An `INT8` attribute: one int8 value per element."""
+
+    atype = AttributeTypes.INT8
+
+
+class sivec2(_TypedArray[_Shape2, np.dtype[np.int16]]):
+    """An `INT16_2D` attribute: a 2D int16 vector per element."""
+
+    atype = AttributeTypes.INT16_2D
+
+
+class ivec2(_TypedArray[_Shape2, _Int32]):
+    """An `INT32_2D` attribute: a 2D int32 vector per element."""
+
+    atype = AttributeTypes.INT32_2D
+
+
+class boolean(_TypedArray[_Shape1, np.dtype[np.bool]]):
+    """A `BOOLEAN` attribute: one bool per element."""
+
+    atype = AttributeTypes.BOOLEAN
+
+
+class string(_TypedArray[_Shape1, np.dtype[np.str_]]):
+    """A `STRING` attribute: one string per element."""
+
+    atype = AttributeTypes.STRING
+
+
+ARRAY_TYPES: dict[AttributeTypes, type[AttributeArray]] = {
+    cls.atype: cls
+    for cls in (
+        float32,
+        vec2,
+        vec3,
+        vec4,
+        color,
+        color8,
+        quat,
+        mat4,
+        int32,
+        int8,
+        sivec2,
+        ivec2,
+        boolean,
+        string,
+    )
+}

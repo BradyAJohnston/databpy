@@ -2,7 +2,23 @@ from typing import TYPE_CHECKING
 
 from . import collection, utils
 from .addon import register, unregister
-from .array import AttributeArray
+from .array import (
+    AttributeArray,
+    boolean,
+    color,
+    color8,
+    float32,
+    int8,
+    int32,
+    ivec2,
+    mat4,
+    quat,
+    sivec2,
+    string,
+    vec2,
+    vec3,
+    vec4,
+)
 from .attribute import (
     Attribute,
     AttributeDomains,
@@ -19,9 +35,10 @@ from .attribute import (
 )
 from .collection import create_collection, move_to_collection
 from .errors import DatabpyError
-from .geometry import GeometrySet
+from .geometry import GeometrySet, InstanceDomainView
 from .object import (
     BOB,
+    AttributeDomainView,
     BlenderObject,
     BlenderObjectAttribute,
     BlenderObjectBase,
@@ -53,6 +70,7 @@ __all__ = [
     "BOB",
     "Attribute",
     "AttributeArray",
+    "AttributeDomainView",
     "AttributeDomains",
     "AttributeMismatchError",
     "AttributeNotFoundError",
@@ -63,14 +81,18 @@ __all__ = [
     "BlenderObjectBase",
     "DatabpyError",
     "GeometrySet",
+    "InstanceDomainView",
     "LinkedObjectError",
     "NamedAttributeError",
     "ObjectTracker",
     "active_object",
     "active_scene",
     "bdo",
+    "boolean",
     "centre",
     "collection",
+    "color",
+    "color8",
     "create_bob",
     "create_collection",
     "create_curves_object",
@@ -80,20 +102,31 @@ __all__ = [
     "create_pointcloud_object",
     "curves_data",
     "evaluate_object",
+    "float32",
     "import_vdb",
+    "int8",
+    "int32",
+    "ivec2",
     "lerp",
     "list_attributes",
+    "mat4",
     "mesh_data",
     "move_to_collection",
     "named_attribute",
     "pointcloud_data",
+    "quat",
     "register",
     "remove_named_attribute",
     "require",
     "require_data",
+    "sivec2",
     "store_named_attribute",
+    "string",
     "unregister",
     "utils",
+    "vec2",
+    "vec3",
+    "vec4",
     "volume_data",
 ]
 

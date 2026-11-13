@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import TYPE_CHECKING, Literal, overload
 
 import bpy
 import numpy as np
@@ -9,7 +9,11 @@ from .attribute import (
     AttributeDataBlock,
     AttributeNotFoundError,
     NamedAttributeError,
+    _check_array_type,
 )
+
+if TYPE_CHECKING:
+    from .array import AttributeArray
 
 GeometryComponents = Literal["MESH", "POINTCLOUD", "CURVES", "INSTANCES"]
 
@@ -20,6 +24,100 @@ def _is_empty(data: AttributeDataBlock) -> bool:
     if isinstance(data, (bpy.types.PointCloud, bpy.types.Curves)):
         return len(data.points) == 0
     return False
+
+
+def _as_array(
+    name: str, attribute: Attribute, atype: "type[AttributeArray] | None"
+) -> np.ndarray:
+    if atype is None:
+        return attribute.as_array()
+    _check_array_type(name, attribute.atype, atype)
+    return attribute.as_array().view(atype)
+
+
+class InstanceDomainView:
+    """
+    Read-only dictionary-style access to the INSTANCE domain of evaluated geometry.
+
+    Available on a `GeometrySet` as `instance`. Instance attributes only exist in
+    evaluated geometry, and the values are a copy, so they can be read but not
+    written.
+
+    Examples
+    --------
+    ```
+    geom = db.GeometrySet(obj)
+    geom.instance["instance_transform", db.mat4]
+    geom.instance.list_attributes()
+    ```
+    """
+
+    def __init__(self, geometry: "GeometrySet"):
+        self._geometry = geometry
+
+    def _pointcloud(self) -> bpy.types.PointCloud | None:
+        pointcloud = self._geometry.instances
+        if pointcloud is None or len(pointcloud.points) == 0:
+            return None
+        return pointcloud
+
+    def __len__(self) -> int:
+        """The number of instances, 0 if the geometry doesn't have any."""
+        pointcloud = self._pointcloud()
+        return 0 if pointcloud is None else len(pointcloud.points)
+
+    @overload
+    def __getitem__[T: AttributeArray](self, key: tuple[str, type[T]]) -> T: ...
+    @overload
+    def __getitem__(self, key: str) -> np.ndarray: ...
+    def __getitem__(self, key: "str | tuple[str, type[AttributeArray]]"):
+        """
+        Get the values of an instance attribute, as `geom.instance["name"]`.
+
+        Index with a typed array class, as `geom.instance["name", db.mat4]`, to check
+        the attribute's type and have type checkers see the array as that class.
+
+        Raises
+        ------
+        AttributeNotFoundError
+            If there are no instances, or the attribute doesn't exist on them.
+        NamedAttributeError
+            If the attribute isn't the given type.
+        """
+        name, atype = key if isinstance(key, tuple) else (key, None)
+        pointcloud = self._pointcloud()
+        if pointcloud is None or name not in pointcloud.attributes:
+            raise AttributeNotFoundError(
+                f"The attribute '{name}' does not exist on the instances. "
+                f"Available attributes: {self.list_attributes()}"
+            )
+        return _as_array(name, Attribute(pointcloud.attributes[name]), atype)
+
+    def __setitem__(self, name: str, data: np.ndarray) -> None:
+        raise TypeError(
+            "Instance attributes of evaluated geometry are read-only. Store them in "
+            "Geometry Nodes instead."
+        )
+
+    def __contains__(self, name: str) -> bool:
+        return name in self.list_attributes()
+
+    def list_attributes(self, drop_hidden: bool = False) -> list[str]:
+        """List the names of the instance attributes."""
+        pointcloud = self._pointcloud()
+        if pointcloud is None:
+            return []
+        return sorted(
+            a.name
+            for a in pointcloud.attributes
+            if not (drop_hidden and a.name.startswith("."))
+        )
+
+    def _ipython_key_completions_(self) -> list[str]:
+        return self.list_attributes()
+
+    def __repr__(self) -> str:
+        return f"<InstanceDomainView of {self._geometry.object.name!r}>"
 
 
 class GeometrySet:
@@ -47,6 +145,14 @@ class GeometrySet:
         The evaluated object from the depsgraph.
     geometry : bpy.types.GeometrySet
         The underlying evaluated geometry.
+
+    Notes
+    -----
+    The evaluated geometry is a snapshot from when the `GeometrySet` was created, and
+    doesn't change when the object is changed afterwards. Its components, such as
+    `mesh` and `instances`, are owned by the `GeometrySet` and freed with it, so keep
+    a reference to it while using them. `db.GeometrySet(obj).mesh.vertices` raises a
+    `ReferenceError`, as the `GeometrySet` is freed before the mesh is used.
 
     Examples
     --------
@@ -119,6 +225,11 @@ class GeometrySet:
         return pointcloud
 
     @property
+    def instance(self) -> InstanceDomainView:
+        """Read-only access to the attributes on the INSTANCE domain."""
+        return InstanceDomainView(self)
+
+    @property
     def instance_references(self) -> list:
         """The geometries, objects or collections referenced by the instances."""
         return self.geometry.instance_references()
@@ -184,8 +295,28 @@ class GeometrySet:
             for name, data in self.components().items()
         }
 
+    @overload
     def named_attribute(
-        self, name: str, component: GeometryComponents | None = None
+        self,
+        name: str,
+        component: GeometryComponents | None = None,
+        *,
+        atype: None = None,
+    ) -> np.ndarray: ...
+    @overload
+    def named_attribute[T: AttributeArray](
+        self,
+        name: str,
+        component: GeometryComponents | None = None,
+        *,
+        atype: type[T],
+    ) -> T: ...
+    def named_attribute(
+        self,
+        name: str,
+        component: GeometryComponents | None = None,
+        *,
+        atype: "type[AttributeArray] | None" = None,
     ) -> np.ndarray:
         """
         Get named attribute data from the evaluated geometry.
@@ -198,23 +329,27 @@ class GeometrySet:
             The component to read the attribute from. If None, the components are
             searched in order (MESH, POINTCLOUD, CURVES, INSTANCES) and the first
             that has the attribute is used.
+        atype : type[AttributeArray] or None, optional
+            The typed array class the attribute is expected to be, such as `vec3`.
+            The values are returned as that class, which type checkers also see.
 
         Returns
         -------
         np.ndarray
-            The attribute data as a numpy array.
+            The attribute data as a numpy array, or an array of `atype` if given.
 
         Raises
         ------
         AttributeNotFoundError
             If the attribute does not exist on the given (or any) component.
         NamedAttributeError
-            If the given component isn't present.
+            If the given component isn't present, or the attribute found isn't
+            `atype`. Without a component, only the first attribute found is checked.
         """
         if component is None:
             for data in self.components().values():
                 if name in data.attributes:
-                    return Attribute(data.attributes[name]).as_array()
+                    return _as_array(name, Attribute(data.attributes[name]), atype)
             raise AttributeNotFoundError(
                 f"The attribute '{name}' does not exist on any component of the "
                 f"evaluated geometry. Available attributes: {self.list_attributes()}"
@@ -228,7 +363,7 @@ class GeometrySet:
                 f"The attribute '{name}' does not exist on the {component} component. "
                 f"Available attributes: {sorted(data.attributes.keys())}"
             )
-        return Attribute(attribute).as_array()
+        return _as_array(name, Attribute(attribute), atype)
 
     def __repr__(self) -> str:
         lines = [f"GeometrySet of '{self.object.name}'"]
