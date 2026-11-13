@@ -19,6 +19,7 @@ website:
       - api/vec3.qmd
       - api/vec4.qmd
       - api/color.qmd
+      - api/srgb.qmd
       - api/color8.qmd
       - api/quat.qmd
       - api/mat4.qmd

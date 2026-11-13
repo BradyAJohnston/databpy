@@ -92,6 +92,7 @@ quartodoc:
         - vec3
         - vec4
         - color
+        - srgb
         - color8
         - quat
         - mat4

@@ -1076,6 +1076,9 @@ def store_named_attribute(
     # typed arrays such as `vec3(...)` declare the attribute type they are stored as
     declared = _declared_atype(data)
     single = _is_single_value(data)
+    if declared is not None and type(data)._converted:  # ty: ignore[unresolved-attribute]
+        # e.g. sRGB colors, which Blender stores as linear colors
+        data = type(data)._encode(np.asarray(data))  # ty: ignore[unresolved-attribute]
     data = np.asarray(data)
     if single:
         # one row, which is broadcast to every element once the domain is known
@@ -1287,7 +1290,14 @@ def named_attribute(
     if atype is None:
         return attr.as_array()
     _check_array_type(name, attr.atype, atype)
-    return attr.as_array().view(atype)
+    return _as_typed_values(attr.as_array(), atype)
+
+
+def _as_typed_values(values: np.ndarray, atype: "type[AttributeArray]") -> np.ndarray:
+    """View values read from an attribute as a typed array, converting if it needs."""
+    if atype._converted:
+        values = atype._decode(values)
+    return values.view(atype)
 
 
 def _check_array_type(

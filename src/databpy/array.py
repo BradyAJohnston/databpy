@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import Any, ClassVar, Self
 
 import bpy
@@ -35,6 +36,9 @@ class _AttributeLink:
         self.name: str = attribute.name
         self.atype: AttributeTypes = attribute.atype
         self.domain: AttributeDomains = attribute.domain
+        # converts the array's values to how they are stored, for arrays such as
+        # `srgb` whose values aren't stored as they are
+        self.encode: Callable[[np.ndarray], np.ndarray] | None = None
 
     def resolve(self) -> bpy.types.Object:
         if self.session_token != session_token():
@@ -167,6 +171,18 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
 
     # the attribute type of a typed subclass such as `vec3`, None for this base class
     atype: ClassVar[AttributeTypes | None] = None
+    # whether the values are converted when stored and read, as for `srgb`
+    _converted: ClassVar[bool] = False
+
+    @staticmethod
+    def _encode(values: np.ndarray) -> np.ndarray:
+        """Convert values to how they are stored in Blender."""
+        return values
+
+    @staticmethod
+    def _decode(values: np.ndarray) -> np.ndarray:
+        """Convert values stored in Blender to the values of this array type."""
+        return values
 
     def __new__(cls, obj: bpy.types.Object, name: str) -> "AttributeArray[Any, Any]":
         """Create a new AttributeArray that wraps a Blender attribute.
@@ -343,9 +359,10 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         obj = link.resolve()
         root = self._root_array
         if not self._write_directly(obj, link, root, key):
+            values = root.view(np.ndarray)
             store_named_attribute(
                 obj,
-                root.view(np.ndarray),
+                values if link.encode is None else link.encode(values),
                 name=link.name,
                 atype=link.atype,
                 domain=link.domain,
@@ -378,6 +395,13 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             layout = np.swapaxes(memory, -1, -2)
         if layout.shape != root.shape or layout.strides != root.strides:
             return False
+
+        if link.encode is not None:
+            # a view doesn't know which channels it holds, which can be converted
+            # differently, so the whole array is converted and written
+            layout[...] = link.encode(root.view(np.ndarray))
+            _trigger_data_update(obj_data)
+            return True
 
         # this array is a view into the root array, so the same view into Blender's
         # memory covers exactly the values this array holds
@@ -506,6 +530,35 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         return arr.astype(cls.atype.value.dtype, copy=False).view(np.ndarray).view(cls)
 
 
+def _srgb_to_linear(values: np.ndarray) -> np.ndarray:
+    """Convert sRGB RGBA colors to linear, leaving alpha as it is."""
+    out = np.array(values, dtype=np.float32)
+    rgb = out[..., :3]
+    # the linear segment is extended below 0, so negative values convert both ways
+    curve = ((np.maximum(rgb, 0.04045) + 0.055) / 1.055) ** 2.4
+    out[..., :3] = np.where(rgb < 0.04045, rgb / 12.92, curve)
+    return out
+
+
+def _linear_to_srgb(values: np.ndarray) -> np.ndarray:
+    """Convert linear RGBA colors to sRGB, leaving alpha as it is."""
+    out = np.array(values, dtype=np.float32)
+    rgb = out[..., :3]
+    curve = 1.055 * np.maximum(rgb, 0.0031308) ** (1 / 2.4) - 0.055
+    out[..., :3] = np.where(rgb < 0.0031308, rgb * 12.92, curve)
+    return out
+
+
+def _as_converted[T: AttributeArray](arr: AttributeArray, cls: type[T]) -> T:
+    """Convert an array read from Blender to `cls`, which converts it back on sync."""
+    values = arr.view(np.ndarray)
+    values[...] = cls._decode(values)
+    arr.__class__ = cls
+    if arr._link is not None:
+        arr._link.encode = cls._encode
+    return arr  # ty: ignore[invalid-return-type]
+
+
 type _Shape1 = tuple[int]
 type _Shape2 = tuple[int, int]
 type _Shape3 = tuple[int, int, int]
@@ -541,6 +594,42 @@ class color(_TypedArray[_Shape2, _Float32]):
     """A `FLOAT_COLOR` attribute: a linear RGBA float32 color per element."""
 
     atype = AttributeTypes.FLOAT_COLOR
+
+
+class srgb(_TypedArray[_Shape2, _Float32]):
+    """
+    A `FLOAT_COLOR` attribute as sRGB RGBA float32 colors.
+
+    Blender stores color attributes as linear colors. The values of this array are
+    sRGB, and are converted to linear when they are stored, and from linear when they
+    are read as `bob["name", db.srgb]`. Alpha isn't converted. Results of math on an
+    `srgb` array are also `srgb` arrays, so that they are still converted when
+    stored.
+    """
+
+    atype = AttributeTypes.FLOAT_COLOR
+    _converted = True
+
+    @staticmethod
+    def _encode(values: np.ndarray) -> np.ndarray:
+        return _srgb_to_linear(values)
+
+    @staticmethod
+    def _decode(values: np.ndarray) -> np.ndarray:
+        return _linear_to_srgb(values)
+
+    def __array_ufunc__(self, ufunc, method, *inputs, out=None, **kwargs):
+        """Keep the results of elementwise math as sRGB colors."""
+        result = super().__array_ufunc__(ufunc, method, *inputs, out=out, **kwargs)
+        if (
+            out is None
+            and method == "__call__"
+            and isinstance(result, np.ndarray)
+            and result.dtype.kind == "f"
+            and result.shape == self.shape
+        ):
+            return result.astype(np.float32, copy=False).view(srgb)
+        return result
 
 
 class color8(_TypedArray[_Shape2, np.dtype[np.uint8]]):
