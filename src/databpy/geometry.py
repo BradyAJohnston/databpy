@@ -146,6 +146,14 @@ class GeometrySet:
     geometry : bpy.types.GeometrySet
         The underlying evaluated geometry.
 
+    Notes
+    -----
+    The evaluated geometry is a snapshot from when the `GeometrySet` was created, and
+    doesn't change when the object is changed afterwards. Its components, such as
+    `mesh` and `instances`, are owned by the `GeometrySet` and freed with it, so keep
+    a reference to it while using them. `db.GeometrySet(obj).mesh.vertices` raises a
+    `ReferenceError`, as the `GeometrySet` is freed before the mesh is used.
+
     Examples
     --------
     ```{python}
