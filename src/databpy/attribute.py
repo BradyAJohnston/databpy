@@ -915,6 +915,48 @@ def _match_domain(domain: DomainNames | AttributeDomains) -> DomainNames:
     return domain
 
 
+def _write_data(
+    attribute: PossibleAttributeTypes,
+    data: np.ndarray,
+    atype: AttributeTypes,
+    domain: str,
+) -> None:
+    """Check data fits an attribute, and write it to the attribute."""
+    target_atype = AttributeTypes[attribute.data_type]
+
+    # Calculate expected shape for the attribute
+    expected_shape = (len(attribute.data), *target_atype.value.dimensions)
+
+    # Check if we need to reshape the data
+    if data.shape != expected_shape:
+        # Check if total number of elements matches
+        expected_size = np.prod(expected_shape)
+        if data.size != expected_size:
+            raise NamedAttributeError(
+                f"Data size {data.size} (shape {data.shape}) does not match the required size {expected_size} "
+                f"for domain `{domain}` with {len(attribute.data)} elements and dimensions {target_atype.value.dimensions}"
+            )
+
+        # Try to reshape the data
+        try:
+            data = data.reshape(expected_shape)
+        except ValueError as e:
+            raise NamedAttributeError(
+                f"Data shape {data.shape} cannot be reshaped to expected shape {expected_shape}: {e}"
+            )
+
+    if target_atype != atype:
+        raise NamedAttributeError(
+            f"Attribute being written to: `{attribute.name}` of type `{target_atype.value.type_name}` does not match the type for the given data: `{atype.value.type_name}`"
+        )
+
+    if atype == AttributeTypes.STRING:
+        _write_string_values(attribute, data)
+    else:
+        # the 'foreach_set' requires a 1D array, regardless of the shape of the attribute
+        _write_values(attribute, atype, _as_storage_array(data, atype))
+
+
 def store_named_attribute(
     obj: bpy.types.Object,
     data: npt.ArrayLike,
@@ -1031,39 +1073,14 @@ def store_named_attribute(
             )
         attribute = _as_typed_attribute(new_attribute)
 
-    target_atype = AttributeTypes[attribute.data_type]
-
-    # Calculate expected shape for the attribute
-    expected_shape = (len(attribute.data), *target_atype.value.dimensions)
-
-    # Check if we need to reshape the data
-    if data.shape != expected_shape:
-        # Check if total number of elements matches
-        expected_size = np.prod(expected_shape)
-        if data.size != expected_size:
-            raise NamedAttributeError(
-                f"Data size {data.size} (shape {data.shape}) does not match the required size {expected_size} "
-                f"for domain `{domain}` with {len(attribute.data)} elements and dimensions {target_atype.value.dimensions}"
-            )
-
-        # Try to reshape the data
-        try:
-            data = data.reshape(expected_shape)
-        except ValueError as e:
-            raise NamedAttributeError(
-                f"Data shape {data.shape} cannot be reshaped to expected shape {expected_shape}: {e}"
-            )
-
-    if target_atype != atype:
-        raise NamedAttributeError(
-            f"Attribute being written to: `{attribute.name}` of type `{target_atype.value.type_name}` does not match the type for the given data: `{atype.value.type_name}`"
-        )
-
-    if atype == AttributeTypes.STRING:
-        _write_string_values(attribute, data)
-    else:
-        # the 'foreach_set' requires a 1D array, regardless of the shape of the attribute
-        _write_values(attribute, atype, _as_storage_array(data, atype))
+    try:
+        _write_data(attribute, data, atype, domain)
+    except Exception:
+        # don't leave behind an attribute that was created for data that couldn't
+        # be written to it
+        if existing_attribute is None:
+            obj_data.attributes.remove(attribute)
+        raise
 
     _trigger_data_update(obj_data)
 

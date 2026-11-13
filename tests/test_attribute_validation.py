@@ -127,3 +127,25 @@ def test_store_on_empty_geometry(create):
     obj = create()
     db.store_named_attribute(obj, np.zeros(0), "empty")
     assert "empty" in db.list_attributes(obj)
+
+
+@pytest.mark.parametrize(
+    "data, kwargs",
+    [
+        (np.zeros(5), {}),  # wrong number of values
+        (np.array([1, 0.5, 0, 1]), {}),
+        (np.full(8, 1000), {"atype": "INT8"}),  # values that don't fit
+    ],
+)
+def test_failed_store_leaves_no_attribute(cube, data, kwargs):
+    before = db.list_attributes(cube)
+    with pytest.raises(db.DatabpyError):
+        db.store_named_attribute(cube, data, "new", **kwargs)
+    assert db.list_attributes(cube) == before
+
+
+def test_failed_store_keeps_existing_attribute(cube):
+    db.store_named_attribute(cube, np.arange(8), "existing")
+    with pytest.raises(db.NamedAttributeError):
+        db.store_named_attribute(cube, np.zeros(5), "existing")
+    np.testing.assert_array_equal(db.named_attribute(cube, "existing"), np.arange(8))
