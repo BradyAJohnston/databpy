@@ -1,7 +1,7 @@
 import itertools
 import warnings
 from collections.abc import Iterable, Mapping, Sequence
-from typing import cast
+from typing import cast, overload
 from uuid import uuid1
 
 import bpy
@@ -24,7 +24,9 @@ from .attribute import (
     AttributeTypeNames,
     AttributeTypes,
     DomainNames,
+    NamedAttributeError,
     _as_typed_attribute,
+    _check_array_type,
     _check_obj_attributes,
     evaluate_object,
     list_attributes,
@@ -328,6 +330,92 @@ class BlenderObjectBase:
         self._object_name = obj.name
 
 
+class AttributeDomainView:
+    """
+    Dictionary-style access to the attributes on a single domain of an object.
+
+    Available on a `BlenderObject` as `point`, `edge`, `face`, `corner` and `curve`.
+    New attributes are stored on this domain, with their type inferred from the data.
+
+    Examples
+    --------
+    ```
+    bob.face["area"] = np.ones(len(bob.face))
+    bob.face["area"]  # AttributeArray of the face values
+    bob.face.list_attributes()
+    ```
+    """
+
+    def __init__(self, bob: "BlenderObjectAttribute", domain: AttributeDomains):
+        self._bob = bob
+        self.domain = domain
+
+    def _check_domain(self, name: str) -> None:
+        attribute = self._bob.attributes.get(name)
+        if attribute is not None and attribute.domain != self.domain.value:
+            raise NamedAttributeError(
+                f"Attribute `{name}` is on the `{attribute.domain}` domain, "
+                f"not `{self.domain.value}`."
+            )
+
+    def __len__(self) -> int:
+        """The number of elements in this domain, 0 if the geometry doesn't have it."""
+        return self._bob.attributes.domain_size(self.domain.value)
+
+    @overload
+    def __getitem__[T: AttributeArray](self, key: tuple[str, type[T]]) -> T: ...
+    @overload
+    def __getitem__(self, key: str) -> AttributeArray: ...
+    def __getitem__(self, key: str | tuple[str, type[AttributeArray]]):
+        """
+        Get an attribute on this domain, as `bob.face["name"]`.
+
+        Index with a typed array class, as `bob.face["name", db.vec3]`, to check the
+        attribute's type and have type checkers see the array as that class.
+
+        Raises
+        ------
+        NamedAttributeError
+            If the attribute exists on a different domain, or isn't the given type.
+        AttributeNotFoundError
+            If the attribute doesn't exist.
+        """
+        name = key[0] if isinstance(key, tuple) else key
+        self._check_domain(name)
+        return self._bob[key]
+
+    def __setitem__(self, name: str, data: np.ndarray) -> None:
+        """
+        Store an attribute on this domain, creating it if needed.
+
+        Raises
+        ------
+        NamedAttributeError
+            If the attribute exists on a different domain, or the data length doesn't
+            match the domain size.
+        """
+        self._check_domain(name)
+        self._bob.store_named_attribute(data, name, domain=self.domain)
+
+    def __contains__(self, name: str) -> bool:
+        return name in self.list_attributes()
+
+    def list_attributes(self, drop_hidden: bool = False) -> list[str]:
+        """List the names of the attributes on this domain."""
+        return [
+            a.name
+            for a in self._bob.attributes
+            if a.domain == self.domain.value
+            and not (drop_hidden and a.name.startswith("."))
+        ]
+
+    def _ipython_key_completions_(self) -> list[str]:
+        return self.list_attributes()
+
+    def __repr__(self) -> str:
+        return f"<AttributeDomainView {self.domain.value} of {self._bob.name!r}>"
+
+
 class BlenderObjectAttribute(BlenderObjectBase):
     """
     Minimal base class for Blender objects with attribute access.
@@ -418,7 +506,21 @@ class BlenderObjectAttribute(BlenderObjectBase):
         self._check_obj()
         attr.remove_named_attribute(self.object, name=name)
 
-    def named_attribute(self, name: str, evaluate: bool = False) -> np.ndarray:
+    @overload
+    def named_attribute(
+        self, name: str, evaluate: bool = False, *, atype: None = None
+    ) -> np.ndarray: ...
+    @overload
+    def named_attribute[T: AttributeArray](
+        self, name: str, evaluate: bool = False, *, atype: type[T]
+    ) -> T: ...
+    def named_attribute(
+        self,
+        name: str,
+        evaluate: bool = False,
+        *,
+        atype: type[AttributeArray] | None = None,
+    ) -> np.ndarray:
         """
         Read a named attribute from the object as a numpy array.
 
@@ -429,19 +531,26 @@ class BlenderObjectAttribute(BlenderObjectBase):
         evaluate : bool, optional
             Whether to evaluate the object's modifiers before reading the attribute.
             Defaults to False.
+        atype : type[AttributeArray] or None, optional
+            The typed array class the attribute is expected to be, such as `vec3`.
 
         Returns
         -------
         np.ndarray
-            A copy of the attribute's values, which doesn't sync back to Blender.
+            A copy of the attribute's values, which doesn't sync back to Blender, as an
+            array of `atype` if given.
 
         Raises
         ------
         AttributeNotFoundError
             If the attribute doesn't exist.
+        NamedAttributeError
+            If the attribute's type doesn't match `atype`.
         """
         self._check_obj()
-        return attr.named_attribute(self.object, name=name, evaluate=evaluate)
+        return attr.named_attribute(
+            self.object, name=name, evaluate=evaluate, atype=atype
+        )
 
     @property
     def data(self):
@@ -503,6 +612,31 @@ class BlenderObjectAttribute(BlenderObjectBase):
             atype=AttributeTypes.FLOAT_VECTOR,
             domain=AttributeDomains.POINT,
         )
+
+    @property
+    def point(self) -> AttributeDomainView:
+        """Attributes on the POINT domain."""
+        return AttributeDomainView(self, AttributeDomains.POINT)
+
+    @property
+    def edge(self) -> AttributeDomainView:
+        """Attributes on the EDGE domain."""
+        return AttributeDomainView(self, AttributeDomains.EDGE)
+
+    @property
+    def face(self) -> AttributeDomainView:
+        """Attributes on the FACE domain."""
+        return AttributeDomainView(self, AttributeDomains.FACE)
+
+    @property
+    def corner(self) -> AttributeDomainView:
+        """Attributes on the CORNER domain."""
+        return AttributeDomainView(self, AttributeDomains.CORNER)
+
+    @property
+    def curve(self) -> AttributeDomainView:
+        """Attributes on the CURVE domain."""
+        return AttributeDomainView(self, AttributeDomains.CURVE)
 
     def list_attributes(
         self, evaluate: bool = False, drop_hidden: bool = False
@@ -568,20 +702,26 @@ class BlenderObjectAttribute(BlenderObjectBase):
         """
         return self.list_attributes()
 
-    def __getitem__(self, name: str) -> AttributeArray:
+    @overload
+    def __getitem__[T: AttributeArray](self, key: tuple[str, type[T]]) -> T: ...
+    @overload
+    def __getitem__(self, key: str) -> AttributeArray: ...
+    def __getitem__(self, key: str | tuple[str, type[AttributeArray]]):
         """
         Access a named attribute using dictionary-style syntax.
 
         Parameters
         ----------
-        name : str
-            The name of the attribute to access.
+        key : str or tuple[str, type[AttributeArray]]
+            The name of the attribute to access, optionally with the typed array class
+            it is expected to be, as `bob["name", db.vec3]`.
 
         Returns
         -------
         AttributeArray
             An AttributeArray with the attribute's values, which writes changed values
-            back to Blender.
+            back to Blender. It is the typed subclass for the attribute's type, such
+            as `vec3`.
 
         Raises
         ------
@@ -589,10 +729,16 @@ class BlenderObjectAttribute(BlenderObjectBase):
             If name is not a string.
         AttributeNotFoundError
             If the attribute doesn't exist. This is also a KeyError.
+        NamedAttributeError
+            If the attribute isn't the given type.
         """
+        name, atype = key if isinstance(key, tuple) else (key, None)
         if not isinstance(name, str):
             raise TypeError("Attribute name must be a string")
-        return AttributeArray(self.object, name)
+        arr = AttributeArray(self.object, name)
+        if atype is not None:
+            _check_array_type(name, type(arr).atype, atype)
+        return arr
 
     def __setitem__(self, name: str, data: np.ndarray) -> None:
         """

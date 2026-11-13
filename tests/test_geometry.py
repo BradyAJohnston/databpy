@@ -1,3 +1,5 @@
+from typing import assert_type
+
 import bpy
 import numpy as np
 import pytest
@@ -69,6 +71,29 @@ def test_geometry_set_multiple_components(g):
     assert not any(
         name.startswith(".") for names in hidden_dropped.values() for name in names
     )
+
+
+def test_geometry_set_typed_named_attribute(g):
+    obj = db.create_object(np.random.rand(4, 3), name="TestObject")
+    _add_points_and_instances_nodes(obj, g)
+    geom = db.GeometrySet(obj)
+
+    pos = geom.named_attribute("position", component="POINTCLOUD", atype=db.vec3)
+    assert_type(pos, db.vec3)
+    assert type(pos) is db.vec3
+    assert pos.shape == (4, 3)
+
+    transforms = geom.named_attribute("instance_transform", atype=db.mat4)
+    assert_type(transforms, db.mat4)
+    assert type(transforms) is db.mat4
+
+    assert_type(geom.named_attribute("position"), np.ndarray)
+
+    with pytest.raises(db.NamedAttributeError, match="FLOAT_VECTOR"):
+        geom.named_attribute("position", component="POINTCLOUD", atype=db.color)
+    # without a component, the first attribute found is checked rather than skipped
+    with pytest.raises(db.NamedAttributeError, match="FLOAT_VECTOR"):
+        geom.named_attribute("position", atype=db.mat4)
 
 
 def test_geometry_set_errors():

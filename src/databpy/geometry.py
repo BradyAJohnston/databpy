@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import TYPE_CHECKING, Literal, overload
 
 import bpy
 import numpy as np
@@ -9,7 +9,11 @@ from .attribute import (
     AttributeDataBlock,
     AttributeNotFoundError,
     NamedAttributeError,
+    _check_array_type,
 )
+
+if TYPE_CHECKING:
+    from .array import AttributeArray
 
 GeometryComponents = Literal["MESH", "POINTCLOUD", "CURVES", "INSTANCES"]
 
@@ -20,6 +24,15 @@ def _is_empty(data: AttributeDataBlock) -> bool:
     if isinstance(data, (bpy.types.PointCloud, bpy.types.Curves)):
         return len(data.points) == 0
     return False
+
+
+def _as_array(
+    name: str, attribute: Attribute, atype: "type[AttributeArray] | None"
+) -> np.ndarray:
+    if atype is None:
+        return attribute.as_array()
+    _check_array_type(name, attribute.atype, atype)
+    return attribute.as_array().view(atype)
 
 
 class GeometrySet:
@@ -184,8 +197,28 @@ class GeometrySet:
             for name, data in self.components().items()
         }
 
+    @overload
     def named_attribute(
-        self, name: str, component: GeometryComponents | None = None
+        self,
+        name: str,
+        component: GeometryComponents | None = None,
+        *,
+        atype: None = None,
+    ) -> np.ndarray: ...
+    @overload
+    def named_attribute[T: AttributeArray](
+        self,
+        name: str,
+        component: GeometryComponents | None = None,
+        *,
+        atype: type[T],
+    ) -> T: ...
+    def named_attribute(
+        self,
+        name: str,
+        component: GeometryComponents | None = None,
+        *,
+        atype: "type[AttributeArray] | None" = None,
     ) -> np.ndarray:
         """
         Get named attribute data from the evaluated geometry.
@@ -198,23 +231,27 @@ class GeometrySet:
             The component to read the attribute from. If None, the components are
             searched in order (MESH, POINTCLOUD, CURVES, INSTANCES) and the first
             that has the attribute is used.
+        atype : type[AttributeArray] or None, optional
+            The typed array class the attribute is expected to be, such as `vec3`.
+            The values are returned as that class, which type checkers also see.
 
         Returns
         -------
         np.ndarray
-            The attribute data as a numpy array.
+            The attribute data as a numpy array, or an array of `atype` if given.
 
         Raises
         ------
         AttributeNotFoundError
             If the attribute does not exist on the given (or any) component.
         NamedAttributeError
-            If the given component isn't present.
+            If the given component isn't present, or the attribute found isn't
+            `atype`. Without a component, only the first attribute found is checked.
         """
         if component is None:
             for data in self.components().values():
                 if name in data.attributes:
-                    return Attribute(data.attributes[name]).as_array()
+                    return _as_array(name, Attribute(data.attributes[name]), atype)
             raise AttributeNotFoundError(
                 f"The attribute '{name}' does not exist on any component of the "
                 f"evaluated geometry. Available attributes: {self.list_attributes()}"
@@ -228,7 +265,7 @@ class GeometrySet:
                 f"The attribute '{name}' does not exist on the {component} component. "
                 f"Available attributes: {sorted(data.attributes.keys())}"
             )
-        return Attribute(attribute).as_array()
+        return _as_array(name, Attribute(attribute), atype)
 
     def __repr__(self) -> str:
         lines = [f"GeometrySet of '{self.object.name}'"]

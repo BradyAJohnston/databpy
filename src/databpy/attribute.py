@@ -4,7 +4,7 @@ import os
 import warnings
 from dataclasses import dataclass
 from enum import Enum
-from typing import Literal, cast
+from typing import TYPE_CHECKING, Literal, cast, overload
 
 import bpy
 import numpy as np
@@ -13,6 +13,9 @@ from bpy.types import Object
 
 from ._deprecation import REMOVAL_VERSION
 from .errors import DatabpyError
+
+if TYPE_CHECKING:
+    from .array import AttributeArray
 
 COMPATIBLE_TYPES = [
     bpy.types.Mesh,
@@ -510,6 +513,16 @@ def _as_storage_array(data: np.ndarray, atype: AttributeTypes) -> np.ndarray:
     Values that can't be represented in an integer storage type raise instead of
     silently wrapping around.
     """
+    _check_storable(data, atype)
+    if atype == AttributeTypes.FLOAT4X4:
+        # Blender stores matrices column-major, so they are transposed, which doesn't
+        # copy for matrices read from Blender as those are transposed views
+        data = np.swapaxes(np.reshape(data, (-1, 4, 4)), -1, -2)
+    return np.ravel(data).astype(atype.value.dtype, copy=False)
+
+
+def _check_storable(data: np.ndarray, atype: AttributeTypes) -> None:
+    """Raise if the values can't be represented by the attribute's storage dtype."""
     target = np.dtype(atype.value.dtype)
     source = data.dtype
 
@@ -537,11 +550,24 @@ def _as_storage_array(data: np.ndarray, atype: AttributeTypes) -> np.ndarray:
                 f"[{info.min}, {info.max}]."
             )
 
-    if atype == AttributeTypes.FLOAT4X4:
-        # Blender stores matrices column-major, so they are transposed, which doesn't
-        # copy for matrices read from Blender as those are transposed views
-        data = np.swapaxes(np.reshape(data, (-1, 4, 4)), -1, -2)
-    return np.ravel(data).astype(target, copy=False)
+
+def _value_shape(atype: AttributeTypes) -> tuple[int, ...]:
+    """The shape of one value in an array of the attribute, () for single values."""
+    dimensions = atype.value.dimensions
+    return () if dimensions == (1,) else dimensions
+
+
+def _declared_atype(data: object) -> "AttributeTypes | None":
+    """The atype of a typed array such as `vec3`, if it still has the shape of one."""
+    atype = getattr(type(data), "atype", None)
+    if (
+        isinstance(atype, AttributeTypes)
+        and isinstance(data, np.ndarray)
+        and data.shape[1:] == _value_shape(atype)
+        and data.ndim == 1 + len(_value_shape(atype))
+    ):
+        return atype
+    return None
 
 
 def _read_values(
@@ -1030,7 +1056,16 @@ def store_named_attribute(
     ```
     """
 
+    # typed arrays such as `vec3(...)` declare the attribute type they are stored as
+    declared = _declared_atype(data)
     data = np.asarray(data)
+    if declared is not None:
+        if atype is not None and _match_atype(atype, data) != declared:
+            raise NamedAttributeError(
+                f"The data is a `{declared.name}` array, which can't be stored as "
+                f"`{_match_atype(atype, data).name}`."
+            )
+        atype = declared
     obj_data = obj.data
 
     if not isinstance(obj_data, tuple(COMPATIBLE_TYPES)):
@@ -1146,8 +1181,28 @@ def evaluate_object(
     return obj.evaluated_get(context.evaluated_depsgraph_get())
 
 
+@overload
 def named_attribute(
-    obj: bpy.types.Object, name: str = "position", evaluate: bool = False
+    obj: bpy.types.Object,
+    name: str = "position",
+    evaluate: bool = False,
+    *,
+    atype: None = None,
+) -> np.ndarray: ...
+@overload
+def named_attribute[T: AttributeArray](
+    obj: bpy.types.Object,
+    name: str = "position",
+    evaluate: bool = False,
+    *,
+    atype: type[T],
+) -> T: ...
+def named_attribute(
+    obj: bpy.types.Object,
+    name: str = "position",
+    evaluate: bool = False,
+    *,
+    atype: "type[AttributeArray] | None" = None,
 ) -> np.ndarray:
     """
     Read the values of a named attribute into a numpy array.
@@ -1160,16 +1215,21 @@ def named_attribute(
         The name of the attribute, by default 'position'.
     evaluate : bool, optional
         Whether to evaluate modifiers before reading, by default False.
+    atype : type[AttributeArray] or None, optional
+        The typed array class the attribute is expected to be, such as `vec3`. The
+        values are returned as that class, which type checkers also see.
 
     Returns
     -------
     np.ndarray
-        The attribute data as a numpy array.
+        The attribute data as a numpy array, or an array of `atype` if given.
 
     Raises
     ------
     AttributeNotFoundError
         If the named attribute does not exist on the object.
+    NamedAttributeError
+        If the attribute's type doesn't match `atype`.
     TypeError
         If `obj` isn't an object, or its data isn't a mesh, curves, point cloud or
         grease pencil.
@@ -1200,7 +1260,20 @@ def named_attribute(
             f"Available attributes: {list_attributes(obj, evaluate=evaluate)}"
         ) from None
 
-    return attr.as_array()
+    if atype is None:
+        return attr.as_array()
+    _check_array_type(name, attr.atype, atype)
+    return attr.as_array().view(atype)
+
+
+def _check_array_type(
+    name: str, actual: AttributeTypes | None, expected: "type[AttributeArray]"
+) -> None:
+    if actual != expected.atype:
+        raise NamedAttributeError(
+            f"Attribute `{name}` is a `{actual}` attribute, not "
+            f"`{expected.__name__}` (`{expected.atype}`)."
+        )
 
 
 def remove_named_attribute(obj: bpy.types.Object, name: str) -> None:
