@@ -82,6 +82,25 @@ quartodoc:
         - AttributeArray
         - Attribute
         - attribute.guess_atype_from_array
+    - title: Typed arrays
+      desc: >-
+        Attribute arrays that state the attribute type they are stored as, wrapping data
+        as `db.vec3(data)` and checking the type when read as `bob["name", db.vec3]`
+      contents:
+        - float32
+        - vec2
+        - vec3
+        - vec4
+        - color
+        - color8
+        - quat
+        - mat4
+        - int32
+        - int8
+        - ivec2
+        - sivec2
+        - boolean
+        - string
     - title: Collections
       desc: Working with collections in Blender
       contents:
@@ -99,6 +118,7 @@ quartodoc:
         - evaluate_object
         - GeometrySet
         - BlenderObject
+        - AttributeDomainView
         - BlenderObjectAttribute
         - BlenderObjectBase
     - title: Errors

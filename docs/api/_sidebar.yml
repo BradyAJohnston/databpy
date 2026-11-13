@@ -14,6 +14,22 @@ website:
       - api/attribute.guess_atype_from_array.qmd
       section: Attribute
     - contents:
+      - api/float32.qmd
+      - api/vec2.qmd
+      - api/vec3.qmd
+      - api/vec4.qmd
+      - api/color.qmd
+      - api/color8.qmd
+      - api/quat.qmd
+      - api/mat4.qmd
+      - api/int32.qmd
+      - api/int8.qmd
+      - api/ivec2.qmd
+      - api/sivec2.qmd
+      - api/boolean.qmd
+      - api/string.qmd
+      section: Typed arrays
+    - contents:
       - api/create_collection.qmd
       - api/move_to_collection.qmd
       section: Collections
@@ -27,6 +43,7 @@ website:
       - api/evaluate_object.qmd
       - api/GeometrySet.qmd
       - api/BlenderObject.qmd
+      - api/AttributeDomainView.qmd
       - api/BlenderObjectAttribute.qmd
       - api/BlenderObjectBase.qmd
       section: Objects

@@ -1270,9 +1270,11 @@ def _check_array_type(
     name: str, actual: AttributeTypes | None, expected: "type[AttributeArray]"
 ) -> None:
     if actual != expected.atype:
+        actual_name = actual.name if actual else None
+        expected_name = expected.atype.name if expected.atype else None
         raise NamedAttributeError(
-            f"Attribute `{name}` is a `{actual}` attribute, not "
-            f"`{expected.__name__}` (`{expected.atype}`)."
+            f"Attribute `{name}` is a `{actual_name}` attribute, not "
+            f"`{expected.__name__}` (`{expected_name}`)."
         )
 
 
