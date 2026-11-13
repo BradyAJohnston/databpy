@@ -1097,7 +1097,7 @@ def store_named_attribute(
             raise NamedAttributeError(
                 "Grease pencil objects only hold attributes on the `LAYER` domain, as "
                 "their points and strokes are on each layer's drawings. Pass "
-                '`domain="LAYER"` to store one value per layer.'
+                '`domain="LAYER"`, or use `bob.layer`, to store one value per layer.'
             )
         domain = _match_domain(AttributeDomains.POINT if domain is None else domain)
         current_names = obj_data.attributes.keys()

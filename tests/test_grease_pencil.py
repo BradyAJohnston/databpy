@@ -135,7 +135,7 @@ def test_layer_view(gp_obj: bpy.types.Object):
 
 def test_layer_view_reads_typed_arrays(gp_obj: bpy.types.Object):
     bob = db.BlenderObject(gp_obj)
-    bob["id"] = np.array([1, 2])
+    bob.layer["id"] = np.array([1, 2])
     assert type(bob.layer["id"]) is db.int32
 
     _data(gp_obj).attributes.new("tint", "FLOAT_COLOR", "LAYER")
