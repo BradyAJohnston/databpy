@@ -35,6 +35,91 @@ def _as_array(
     return attribute.as_array().view(atype)
 
 
+class InstanceDomainView:
+    """
+    Read-only dictionary-style access to the INSTANCE domain of evaluated geometry.
+
+    Available on a `GeometrySet` as `instance`. Instance attributes only exist in
+    evaluated geometry, and the values are a copy, so they can be read but not
+    written.
+
+    Examples
+    --------
+    ```
+    geom = db.GeometrySet(obj)
+    geom.instance["instance_transform", db.mat4]
+    geom.instance.list_attributes()
+    ```
+    """
+
+    def __init__(self, geometry: "GeometrySet"):
+        self._geometry = geometry
+
+    def _pointcloud(self) -> bpy.types.PointCloud | None:
+        pointcloud = self._geometry.instances
+        if pointcloud is None or len(pointcloud.points) == 0:
+            return None
+        return pointcloud
+
+    def __len__(self) -> int:
+        """The number of instances, 0 if the geometry doesn't have any."""
+        pointcloud = self._pointcloud()
+        return 0 if pointcloud is None else len(pointcloud.points)
+
+    @overload
+    def __getitem__[T: AttributeArray](self, key: tuple[str, type[T]]) -> T: ...
+    @overload
+    def __getitem__(self, key: str) -> np.ndarray: ...
+    def __getitem__(self, key: "str | tuple[str, type[AttributeArray]]"):
+        """
+        Get the values of an instance attribute, as `geom.instance["name"]`.
+
+        Index with a typed array class, as `geom.instance["name", db.mat4]`, to check
+        the attribute's type and have type checkers see the array as that class.
+
+        Raises
+        ------
+        AttributeNotFoundError
+            If there are no instances, or the attribute doesn't exist on them.
+        NamedAttributeError
+            If the attribute isn't the given type.
+        """
+        name, atype = key if isinstance(key, tuple) else (key, None)
+        pointcloud = self._pointcloud()
+        if pointcloud is None or name not in pointcloud.attributes:
+            raise AttributeNotFoundError(
+                f"The attribute '{name}' does not exist on the instances. "
+                f"Available attributes: {self.list_attributes()}"
+            )
+        return _as_array(name, Attribute(pointcloud.attributes[name]), atype)
+
+    def __setitem__(self, name: str, data: np.ndarray) -> None:
+        raise TypeError(
+            "Instance attributes of evaluated geometry are read-only. Store them in "
+            "Geometry Nodes instead."
+        )
+
+    def __contains__(self, name: str) -> bool:
+        return name in self.list_attributes()
+
+    def list_attributes(self, drop_hidden: bool = False) -> list[str]:
+        """List the names of the instance attributes."""
+        pointcloud = self._pointcloud()
+        if pointcloud is None:
+            return []
+        return sorted(
+            a.name
+            for a in pointcloud.attributes
+            if not (drop_hidden and a.name.startswith("."))
+        )
+
+    def _ipython_key_completions_(self) -> list[str]:
+        return self.list_attributes()
+
+    def __repr__(self) -> str:
+        return f"<InstanceDomainView of {self._geometry.object.name!r}>"
+
+
 class GeometrySet:
     """
     Access the evaluated geometry of an object (`bpy.types.GeometrySet`).
@@ -130,6 +215,11 @@ class GeometrySet:
             position = Attribute(pointcloud.attributes["position"])
             position.from_array(transforms.as_array()[:, :3, 3])
         return pointcloud
+
+    @property
+    def instance(self) -> InstanceDomainView:
+        """Read-only access to the attributes on the INSTANCE domain."""
+        return InstanceDomainView(self)
 
     @property
     def instance_references(self) -> list:

@@ -96,6 +96,39 @@ def test_geometry_set_typed_named_attribute(g):
         geom.named_attribute("position", atype=db.mat4)
 
 
+def test_geometry_set_instance_view(g):
+    obj = db.create_object(np.random.rand(4, 3), name="TestObject")
+    _add_points_and_instances_nodes(obj, g)
+    geom = db.GeometrySet(obj)
+
+    assert len(geom.instance) == 4
+    assert "instance_transform" in geom.instance
+    assert ".reference_index" not in geom.instance.list_attributes(drop_hidden=True)
+
+    transforms = geom.instance["instance_transform", db.mat4]
+    assert_type(transforms, db.mat4)
+    assert transforms.shape == (4, 4, 4)
+    np.testing.assert_allclose(
+        transforms, geom.named_attribute("instance_transform", component="INSTANCES")
+    )
+    assert_type(geom.instance["instance_transform"], np.ndarray)
+
+    with pytest.raises(db.NamedAttributeError, match="FLOAT4X4"):
+        geom.instance["instance_transform", db.vec3]
+    with pytest.raises(db.AttributeNotFoundError):
+        geom.instance["nonexistent"]
+    with pytest.raises(TypeError, match="read-only"):
+        geom.instance["instance_transform"] = transforms
+
+
+def test_geometry_set_instance_view_without_instances():
+    geom = db.GeometrySet(db.create_object(np.random.rand(4, 3), name="TestObject"))
+    assert len(geom.instance) == 0
+    assert geom.instance.list_attributes() == []
+    with pytest.raises(db.AttributeNotFoundError):
+        geom.instance["instance_transform"]
+
+
 def test_geometry_set_errors():
     obj = db.create_object(np.random.rand(4, 3), name="TestObject")
     geom = db.GeometrySet(obj)
