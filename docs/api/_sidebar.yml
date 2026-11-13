@@ -21,6 +21,7 @@ website:
       - api/create_object.qmd
       - api/create_mesh_object.qmd
       - api/create_curves_object.qmd
+      - api/create_grease_pencil_object.qmd
       - api/create_pointcloud_object.qmd
       - api/create_bob.qmd
       - api/evaluate_object.qmd
