@@ -148,6 +148,16 @@ for name in ["tint", "spin", "uv_offset"]:
     print(name, attribute.atype.name, attribute.domain.name)
 ```
 
+A single value is stored for every element of the domain, either as a plain scalar, or as a typed array of one value. A plain array such as `[1, 0.5, 0, 1]` isn't, as it could also be one value for each of 4 elements, so state the type of a single vector, color or matrix:
+
+```{python}
+bob.point["weight"] = 1.0
+bob.face["face_tint"] = db.color([1.0, 0.5, 0.0, 1.0])
+bob.point["frame"] = db.mat4(np.eye(4))
+
+print(bob.face["face_tint"][:2])
+```
+
 Storing a typed array over an existing attribute of a different type raises a [`NamedAttributeError`](`databpy.NamedAttributeError`), rather than converting the values:
 
 ```{python}

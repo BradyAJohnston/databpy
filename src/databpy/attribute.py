@@ -558,16 +558,30 @@ def _value_shape(atype: AttributeTypes) -> tuple[int, ...]:
 
 
 def _declared_atype(data: object) -> "AttributeTypes | None":
-    """The atype of a typed array such as `vec3`, if it still has the shape of one."""
+    """
+    The atype of a typed array such as `vec3`, if it still has the shape of one.
+
+    That is either one value per element, or a single value for every element.
+    """
     atype = getattr(type(data), "atype", None)
-    if (
-        isinstance(atype, AttributeTypes)
-        and isinstance(data, np.ndarray)
-        and data.shape[1:] == _value_shape(atype)
-        and data.ndim == 1 + len(_value_shape(atype))
+    if not isinstance(atype, AttributeTypes) or not isinstance(data, np.ndarray):
+        return None
+    value_shape = _value_shape(atype)
+    if data.shape == value_shape or (
+        data.ndim == 1 + len(value_shape) and data.shape[1:] == value_shape
     ):
         return atype
     return None
+
+
+def _is_single_value(data: npt.ArrayLike) -> bool:
+    """Whether data is one value to store for every element, rather than one each."""
+    atype = _declared_atype(data)
+    if atype is not None:
+        return np.shape(data) == _value_shape(atype)
+    # only plain scalars, as a plain array such as [1, 0.5, 0, 1] could be one value
+    # per element as well as a single 4D value
+    return np.ndim(data) == 0
 
 
 def _read_values(
@@ -1006,7 +1020,10 @@ def store_named_attribute(
     obj : bpy.types.Object
         The Blender object, with mesh, curves, point cloud or grease pencil data.
     data : npt.ArrayLike
-        The attribute data, as a numpy array or anything convertible to one.
+        The attribute data, as a numpy array or anything convertible to one, with one
+        value per element of the domain. A single value is stored for every element
+        when it is a plain scalar such as `1.0`, or a typed array of one value such as
+        `db.color([1, 0.5, 0, 1])`.
     name : str
         The name of the attribute.
     atype : str or AttributeTypes or None, optional
@@ -1058,7 +1075,11 @@ def store_named_attribute(
 
     # typed arrays such as `vec3(...)` declare the attribute type they are stored as
     declared = _declared_atype(data)
+    single = _is_single_value(data)
     data = np.asarray(data)
+    if single:
+        # one row, which is broadcast to every element once the domain is known
+        data = data[np.newaxis]
     if declared is not None:
         if atype is not None and _match_atype(atype, data) != declared:
             raise NamedAttributeError(
@@ -1123,6 +1144,9 @@ def store_named_attribute(
         attribute = _as_typed_attribute(new_attribute)
 
     try:
+        if single:
+            dimensions = AttributeTypes[attribute.data_type].value.dimensions
+            data = np.broadcast_to(data, (len(attribute.data), *dimensions))
         _write_data(attribute, data, atype, domain)
     except Exception:
         # don't leave behind an attribute that was created for data that couldn't

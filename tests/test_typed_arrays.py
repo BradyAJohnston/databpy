@@ -145,3 +145,54 @@ def test_string_and_boolean(bob: db.BlenderObject):
     assert type(bob.point["b"]) is db.boolean
     with pytest.warns(UserWarning):
         bob.point["s"] = db.string(np.array(list("abcdefgh")))
+
+
+def test_single_values_fill_the_domain(bob: db.BlenderObject):
+    bob.point["weight"] = 1.0
+    assert db.Attribute(bob.attributes["weight"]).atype == db.AttributeTypes.FLOAT
+    np.testing.assert_array_equal(bob.point["weight"], np.ones(8))
+
+    bob.face["id"] = 3
+    assert type(bob.face["id"]) is db.int32
+    np.testing.assert_array_equal(bob.face["id"], np.full(6, 3))
+
+    bob["flag"] = True
+    np.testing.assert_array_equal(bob["flag"], np.ones(8, dtype=bool))
+
+    # a scalar fills every component of an existing vector attribute
+    bob.point["position"] = 0.5
+    np.testing.assert_array_equal(bob.position, np.full((8, 3), 0.5))
+
+
+def test_typed_single_values_fill_the_domain(bob: db.BlenderObject):
+    tint = db.color([1, 0.5, 0, 1])
+    assert_type(tint, db.color)
+    assert tint.shape == (4,)
+
+    bob.point["tint"] = tint
+    attribute = db.Attribute(bob.attributes["tint"])
+    assert attribute.atype == db.AttributeTypes.FLOAT_COLOR
+    np.testing.assert_array_equal(bob.point["tint"], np.tile([1, 0.5, 0, 1], (8, 1)))
+
+    bob.face["spin"] = db.quat([1, 0, 0, 0])
+    assert type(bob.face["spin"]) is db.quat
+    assert bob.face["spin"].shape == (6, 4)
+
+    bob.point["m"] = db.mat4(np.eye(4))
+    np.testing.assert_array_equal(
+        bob.point["m", db.mat4], np.tile(np.eye(4), (8, 1, 1))
+    )
+
+    bob.point["w"] = db.float32(2.0)
+    np.testing.assert_array_equal(bob.point["w"], np.full(8, 2.0))
+
+    # the type is still checked against an existing attribute
+    with pytest.raises(db.NamedAttributeError):
+        bob.point["tint"] = db.quat([1, 0, 0, 0])
+
+
+def test_plain_arrays_are_not_broadcast(bob: db.BlenderObject):
+    # [1, 0.5, 0, 1] could be one 4D value, or a value for each of 4 elements
+    with pytest.raises(db.NamedAttributeError, match="size"):
+        bob.point["tint"] = np.array([1, 0.5, 0, 1])
+    assert "tint" not in bob.list_attributes()
