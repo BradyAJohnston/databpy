@@ -111,6 +111,7 @@ Blender has a name for each attribute type, such as `FLOAT_VECTOR` for 3D vector
 | [`db.vec3`](`databpy.vec3`) | `FLOAT_VECTOR` | 3D vector | `float32` | `(n, 3)` |
 | [`db.vec4`](`databpy.vec4`) | `FLOAT4` | 4D vector (Blender 5.2+) | `float32` | `(n, 4)` |
 | [`db.color`](`databpy.color`) | `FLOAT_COLOR` | linear RGBA color | `float32` | `(n, 4)` |
+| [`db.srgb`](`databpy.srgb`) | `FLOAT_COLOR` | sRGB RGBA color, stored as linear | `float32` | `(n, 4)` |
 | [`db.color8`](`databpy.color8`) | `BYTE_COLOR` | sRGB RGBA color | `uint8` | `(n, 4)` |
 | [`db.quat`](`databpy.quat`) | `QUATERNION` | (w, x, y, z) rotation | `float32` | `(n, 4)` |
 | [`db.mat4`](`databpy.mat4`) | `FLOAT4X4` | 4x4 matrix, row-major | `float32` | `(n, 4, 4)` |
@@ -187,6 +188,36 @@ try:
     bob["position", db.quat]
 except db.NamedAttributeError as e:
     print(e)
+```
+
+### sRGB colors
+
+Blender stores `FLOAT_COLOR` attributes as linear colors, which is what `db.color` reads and writes. Colors picked in an image editor or given as hex codes are usually sRGB instead. [`db.srgb`](`databpy.srgb`) is a `FLOAT_COLOR` array whose values are sRGB: they are converted to linear when stored, and from linear when read as `db.srgb`, so the attribute is the same as one stored with `db.color`. Alpha isn't converted:
+
+```{python}
+orange = np.tile([1.0, 0.5, 0.0, 1.0], (len(bob.point), 1))
+bob.point["paint"] = db.srgb(orange)
+
+print(bob.point["paint", db.srgb][0])  # sRGB, as it was stored
+print(bob.point["paint"][0])  # linear, as Blender stores it
+```
+
+Hex color codes are sRGB, so `db.srgb` accepts them as `'#RRGGBB'`, `'#RRGGBBAA'`, or the short `'#RGB'` and `'#RGBA'`, one code for every element or a list of them. `db.color8` accepts them too, as its bytes are already sRGB:
+
+```{python}
+bob.point["highlight"] = db.srgb("#FF8000")
+bob.point["palette"] = db.srgb(["#264653", "#2A9D8F", "#E9C46A", "#F4A261"] * 2)
+bob.face["bytes"] = db.color8("#FF800080")
+
+print(bob.face["bytes"][0])
+```
+
+Changes to an array read as `db.srgb` are converted back to linear when they are written to Blender, and math on it gives `db.srgb` arrays, so they are converted when stored too. Each write converts the whole attribute, which is slower than writing a `db.color`, so prefer a few large changes to many small ones:
+
+```{python}
+paint = bob.point["paint", db.srgb]
+paint[:, :3] *= 0.5  # written back as linear
+bob.point["dark_paint"] = paint * 0.5  # still sRGB, so converted when stored
 ```
 
 ### Type checking

@@ -9,6 +9,7 @@ from .attribute import (
     AttributeDataBlock,
     AttributeNotFoundError,
     NamedAttributeError,
+    _as_typed_values,
     _check_array_type,
 )
 
@@ -32,7 +33,7 @@ def _as_array(
     if atype is None:
         return attribute.as_array()
     _check_array_type(name, attribute.atype, atype)
-    return attribute.as_array().view(atype)
+    return _as_typed_values(attribute.as_array(), atype)
 
 
 class InstanceDomainView:

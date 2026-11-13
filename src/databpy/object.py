@@ -17,7 +17,7 @@ from .addon import (
     session_token,
     set_uuid,
 )
-from .array import AttributeArray
+from .array import AttributeArray, _as_converted
 from .attribute import (
     Attribute,
     AttributeDomains,
@@ -750,6 +750,8 @@ class BlenderObjectAttribute(BlenderObjectBase):
         arr = AttributeArray(self.object, name)
         if atype is not None:
             _check_array_type(name, type(arr).atype, atype)
+            if atype._converted:
+                arr = _as_converted(arr, atype)
         return arr
 
     def __setitem__(self, name: str, data: npt.ArrayLike) -> None:
