@@ -116,7 +116,7 @@ def test_create_grease_pencil_layers(run):
 @pytest.mark.benchmark(group="grease-pencil")
 def test_grease_pencil_layer_read(benchmark):
     obj = db.create_grease_pencil_object(_gp_layers(GP_LAYERS))
-    db.store_named_attribute(obj, np.ones(GP_LAYERS), "weight")
+    db.store_named_attribute(obj, np.ones(GP_LAYERS), "weight", domain="LAYER")
     benchmark(db.named_attribute, obj, "weight")
 
 
@@ -124,7 +124,7 @@ def test_grease_pencil_layer_read(benchmark):
 def test_grease_pencil_layer_write(benchmark):
     obj = db.create_grease_pencil_object(_gp_layers(GP_LAYERS))
     values = rng.random(GP_LAYERS)
-    benchmark(db.store_named_attribute, obj, values, "weight")
+    benchmark(db.store_named_attribute, obj, values, "weight", domain="LAYER")
 
 
 @pytest.mark.benchmark(group="attributes")

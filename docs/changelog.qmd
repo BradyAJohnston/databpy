@@ -9,9 +9,9 @@ toc: true
 
 - Grease pencil objects are supported for attributes. A grease pencil object only
   holds attributes on its `LAYER` domain, as its points and strokes are on the
-  drawings of each layer, so `LAYER` is the default domain for new attributes on
-  them. `create_grease_pencil_object()` creates one from arrays of points for each
-  layer.
+  drawings of each layer. New attributes on them need `domain="LAYER"`, rather than
+  quietly storing one value per layer when one per point was meant.
+  `create_grease_pencil_object()` creates one from arrays of points for each layer.
 
 ### Fixed
 

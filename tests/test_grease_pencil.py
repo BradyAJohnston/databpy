@@ -80,12 +80,23 @@ def test_layer_attributes(gp_obj: bpy.types.Object):
     assert bob.list_attributes() == []
 
 
-def test_layer_is_the_default_domain(gp_obj: bpy.types.Object):
+def test_new_attributes_need_a_domain(gp_obj: bpy.types.Object):
+    # without a domain, a new attribute would be stored per layer when per point
+    # was likely meant, so it raises instead
     bob = db.BlenderObject(gp_obj)
-    bob["id"] = np.array([1, 2])
+    with pytest.raises(db.NamedAttributeError, match='domain="LAYER"'):
+        bob["id"] = np.array([1, 2])
+    with pytest.raises(db.NamedAttributeError, match='domain="LAYER"'):
+        db.store_named_attribute(gp_obj, np.array([1, 2]), "id")
+    assert "id" not in bob.list_attributes()
+
+    bob.store_named_attribute(np.array([1, 2]), "id", domain="LAYER")
     attribute = db.Attribute(_data(gp_obj).attributes["id"])
     assert attribute.domain == db.AttributeDomains.LAYER
     assert attribute.atype == db.AttributeTypes.INT
+    # existing attributes keep their domain, so no domain is needed to overwrite
+    bob["id"] = np.array([3, 4])
+    np.testing.assert_array_equal(bob["id"], [3, 4])
 
 
 def test_layer_attributes_created_by_blender(gp_obj: bpy.types.Object):

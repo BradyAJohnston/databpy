@@ -988,7 +988,8 @@ def store_named_attribute(
         attribute is used, otherwise the type is inferred from data.
     domain : str or AttributeDomains or None, optional
         The domain of the attribute. If None, the domain of an existing attribute is
-        used, otherwise 'POINT' ('LAYER' for grease pencil).
+        used, otherwise 'POINT'. Grease pencil objects only have the 'LAYER' domain,
+        which has to be given for new attributes.
     overwrite : bool, optional
         Whether to write to an existing attribute with the same name, by default
         True. If False, a new attribute is created, which Blender gives a unique name
@@ -1056,14 +1057,14 @@ def store_named_attribute(
         domain = attribute.domain
     else:
         atype = _match_atype(atype, data)
-        if domain is None:
-            # a grease pencil's own attributes can only be on its layers
-            domain = (
-                AttributeDomains.LAYER
-                if isinstance(obj_data, bpy.types.GreasePencil)
-                else AttributeDomains.POINT
+        if domain is None and isinstance(obj_data, bpy.types.GreasePencil):
+            # storing per layer when per point was likely meant would be a surprise
+            raise NamedAttributeError(
+                "Grease pencil objects only hold attributes on the `LAYER` domain, as "
+                "their points and strokes are on each layer's drawings. Pass "
+                '`domain="LAYER"` to store one value per layer.'
             )
-        domain = _match_domain(domain)
+        domain = _match_domain(AttributeDomains.POINT if domain is None else domain)
         current_names = obj_data.attributes.keys()
         try:
             new_attribute = obj_data.attributes.new(name, atype.value.type_name, domain)
