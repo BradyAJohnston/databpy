@@ -538,7 +538,7 @@ class color(_TypedArray[_Shape2, _Float32]):
     atype = AttributeTypes.FLOAT_COLOR
 
 
-class byte_color(_TypedArray[_Shape2, np.dtype[np.uint8]]):
+class color8(_TypedArray[_Shape2, np.dtype[np.uint8]]):
     """A `BYTE_COLOR` attribute: an sRGB RGBA uint8 color per element."""
 
     atype = AttributeTypes.BYTE_COLOR
@@ -568,7 +568,7 @@ class int8(_TypedArray[_Shape1, np.dtype[np.int8]]):
     atype = AttributeTypes.INT8
 
 
-class short2(_TypedArray[_Shape2, np.dtype[np.int16]]):
+class sivec2(_TypedArray[_Shape2, np.dtype[np.int16]]):
     """An `INT16_2D` attribute: a 2D int16 vector per element."""
 
     atype = AttributeTypes.INT16_2D
@@ -600,12 +600,12 @@ ARRAY_TYPES: dict[AttributeTypes, type[AttributeArray]] = {
         vec3,
         vec4,
         color,
-        byte_color,
+        color8,
         quat,
         mat4,
         int32,
         int8,
-        short2,
+        sivec2,
         ivec2,
         boolean,
         string,

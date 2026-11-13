@@ -16,7 +16,7 @@ databpy reads and writes the attributes of mesh, curves and point cloud objects 
 
 ::: {.callout-tip}
 # Getting started
-The [**attributes guide**](attributes.qmd) covers the attribute system: the attribute types and domains, reading and writing attributes, performance, and errors.
+The [**attributes guide**](attributes.qmd) covers the attribute system: domains and typed arrays, reading and writing attributes, performance, and errors.
 :::
 
 `databpy` started as a submodule of [Molecular Nodes](https://github.com/BradyAJohnston/MolecularNodes) and was split off into its own package for use by other projects. Some internal code is still specific to Molecular Nodes, but most of it is general.
@@ -83,6 +83,15 @@ bob = db.create_bob(np.random.rand(10, 3), name="RandomMesh")
 
 bob.position[:, 2] += 1.0
 bob["position"]
+```
+
+Each domain of the object has a dictionary-style view, such as `bob.point` and `bob.face`, and typed arrays such as [`db.vec3`](`databpy.vec3`) and [`db.color`](`databpy.color`) state the type an attribute is stored as. Together they say where an attribute lives and what it holds:
+
+```{python}
+cube = db.BlenderObject(bpy.data.objects["Cube"])
+
+cube.face["tint"] = db.color(np.random.rand(len(cube.face), 4))
+cube.face["tint", db.color]  # checks the type, which type checkers also see
 ```
 
 [`new_from_pydata()`](`databpy.BlenderObject.new_from_pydata`) clears the geometry of the object's mesh and fills it with new vertices, edges and faces:
