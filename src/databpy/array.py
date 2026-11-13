@@ -549,6 +549,28 @@ def _linear_to_srgb(values: np.ndarray) -> np.ndarray:
     return out
 
 
+def _hex_to_bytes(codes: np.ndarray) -> np.ndarray:
+    """Parse hex color codes such as '#FF8000' to RGBA bytes, with alpha 255 if unset."""
+    out = np.empty((*codes.shape, 4), dtype=np.uint8)
+    for index, code in np.ndenumerate(codes):
+        digits = str(code).removeprefix("#")
+        if len(digits) in (3, 4):
+            digits = "".join(digit * 2 for digit in digits)
+        if len(digits) == 6:
+            digits += "ff"
+        if len(digits) != 8 or any(d not in "0123456789abcdefABCDEF" for d in digits):
+            raise ValueError(
+                f"`{code}` isn't a hex color code such as '#RGB', '#RGBA', '#RRGGBB' "
+                "or '#RRGGBBAA'."
+            )
+        out[index] = [int(digits[i : i + 2], 16) for i in range(0, 8, 2)]
+    return out
+
+
+def _is_text(data: npt.ArrayLike) -> bool:
+    return isinstance(data, str) or np.asarray(data).dtype.kind == "U"
+
+
 def _as_converted[T: AttributeArray](arr: AttributeArray, cls: type[T]) -> T:
     """Convert an array read from Blender to `cls`, which converts it back on sync."""
     values = arr.view(np.ndarray)
@@ -610,6 +632,26 @@ class srgb(_TypedArray[_Shape2, _Float32]):
     atype = AttributeTypes.FLOAT_COLOR
     _converted = True
 
+    def __new__(cls, data: npt.ArrayLike) -> Self:
+        """
+        Wrap sRGB colors, ready to be stored as linear colors.
+
+        Parameters
+        ----------
+        data : npt.ArrayLike
+            RGBA colors with shape (N, 4), or a single color with shape (4,). Hex
+            codes such as '#FF8000', or a list of them, are also accepted.
+
+        Raises
+        ------
+        ValueError
+            If the data doesn't have the shape of RGBA colors, or isn't a valid hex
+            code.
+        """
+        if _is_text(data):
+            data = _hex_to_bytes(np.asarray(data)) / np.float32(255)
+        return super().__new__(cls, data)
+
     @staticmethod
     def _encode(values: np.ndarray) -> np.ndarray:
         return _srgb_to_linear(values)
@@ -633,9 +675,18 @@ class srgb(_TypedArray[_Shape2, _Float32]):
 
 
 class color8(_TypedArray[_Shape2, np.dtype[np.uint8]]):
-    """A `BYTE_COLOR` attribute: an sRGB RGBA uint8 color per element."""
+    """
+    A `BYTE_COLOR` attribute: an sRGB RGBA uint8 color per element.
+
+    Hex codes such as '#FF8000', or a list of them, can be wrapped as well.
+    """
 
     atype = AttributeTypes.BYTE_COLOR
+
+    def __new__(cls, data: npt.ArrayLike) -> Self:
+        if _is_text(data):
+            data = _hex_to_bytes(np.asarray(data))
+        return super().__new__(cls, data)
 
 
 class quat(_TypedArray[_Shape2, _Float32]):

@@ -202,6 +202,16 @@ print(bob.point["paint", db.srgb][0])  # sRGB, as it was stored
 print(bob.point["paint"][0])  # linear, as Blender stores it
 ```
 
+Hex color codes are sRGB, so `db.srgb` accepts them as `'#RRGGBB'`, `'#RRGGBBAA'`, or the short `'#RGB'` and `'#RGBA'`, one code for every element or a list of them. `db.color8` accepts them too, as its bytes are already sRGB:
+
+```{python}
+bob.point["highlight"] = db.srgb("#FF8000")
+bob.point["palette"] = db.srgb(["#264653", "#2A9D8F", "#E9C46A", "#F4A261"] * 2)
+bob.face["bytes"] = db.color8("#FF800080")
+
+print(bob.face["bytes"][0])
+```
+
 Changes to an array read as `db.srgb` are converted back to linear when they are written to Blender, and math on it gives `db.srgb` arrays, so they are converted when stored too. Each write converts the whole attribute, which is slower than writing a `db.color`, so prefer a few large changes to many small ones:
 
 ```{python}

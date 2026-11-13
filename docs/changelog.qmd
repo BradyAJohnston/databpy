@@ -33,6 +33,8 @@ toc: true
 - `db.srgb` is a typed array for `FLOAT_COLOR` attributes with sRGB values, which
   are converted to linear when stored and from linear when read as
   `bob["name", db.srgb]`, including changes written back to Blender.
+- `db.srgb` and `db.color8` accept hex color codes, as `db.srgb("#FF8000")` or a
+  list of codes.
 - `bob.layer` is the domain view for the `LAYER` domain of grease pencil objects.
 - `GeometrySet.instance` gives read-only access to the attributes on the instances
   of evaluated geometry, as `geom.instance["instance_transform", db.mat4]`.

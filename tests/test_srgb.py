@@ -141,3 +141,44 @@ def test_geometry_set_reads_srgb(bob: db.BlenderObject):
     values = geom.named_attribute("c", atype=db.srgb)
     assert type(values) is db.srgb
     np.testing.assert_allclose(values, SRGB, atol=1e-5)
+
+
+@pytest.mark.parametrize(
+    "code, rgba",
+    [
+        ("#FF8000", [255, 128, 0, 255]),
+        ("ff8000", [255, 128, 0, 255]),
+        ("#FF800080", [255, 128, 0, 128]),
+        ("#f80", [255, 136, 0, 255]),
+        ("#f808", [255, 136, 0, 136]),
+    ],
+)
+def test_hex_codes(code, rgba):
+    np.testing.assert_allclose(db.srgb(code), np.array(rgba) / 255)
+    np.testing.assert_array_equal(db.color8(code), rgba)
+
+
+def test_hex_code_lists():
+    colors = db.srgb(["#FF0000", "#00FF00", "#0000FF80"])
+    assert colors.shape == (3, 4)
+    np.testing.assert_allclose(colors[2], [0, 0, 1, 128 / 255])
+    assert db.color8(np.array(["#000", "#fff"])).dtype == np.uint8
+
+
+@pytest.mark.parametrize("code", ["#FF800", "#GG8000", "#FF80001", ""])
+def test_invalid_hex_codes_raise(code):
+    with pytest.raises(ValueError, match="hex color code"):
+        db.srgb(code)
+
+
+def test_store_hex_codes(bob: db.BlenderObject):
+    bob.point["c"] = db.srgb("#FF8000")
+    np.testing.assert_allclose(
+        _blender_srgb(bob, "c"),
+        np.tile([1, 128 / 255, 0, 1], (8, 1)),
+        atol=BLENDER_ATOL,
+    )
+    bob.face["b"] = db.color8(["#FF8000"] * 6)
+    np.testing.assert_array_equal(
+        bob.face["b", db.color8], np.tile([255, 128, 0, 255], (6, 1))
+    )
