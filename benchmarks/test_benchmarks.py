@@ -87,6 +87,42 @@ def test_create_curves(run):
     run(db.create_curves_object, POSITIONS, np.full(N // 10, 10))
 
 
+COLORS = rng.random((N, 4), dtype=np.float32)
+
+
+@pytest.mark.benchmark(group="srgb")
+@pytest.mark.parametrize("cls", [db.color, db.srgb], ids=lambda c: c.__name__)
+def test_color_store(benchmark, cls):
+    bob = db.BlenderObject(db.create_pointcloud_object(POSITIONS))
+    values = cls(COLORS)
+
+    def store():
+        bob.point["c"] = values
+
+    benchmark(store)
+
+
+@pytest.mark.benchmark(group="srgb")
+@pytest.mark.parametrize("cls", [db.color, db.srgb], ids=lambda c: c.__name__)
+def test_color_read(benchmark, cls):
+    bob = db.BlenderObject(db.create_pointcloud_object(POSITIONS))
+    bob.point["c"] = db.color(COLORS)
+    benchmark(lambda: bob.point["c", cls])
+
+
+@pytest.mark.benchmark(group="srgb")
+@pytest.mark.parametrize("cls", [db.color, db.srgb], ids=lambda c: c.__name__)
+def test_color_set_item(benchmark, cls):
+    bob = db.BlenderObject(db.create_pointcloud_object(POSITIONS))
+    bob.point["c"] = db.color(COLORS)
+    c = bob.point["c", cls]
+
+    def set_item():
+        c[0] = 0.5
+
+    benchmark(set_item)
+
+
 GP_LAYERS = 100
 
 
