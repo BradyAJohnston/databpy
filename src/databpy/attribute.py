@@ -1167,7 +1167,7 @@ def _set_attribute(
             raise NamedAttributeError(
                 f"Attribute `{name}` already exists on the `{attribute.domain}` domain, "
                 f"not `{_match_domain(domain)}`. Remove it first to store it on a "
-                "different domain."
+                "different domain or choose a non-clashing name."
             )
         domain = attribute.domain
     else:
@@ -1176,11 +1176,7 @@ def _set_attribute(
         current_names = obj_data.attributes.keys()
         try:
             new_attribute = obj_data.attributes.new(name, atype.value.type_name, domain)
-        except RuntimeError:
-            # e.g. a domain that isn't supported by this geometry type
-            new_attribute = None
-
-        if new_attribute is None:
+        except RuntimeError as e:
             # remove any attributes that were created as part of the failed attempt
             added_names = [
                 added.name
@@ -1189,10 +1185,11 @@ def _set_attribute(
             ]
             for attr_name in added_names:
                 obj_data.attributes.remove(obj_data.attributes[attr_name])
+
             raise NamedAttributeError(
                 f"Could not create attribute `{name}` of type `{atype.value.type_name}` on domain `{domain}`. "
-                "Potentially the attribute name is too long or there is no geometry on the object for the given domain."
-            )
+                f"Error: {e}"
+            ) from e
         attribute = _as_typed_attribute(new_attribute)
 
     try:
@@ -1202,12 +1199,20 @@ def _set_attribute(
             _check_target_atype(attribute, atype)
             data = np.broadcast_to(data, (len(attribute.data), *atype.value.dimensions))
         _write_data(attribute, data, atype, domain)
-    except Exception:
-        # don't leave behind an attribute that was created for data that couldn't
-        # be written to it
+    except DatabpyError:
+        # databpy's own errors, such as an `AttributeMismatchError`, already say what
+        # was wrong, so they are raised as they are
         if existing_attribute is None:
             obj_data.attributes.remove(attribute)
         raise
+    except (ValueError, TypeError, RuntimeError) as e:
+        # errors from numpy or Blender while writing the values
+        attribute_name = attribute.name
+        if existing_attribute is None:
+            obj_data.attributes.remove(attribute)
+        raise NamedAttributeError(
+            f"Could not write data to attribute `{attribute_name}` with error: {e}"
+        ) from e
 
     _trigger_data_update(obj_data if tag is None else tag)
 
