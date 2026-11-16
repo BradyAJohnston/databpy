@@ -477,28 +477,29 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         cls._value_shape = _value_shape(cls.atype)
 
     def __array_finalize__(self, obj):
-        """Become a plain `AttributeArray` once the dtype isn't the storage dtype.
+        """Become a plain `AttributeArray` once this is no longer an array of values.
 
-        `arr.astype(np.int32)` keeps the class, which would otherwise store the
-        values as this type again, undoing the conversion.
+        That is when the dtype isn't the storage dtype, as `arr.astype(np.int32)`
+        would otherwise store the values as this type again, undoing the conversion,
+        or when the shape isn't one value per element, as for `vec[:, 0]` or
+        `vec.reshape(-1)`. Such views still sync to Blender. `vec.T` and
+        `vec.view(np.int32)` keep the class, as numpy only changes their shape or
+        dtype after this runs, but are stored by their values all the same.
         """
         super().__array_finalize__(obj)
         # without a source, such as when unpickling, the dtype isn't set yet
-        if obj is not None and not _is_storage_dtype(self.dtype, type(self).atype):
+        if obj is None:
+            return
+        value_shape = type(self)._value_shape
+        is_array = self.ndim == 1 + len(value_shape) and self.shape[1:] == value_shape
+        # a single value such as `color([1, 0, 0, 1])` stays one, but `vec[0]` is
+        # one row of an array rather than a value to fill a domain with
+        is_value = self.shape == value_shape == np.shape(obj)
+        if not _is_storage_dtype(self.dtype, type(self).atype) or not (
+            is_array or is_value
+        ):
             # assigning the class avoids `view()` re-running `__array_finalize__`
             self.__class__ = AttributeArray
-
-    # ty false positive on generic ndarray subclasses, see `AttributeArray.__setitem__`
-    def __getitem__(self, key):  # ty: ignore[invalid-method-override]
-        """Index the array, keeping this type only while it has that shape."""
-        out = super().__getitem__(key)
-        # `vec[:, 0]` is still a view that syncs, but no longer an array of vectors.
-        # Assigning the class avoids `view()` re-running `__array_finalize__`.
-        if type(out) is type(self) and (
-            out.ndim != 1 + len(self._value_shape) or out.shape[1:] != self._value_shape
-        ):
-            out.__class__ = AttributeArray
-        return out
 
     def __new__(cls, data: npt.ArrayLike) -> Self:
         """

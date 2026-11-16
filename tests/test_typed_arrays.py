@@ -69,10 +69,23 @@ def test_store_mismatched_type_raises(bob: db.BlenderObject):
         bob.point["c"] = db.quat(np.ones((8, 4)))
     with pytest.raises(db.NamedAttributeError):
         bob["c"] = db.quat(np.ones((8, 4)))
+
+
+def test_store_explicit_atype_converts(bob: db.BlenderObject):
+    # an explicit type wins over the one a typed array declares
+    db.store_named_attribute(
+        bob.object, db.quat(np.ones((8, 4))), "new", atype="FLOAT_COLOR"
+    )
+    assert db.Attribute(bob.attributes["new"]).atype == db.AttributeTypes.FLOAT_COLOR
+
+    bob.point["w"] = db.float32(np.arange(8))
+    bob.store_named_attribute(bob["w"], "ids", atype="INT")
+    assert type(bob["ids"]) is db.int32
+    np.testing.assert_array_equal(bob["ids"], np.arange(8))
+
+    # but still can't change an existing attribute's type
     with pytest.raises(db.NamedAttributeError):
-        db.store_named_attribute(
-            bob.object, db.quat(np.ones((8, 4))), "new", atype="FLOAT_COLOR"
-        )
+        bob.store_named_attribute(db.quat(np.ones((8, 4))), "new", atype="QUATERNION")
 
 
 def test_store_mismatched_single_value_raises(bob: db.BlenderObject):
@@ -166,6 +179,11 @@ def test_views_that_change_shape_drop_the_type(bob: db.BlenderObject):
     assert type(column) is db.AttributeArray
     assert type(pos[0]) is db.AttributeArray
     assert type(pos[:4]) is db.vec3
+    assert type(pos.reshape(-1)) is db.AttributeArray
+    assert type(pos.reshape(2, 4, 3)) is db.AttributeArray
+    assert type(pos.reshape(8, 3)) is db.vec3
+    # a single value stays one
+    assert type(db.color([1, 0, 0, 1]).copy()) is db.color
 
     # the column is still synced
     column[:] = 5

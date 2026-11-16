@@ -1035,8 +1035,10 @@ def store_named_attribute(
     name : str
         The name of the attribute.
     atype : str or AttributeTypes or None, optional
-        The attribute type to store the data as. If None, the type of an existing
-        attribute is used, otherwise the type is inferred from data.
+        The attribute type to store the data as, converting the values if needed. If
+        None, a typed array such as `vec3` is stored as its own type, other data as
+        the type of an existing attribute, and otherwise the type is inferred from
+        the data.
     domain : str or AttributeDomains or None, optional
         The domain of the attribute. If None, the domain of an existing attribute is
         used, otherwise 'POINT'. New attributes on grease pencil objects need the
@@ -1090,12 +1092,8 @@ def store_named_attribute(
     if single:
         # one row, which is broadcast to every element once the domain is known
         data = data[np.newaxis]
-    if declared is not None:
-        if atype is not None and _match_atype(atype, data) != declared:
-            raise NamedAttributeError(
-                f"The data is a `{declared.name}` array, which can't be stored as "
-                f"`{_match_atype(atype, data).name}`."
-            )
+    if atype is None:
+        # an explicit `atype` converts the values instead
         atype = declared
     obj_data = obj.data
 

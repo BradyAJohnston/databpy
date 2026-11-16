@@ -19,7 +19,6 @@ from .addon import (
 )
 from .array import AttributeArray
 from .attribute import (
-    Attribute,
     AttributeDomains,
     AttributeTypeNames,
     AttributeTypes,
@@ -808,13 +807,8 @@ class BlenderObjectAttribute(BlenderObjectBase):
         AttributeMismatchError
             If the values can't be represented by the attribute's type.
         """
-        if name in self.list_attributes():
-            att = Attribute(self.attributes[name])
-            self.store_named_attribute(
-                data=data, name=name, domain=att.domain, atype=att.atype
-            )
-        else:
-            self.store_named_attribute(data=data, name=name)
+        # an existing attribute keeps its type and domain
+        self.store_named_attribute(data=data, name=name)
 
     def _check_obj(self) -> None:
         _check_obj_attributes(self.object)
