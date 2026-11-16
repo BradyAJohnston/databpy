@@ -119,13 +119,13 @@ lines.point["position"]
     7 2
 
     AttributeArray(name='position', object='GreasePencil', mesh='GreasePencil', domain=POINT, type=FLOAT_VECTOR, shape=(7, 3), dtype=float32)
-    array([[0.3668153 , 0.93899876, 0.34100217],
-           [0.9632546 , 0.1473981 , 0.6087418 ],
-           [0.8684352 , 0.73658955, 0.6796041 ],
-           [0.7901545 , 0.70650077, 0.9083618 ],
-           [0.8288065 , 0.8122828 , 0.98049504],
-           [0.56350046, 0.47756845, 0.40105566],
-           [0.6442321 , 0.5461401 , 0.06491818]], dtype=float32)
+    array([[0.6432705 , 0.9727514 , 0.686293  ],
+           [0.8565643 , 0.5313175 , 0.0479879 ],
+           [0.09321797, 0.6356264 , 0.91134906],
+           [0.7226626 , 0.0275858 , 0.27758026],
+           [0.0916688 , 0.8183076 , 0.11027788],
+           [0.26312009, 0.47857577, 0.79387873],
+           [0.81850976, 0.6821572 , 0.15626295]], dtype=float32)
 
 `gp.drawings["Lines"]` is the drawing shown on the scene’s current frame. With more than one keyframe, `gp.drawings["Lines", 12]` is the drawing shown at frame 12, from the last keyframe at or before it.
 
@@ -400,7 +400,7 @@ except db.AttributeMismatchError as e:
 bob.point["name"] = db.string([f"point_{i}" for i in range(n)])
 ```
 
-    /tmp/ipykernel_3709/482388415.py:2: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
+    /tmp/ipykernel_3539/482388415.py:2: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
       bob.point["name"] = db.string([f"point_{i}" for i in range(n)])
 
 > **WARNING:**
@@ -441,8 +441,8 @@ bob["weight"]
 ```
 
     AttributeArray(name='weight', object='NewObject.001', mesh='NewObject.001', domain=POINT, type=FLOAT, shape=(10,), dtype=float32)
-    array([0.11392668, 0.11310803, 0.05978195, 0.32558548, 0.36213556,
-           0.81238955, 0.7781608 , 0.2471439 , 0.17593665, 0.6000284 ],
+    array([0.63811123, 0.03550066, 0.5811908 , 0.21769118, 0.41047305,
+           0.7356403 , 0.22278208, 0.90137124, 0.7465254 , 0.40375423],
           dtype=float32)
 
 **When to use:** Interactive work and scripting, when you want automatic syncing.
