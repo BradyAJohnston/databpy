@@ -526,6 +526,11 @@ class BlenderObjectAttribute(BlenderObjectBase):
         """
         return list_attributes(self.object, evaluate=evaluate, drop_hidden=drop_hidden)
 
+    def __bool__(self) -> bool:
+        # without this, truth tests fall back to `__len__`, which raises for objects
+        # that have no points of their own, such as grease pencil
+        return True
+
     def __len__(self) -> int:
         """
         Get the number of points in the Blender object.
@@ -1325,7 +1330,13 @@ def _check_grease_pencil_layer(
 ) -> tuple[str, np.ndarray, np.ndarray]:
     """Check the points and strokes of one layer before anything is created."""
     positions = np.asarray(positions)
-    stroke_sizes = np.asarray(stroke_sizes, dtype=int)
+    sizes = np.asarray(stroke_sizes)
+    if sizes.size and not np.all(np.mod(sizes, 1) == 0):
+        raise ValueError(
+            f"Stroke sizes of layer `{layer_name}` must be whole numbers of points, "
+            f"not {sizes.tolist()}"
+        )
+    stroke_sizes = sizes.astype(int)
     if stroke_sizes.ndim != 1:
         raise ValueError(
             f"Stroke sizes of layer `{layer_name}` must be a 1D list of point counts, "
@@ -1419,6 +1430,11 @@ def create_grease_pencil_object(
         frame_number = active_scene().frame_current
         for layer_name, positions, stroke_sizes in checked:
             layer = grease_pencil.layers.new(layer_name)
+            if layer.name != layer_name:
+                raise ValueError(
+                    f"Blender renamed layer `{layer_name}` to `{layer.name}`, so it "
+                    "couldn't be found by its name"
+                )
             # a new frame always has a drawing, though the stubs allow None
             drawing = cast(
                 bpy.types.GreasePencilDrawing, layer.frames.new(frame_number).drawing

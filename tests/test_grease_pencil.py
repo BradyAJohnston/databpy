@@ -68,6 +68,9 @@ def test_create_grease_pencil_object_empty_layer():
         {"A": (np.zeros((3, 3)), [3, 0])},
         {"A": (np.zeros((3, 3)), [4, -1])},
         {"A": (np.zeros((4, 3)), [[2, 2]])},
+        {"A": (np.zeros((3, 3)), [1.5, 1.5])},
+        # Blender renames an empty layer name, which is only seen after creating it
+        {"A": (np.zeros((3, 3)), [3]), "": (np.zeros((3, 3)), [3])},
     ],
 )
 def test_create_grease_pencil_object_invalid_leaves_nothing(layers):
@@ -103,6 +106,8 @@ def test_from_grease_pencil():
     assert bob.name.startswith("GP")
     with pytest.raises(TypeError, match="LAYER"):
         len(bob)
+    # a truth test doesn't fall back to the length
+    assert bob
 
 
 def test_points_and_strokes_are_not_on_the_object(gp_obj: bpy.types.Object):
