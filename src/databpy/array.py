@@ -284,6 +284,10 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
                 target._sync_to_blender()
         return result
 
+    # ty reports any override of `__setitem__`, `__getitem__` or `partition` on a
+    # generic ndarray subclass as invalid, as numpy's stubs overload them with
+    # restricted `self` types. A non-generic subclass with the same override passes,
+    # so these ignores can go once ty handles generic subclasses.
     def __setitem__(self, key, value):  # ty: ignore[invalid-method-override]
         """Set the values at `key` and write them to Blender."""
         if self._is_writeback(key, value):
@@ -326,6 +330,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         super().put(*args, **kwargs)
         self._sync_to_blender()
 
+    # ty false positive on generic ndarray subclasses, see `AttributeArray.__setitem__`
     def partition(self, *args, **kwargs):  # ty: ignore[invalid-method-override]
         """Partition the array in-place and sync to Blender."""
         super().partition(*args, **kwargs)
@@ -483,6 +488,7 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             # assigning the class avoids `view()` re-running `__array_finalize__`
             self.__class__ = AttributeArray
 
+    # ty false positive on generic ndarray subclasses, see `AttributeArray.__setitem__`
     def __getitem__(self, key):  # ty: ignore[invalid-method-override]
         """Index the array, keeping this type only while it has that shape."""
         out = super().__getitem__(key)
