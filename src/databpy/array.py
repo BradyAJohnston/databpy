@@ -340,7 +340,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
     # generic ndarray subclass as invalid, as numpy's stubs overload them with
     # restricted `self` types. A non-generic subclass with the same override passes,
     # so these ignores can go once ty handles generic subclasses.
-    def __setitem__(self, key, value):  # ty: ignore[invalid-method-override]
+    def __setitem__(self, key, value):  # ty: ignore[incompatible-method-override]
         """Set the values at `key` and write them to Blender."""
         if self._is_writeback(key, value):
             # `pos[:, 2] += 1` assigns the already modified and synced view back to
@@ -383,7 +383,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         self._sync_to_blender()
 
     # ty false positive on generic ndarray subclasses, see `AttributeArray.__setitem__`
-    def partition(self, *args, **kwargs):  # ty: ignore[invalid-method-override]
+    def partition(self, *args, **kwargs):  # ty: ignore[incompatible-method-override]
         """Partition the array in-place and sync to Blender."""
         super().partition(*args, **kwargs)
         self._sync_to_blender()
@@ -551,6 +551,12 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         )
 
 
+def _make_plain(arr: AttributeArray) -> None:
+    """Make a typed array a plain `AttributeArray`, keeping its link to Blender."""
+    # assigning the class avoids `view()` re-running `__array_finalize__`
+    arr.__class__ = AttributeArray
+
+
 def _is_storage_dtype(dtype: np.dtype, atype: AttributeTypes) -> bool:
     """Whether values of `dtype` are stored as `atype` without conversion."""
     if atype == AttributeTypes.STRING:
@@ -564,12 +570,13 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
 ):
     """Base for arrays that declare the attribute type they are stored as."""
 
-    atype: ClassVar[AttributeTypes]
     # the shape of a single value, () for single values
     _value_shape: ClassVar[tuple[int, ...]]
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
+        if cls.atype is None:
+            raise TypeError(f"Typed array `{cls.__name__}` must set its `atype`.")
         cls._value_shape = _value_shape(cls.atype)
 
     def __array_finalize__(self, obj):
@@ -583,6 +590,9 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         dtype after this runs, but are stored by their values all the same.
         """
         super().__array_finalize__(obj)
+        atype = type(self).atype
+        # every typed array sets its atype, which `__init_subclass__` checks
+        assert atype is not None
         # without a source, such as when unpickling, the dtype isn't set yet
         if obj is None:
             return
@@ -591,11 +601,8 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         # a single value such as `color([1, 0, 0, 1])` stays one, but `vec[0]` is
         # one row of an array rather than a value to fill a domain with
         is_value = self.shape == value_shape == np.shape(obj)
-        if not _is_storage_dtype(self.dtype, type(self).atype) or not (
-            is_array or is_value
-        ):
-            # assigning the class avoids `view()` re-running `__array_finalize__`
-            self.__class__ = AttributeArray
+        if not _is_storage_dtype(self.dtype, atype) or not (is_array or is_value):
+            _make_plain(self)
 
     def __new__(cls, data: npt.ArrayLike) -> Self:
         """
@@ -618,6 +625,9 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         AttributeMismatchError
             If the values can't be represented by this type.
         """
+        atype = cls.atype
+        # every typed array sets its atype, which `__init_subclass__` checks
+        assert atype is not None
         arr = np.asarray(data)
         value_shape = cls._value_shape
         if arr.shape != value_shape and (
@@ -629,10 +639,10 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
                 f"{',' if not value_shape else ''}), or {value_shape} for a single "
                 f"value, not {arr.shape}."
             )
-        if cls.atype != AttributeTypes.STRING:
-            _check_storable(arr, cls.atype)
+        if atype != AttributeTypes.STRING:
+            _check_storable(arr, atype)
         # a plain view, so that wrapping an AttributeArray gives an unlinked array
-        return arr.astype(cls.atype.value.dtype, copy=False).view(np.ndarray).view(cls)
+        return arr.astype(atype.value.dtype, copy=False).view(np.ndarray).view(cls)
 
 
 def _srgb_to_linear(values: np.ndarray) -> np.ndarray:
@@ -892,4 +902,5 @@ ARRAY_TYPES: dict[AttributeTypes, type[AttributeArray]] = {
         boolean,
         string,
     )
+    if cls.atype is not None
 }

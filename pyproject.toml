@@ -40,7 +40,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "nodebpy>=520.24.0",
-    "ty>=0.0.80",
+    "ty>=0.0.104",
     "ruff>=0.16.7",
     "griffe<2",
     "pytest-codspeed>=5.0.3",
