@@ -270,3 +270,38 @@ def test_small_write(benchmark):
 def test_small_attribute_array(benchmark):
     bob = db.BlenderObject(db.create_pointcloud_object(SMALL))
     benchmark(lambda: bob.position)
+
+
+# indexing an AttributeArray, which checks whether a typed array such as `vec3` keeps
+# its type for the shape of the result
+def _position():
+    return db.BlenderObject(db.create_pointcloud_object(POSITIONS)).position
+
+
+@pytest.mark.benchmark(group="attribute-array-index")
+def test_attribute_array_index_column(benchmark):
+    position = _position()
+    benchmark(lambda: position[:, 0])
+
+
+@pytest.mark.benchmark(group="attribute-array-index")
+def test_attribute_array_index_row(benchmark):
+    position = _position()
+    benchmark(lambda: position[0])
+
+
+@pytest.mark.benchmark(group="attribute-array-index")
+def test_attribute_array_index_rows(benchmark):
+    position = _position()
+    benchmark(lambda: position[:10])
+
+
+@pytest.mark.benchmark(group="attribute-array-index")
+def test_attribute_array_index_scalar_loop(benchmark):
+    position = _position()
+
+    def func():
+        for i in range(1000):
+            position[i, 2]
+
+    benchmark(func)

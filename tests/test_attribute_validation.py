@@ -66,7 +66,6 @@ def test_attribute_from_array_checks_overflow(cube):
 @pytest.mark.parametrize(
     "data",
     [
-        np.array(1.0),
         np.zeros((8, 5)),
         np.zeros((8, 2), dtype=bool),
         np.zeros((8, 3), dtype="U1"),

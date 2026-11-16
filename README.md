@@ -23,6 +23,10 @@ ids = bob.named_attribute("id")
 # attributes as arrays that write changes back to Blender
 bob.position[:, 2] += 1.0
 bob["id"][:10] = -1
+
+# state the domain and type of an attribute, which type checkers also see
+bob.point["tint"] = db.color(np.random.rand(100, 4))
+tint = bob.point["tint", db.color]
 ```
 
 `store_named_attribute()` and `named_attribute()` are named after the Store Named Attribute and Named Attribute nodes in Geometry Nodes.
@@ -66,7 +70,7 @@ databpy requires Python 3.13, the version Blender 5.1 and 5.2 use.
 ## Documentation
 
 - [Getting started](https://bradyajohnston.github.io/databpy/): storing and reading attributes, `BlenderObject`, and importing a table with Polars
-- [Attributes guide](https://bradyajohnston.github.io/databpy/attributes.html): attribute types and domains, syncing, performance and errors
+- [Attributes guide](https://bradyajohnston.github.io/databpy/attributes.html): domains and typed arrays, syncing, performance and errors
 - [API reference](https://bradyajohnston.github.io/databpy/api/)
 - [Changelog](https://bradyajohnston.github.io/databpy/changelog.html)
 
