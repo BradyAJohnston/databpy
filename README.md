@@ -70,7 +70,9 @@ databpy requires Python 3.13, the version Blender 5.1 and 5.2 use.
 ## Documentation
 
 - [Getting started](https://bradyajohnston.github.io/databpy/): storing and reading attributes, `BlenderObject`, and importing a table with Polars
-- [Attributes guide](https://bradyajohnston.github.io/databpy/attributes.html): domains and typed arrays, syncing, performance and errors
+- [Attributes](https://bradyajohnston.github.io/databpy/attributes.html): domains, typed arrays and errors
+- [Syncing with Blender](https://bradyajohnston.github.io/databpy/syncing.html): how arrays write changes back, and when to use copies
+- [Grease pencil and evaluated geometry](https://bradyajohnston.github.io/databpy/geometry.html): drawings, and the output of Geometry Nodes
 - [API reference](https://bradyajohnston.github.io/databpy/api/)
 - [Changelog](https://bradyajohnston.github.io/databpy/changelog.html)
 

@@ -1,0 +1,124 @@
+---
+title: "Syncing with Blender"
+---
+
+This guide explains how the arrays that databpy reads write changes back to Blender, and when to work with a copy of an attribute instead. It assumes you have read [Attributes](attributes.qmd).
+
+databpy gives you two ways to work with an attribute's values:
+
+- A synced array, the [`AttributeArray`](`databpy.AttributeArray`) you get from `bob["name"]`, a domain view or `bob.position`. Changes to a synced array are written to Blender as you make them.
+- A copy, from [`named_attribute()`](`databpy.named_attribute`) or [`Attribute`](`databpy.Attribute`). Changes to a copy stay in NumPy until you store the copy.
+
+## Change attributes through synced arrays
+
+Reading an attribute through a `BlenderObject` gives a synced array. Change it like any NumPy array, and each change is written to Blender:
+
+```{python}
+import databpy as db
+import numpy as np
+import bpy
+
+bob = db.create_bob(np.random.rand(100, 3))
+
+pos = bob.position
+pos[:, 2] += 1.0     # move every point up
+pos *= 2.0           # scale every position
+pos[pos < 0] = 0     # clamp negative values
+pos[0] = [0, 0, 0]   # set one position
+```
+
+[`AttributeArray(obj, name)`](`databpy.AttributeArray`) reads the same synced array from a `bpy.types.Object`:
+
+```{python}
+obj = bpy.data.objects["Cube"]
+pos = db.AttributeArray(obj, "position")
+pos[:, 2] += 1.0
+```
+
+::: {.callout-note}
+## Performance
+Reading a synced array, such as `bob.position`, reads the whole attribute. Each change then writes only the values it changed, straight into the attribute's memory: `pos[:10, 2] = 1.0` writes 10 values however large the mesh is. Values that changed in Blender since you read the array are left as they are.
+
+databpy writes STRING attributes in full instead, one value at a time. A synced array whose attribute was removed creates the attribute again.
+:::
+
+### Know which arrays stay synced
+
+Indexing that returns a NumPy view, such as the slices `pos[:, 2]` and `pos[2:5]`, gives a synced array. Indexing that returns a NumPy copy, such as `pos[mask]`, `pos[[0, 3]]` or `pos.copy()`, gives an array that doesn't sync. The results of math, such as `pos + 1` and `pos * 2`, are plain NumPy arrays:
+
+```{python}
+pos = db.AttributeArray(obj, "position")
+
+column = pos[:, 2]
+column += 1.0              # a view, so the change syncs
+
+high = pos[pos[:, 2] > 1]
+high += 1.0                # a copy, so the change doesn't sync
+
+pos[pos[:, 2] > 1] += 1.0  # assigning through the synced array syncs
+```
+
+Indexing and reshaping keep the typed array only while the result has its shape. `pos[:10]` is a `db.vec3`, but the column `pos[:, 2]` is a plain `AttributeArray`, as a column isn't an array of vectors. Changing the dtype also gives a plain array, so `bob["ids"] = bob["weight"].astype(np.int32)` stores an `INT` attribute. To store a result as a type again, wrap it, as in `db.vec3(pos * 2)`.
+
+### Read again after changing the geometry
+
+A synced array matches the geometry it was read from. After you change the geometry, such as by adding vertices, read the array again. Writing to a synced array whose attribute no longer matches it raises a [`NamedAttributeError`](`databpy.NamedAttributeError`), and writing to one whose object was removed raises a [`LinkedObjectError`](`databpy.LinkedObjectError`).
+
+## Work with copies
+
+A copy holds the attribute's values without a link to Blender. Use a copy when you only need to read the values, or when you make many whole-array changes and want to write them once.
+
+[`named_attribute()`](`databpy.named_attribute`) reads a copy, and [`store_named_attribute()`](`databpy.store_named_attribute`) writes one. Pass `evaluate=True` to read the attribute after the object's modifiers:
+
+```{python}
+positions = db.named_attribute(obj, "position", atype=db.vec3)
+evaluated = db.named_attribute(obj, "position", evaluate=True)
+
+positions[:, 2] += 1.0  # doesn't change the object
+db.store_named_attribute(obj, positions, "position")
+```
+
+The [`Attribute`](`databpy.Attribute`) class wraps one `bpy.types.Attribute`. Its [`as_array()`](`databpy.Attribute.as_array`) method reads a copy, and [`from_array()`](`databpy.Attribute.from_array`) writes the whole attribute once:
+
+```{python}
+obj = db.create_object(np.random.rand(100_000, 3))
+attr = db.Attribute(obj.data.attributes["position"])
+
+positions = attr.as_array()
+
+positions[:, 2] += 1.0
+positions *= 2.0
+positions = np.clip(positions, -10, 10)
+
+attr.from_array(positions)
+```
+
+`Attribute` also gives the type, domain and shape of an attribute without reading its values, from `atype`, `domain` and `shape`.
+
+## Choose between synced arrays and copies
+
+A synced array reads once, and then writes the values each change touches. A copy reads once and writes once, however many changes you make. The following table compares the cost of each:
+
+| Change | Synced array | Copy |
+|--------|--------------|------|
+| A few values, such as `pos[0] = ...` | Writes those values | Writes the whole attribute |
+| One whole-array change, such as `pos *= 2.0` | Writes the whole attribute | Writes the whole attribute |
+| Many whole-array changes | Writes the whole attribute for each change | Writes the whole attribute once |
+
+Synced arrays suit interactive work and scripts that change a few values at a time. Copies suit reading values you don't change, and chains of whole-array changes.
+
+### Change many values in one operation
+
+Each change to a synced array writes only the values it changed, but every write has a fixed cost. A Python loop that changes one value at a time pays that cost for every element. One NumPy operation over the same values writes once:
+
+```{python}
+bob = db.create_bob(np.random.rand(10, 3))
+pos = bob.position
+
+# slow: a write for every point
+for i in range(len(pos)):
+    pos[i, 2] += 1.0
+
+# fast: one write for every point
+pos[:, 2] += 1.0
+```

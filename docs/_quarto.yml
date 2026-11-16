@@ -14,8 +14,14 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: attributes.qmd
-        text: Attributes
+      - text: Guides
+        menu:
+          - href: attributes.qmd
+            text: Attributes
+          - href: syncing.qmd
+            text: Syncing with Blender
+          - href: geometry.qmd
+            text: Grease pencil and evaluated geometry
       - href: api/index.qmd
         text: API
       - href: changelog.qmd
