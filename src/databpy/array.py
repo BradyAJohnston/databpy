@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import Any, ClassVar, Self
 
 import bpy
@@ -35,6 +36,9 @@ class _AttributeLink:
         self.name: str = attribute.name
         self.atype: AttributeTypes = attribute.atype
         self.domain: AttributeDomains = attribute.domain
+        # converts the array's values to how they are stored, for arrays such as
+        # `srgb` whose values aren't stored as they are
+        self.encode: Callable[[np.ndarray], np.ndarray] | None = None
 
     def resolve(self) -> bpy.types.Object:
         if self.session_token != session_token():
@@ -171,6 +175,18 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
     # when unpickling, which are detached
     _link: "_AttributeLink | None" = None
     _root: "AttributeArray | None" = None
+    # whether the values are converted when stored and read, as for `srgb`
+    _converted: ClassVar[bool] = False
+
+    @staticmethod
+    def _encode(values: np.ndarray) -> np.ndarray:
+        """Convert values to how they are stored in Blender."""
+        return values
+
+    @staticmethod
+    def _decode(values: np.ndarray) -> np.ndarray:
+        """Convert values stored in Blender to the values of this array type."""
+        return values
 
     def __new__(cls, obj: bpy.types.Object, name: str) -> "AttributeArray[Any, Any]":
         """Create a new AttributeArray that wraps a Blender attribute.
@@ -352,9 +368,10 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         obj = link.resolve()
         root = self._root_array
         if not self._write_directly(obj, link, root, key):
+            values = root.view(np.ndarray)
             store_named_attribute(
                 obj,
-                root.view(np.ndarray),
+                values if link.encode is None else link.encode(values),
                 name=link.name,
                 atype=link.atype,
                 domain=link.domain,
@@ -388,6 +405,15 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         if layout.shape != root.shape or layout.strides != root.strides:
             return False
 
+        if link.encode is not None:
+            # a view doesn't know which channels it holds, which can be converted
+            # differently, so whole rows are converted and written: those that hold
+            # the values that changed
+            rows = self._changed_rows(root, key)
+            layout[rows] = link.encode(root.view(np.ndarray)[rows])
+            _trigger_data_update(obj_data)
+            return True
+
         # this array is a view into the root array, so the same view into Blender's
         # memory covers exactly the values this array holds
         values = self.view(np.ndarray)
@@ -408,6 +434,35 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             target[key] = values[key]
         _trigger_data_update(obj_data)
         return True
+
+    def _changed_rows(self, root: "AttributeArray", key) -> slice:
+        """The rows of `root` that hold this array, or `self[key]`.
+
+        All rows if they can't be worked out, such as for a mask, which gives a copy.
+        """
+        values = self.view(np.ndarray)
+        if key is not None:
+            keys = key if isinstance(key, tuple) else (key,)
+            if not any(k is Ellipsis for k in keys):
+                # so that indexing a single value gives a view rather than a scalar
+                keys = (*keys, Ellipsis)
+            values = values[keys]
+            if not np.may_share_memory(values, root):
+                return slice(None)
+        if values.size == 0:
+            return slice(0, 0)
+        row_bytes = root.strides[0] if root.ndim else 0
+        if row_bytes <= 0 or not root.flags.c_contiguous:
+            return slice(None)
+        start = values.__array_interface__["data"][0]
+        first = start + sum(
+            (n - 1) * s for n, s in zip(values.shape, values.strides) if s < 0
+        )
+        last = start + sum(
+            (n - 1) * s for n, s in zip(values.shape, values.strides) if s > 0
+        )
+        offset = root.__array_interface__["data"][0]
+        return slice((first - offset) // row_bytes, (last - offset) // row_bytes + 1)
 
     def _describe(self) -> tuple[str, str, str, str, str]:
         """Names of the attribute, domain, type, object and data-block for printing."""
@@ -539,6 +594,71 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         return arr.astype(cls.atype.value.dtype, copy=False).view(np.ndarray).view(cls)
 
 
+def _srgb_to_linear(values: np.ndarray) -> np.ndarray:
+    """Convert sRGB RGBA colors to linear, leaving alpha as it is."""
+    out = np.array(values, dtype=np.float32)
+    rgb = out[..., :3]
+    # the linear segment is extended below 0, so negative values convert both ways
+    curve = ((np.maximum(rgb, 0.04045) + 0.055) / 1.055) ** 2.4
+    out[..., :3] = np.where(rgb < 0.04045, rgb / 12.92, curve)
+    return out
+
+
+def _linear_to_srgb(values: np.ndarray) -> np.ndarray:
+    """Convert linear RGBA colors to sRGB, leaving alpha as it is."""
+    out = np.array(values, dtype=np.float32)
+    rgb = out[..., :3]
+    curve = 1.055 * np.maximum(rgb, 0.0031308) ** (1 / 2.4) - 0.055
+    out[..., :3] = np.where(rgb < 0.0031308, rgb * 12.92, curve)
+    return out
+
+
+def _hex_to_bytes(codes: np.ndarray) -> np.ndarray:
+    """Parse hex color codes such as '#FF8000' to RGBA bytes, with alpha 255 if unset."""
+    out = np.empty((*codes.shape, 4), dtype=np.uint8)
+    for index, code in np.ndenumerate(codes):
+        text = code.decode() if isinstance(code, bytes) else str(code)
+        digits = text.strip().removeprefix("#")
+        if len(digits) in (3, 4):
+            digits = "".join(digit * 2 for digit in digits)
+        if len(digits) == 6:
+            digits += "ff"
+        if len(digits) != 8 or any(d not in "0123456789abcdefABCDEF" for d in digits):
+            raise ValueError(
+                f"`{code}` isn't a hex color code such as '#RGB', '#RGBA', '#RRGGBB' "
+                "or '#RRGGBBAA'."
+            )
+        out[index] = [int(digits[i : i + 2], 16) for i in range(0, 8, 2)]
+    return out
+
+
+def _is_text(data: npt.ArrayLike) -> bool:
+    """Whether data is hex color codes: text, bytes, or an array or list of either."""
+    if isinstance(data, str | bytes):
+        return True
+    array = np.asarray(data)
+    if array.dtype.kind in "US":
+        return True
+    # object arrays, such as of strings read from a data frame
+    return (
+        array.dtype.kind == "O"
+        and array.size > 0
+        and all(isinstance(code, str | bytes) for code in array.flat)
+    )
+
+
+def _as_converted[T: AttributeArray](arr: AttributeArray, cls: type[T]) -> T:
+    """Convert an array read from Blender to `cls`, which converts it back on sync."""
+    values = arr.view(np.ndarray)
+    values[...] = cls._decode(values)
+    arr.__class__ = cls
+    if arr._link is not None:
+        arr._link.encode = cls._encode
+    # always true, but narrows the type of `arr` to `cls`
+    assert isinstance(arr, cls)
+    return arr
+
+
 type _Shape1 = tuple[int]
 type _Shape2 = tuple[int, int]
 type _Shape3 = tuple[int, int, int]
@@ -576,10 +696,93 @@ class color(_TypedArray[_Shape2, _Float32]):
     atype = AttributeTypes.FLOAT_COLOR
 
 
+class srgb(_TypedArray[_Shape2, _Float32]):
+    """
+    A `FLOAT_COLOR` attribute as sRGB RGBA float32 colors.
+
+    Blender stores color attributes as linear colors. The values of this array are
+    sRGB, and are converted to linear when they are stored, and from linear when they
+    are read as `bob["name", db.srgb]`. Alpha isn't converted. Results of math on an
+    `srgb` array are also `srgb` arrays, so that they are still converted when
+    stored, unless the math mixes in another kind of typed array such as `db.color`.
+
+    Read colors as `bob["name", db.srgb]` rather than `bob["name"].view(db.srgb)`,
+    which would label linear values as sRGB without converting them.
+    """
+
+    atype = AttributeTypes.FLOAT_COLOR
+    _converted = True
+
+    def __new__(cls, data: npt.ArrayLike) -> Self:
+        """
+        Wrap sRGB colors, ready to be stored as linear colors.
+
+        Parameters
+        ----------
+        data : npt.ArrayLike
+            RGBA colors with shape (N, 4), or a single color with shape (4,). Hex
+            codes such as '#FF8000', or a list of them, are also accepted, as are
+            uint8 colors such as a `color8` array, which are scaled to [0, 1].
+
+        Raises
+        ------
+        ValueError
+            If the data doesn't have the shape of RGBA colors, or isn't a valid hex
+            code.
+        """
+        if _is_text(data):
+            data = _hex_to_bytes(np.asarray(data))
+        if np.asarray(data).dtype == np.uint8:
+            # sRGB bytes, as stored in `BYTE_COLOR` attributes
+            data = np.asarray(data, dtype=np.float32) / np.float32(255)
+        return super().__new__(cls, data)
+
+    @staticmethod
+    def _encode(values: np.ndarray) -> np.ndarray:
+        return _srgb_to_linear(values)
+
+    @staticmethod
+    def _decode(values: np.ndarray) -> np.ndarray:
+        return _linear_to_srgb(values)
+
+    def __array_ufunc__(self, ufunc, method, *inputs, out=None, **kwargs):
+        """Keep the results of elementwise math as sRGB colors.
+
+        Math with another kind of typed array, such as a linear `db.color`, gives a
+        plain array, as it does whichever array comes first.
+        """
+        result = super().__array_ufunc__(ufunc, method, *inputs, out=out, **kwargs)
+        if (
+            out is None
+            and method == "__call__"
+            and not any(
+                isinstance(x, AttributeArray) and not isinstance(x, srgb)
+                for x in inputs
+            )
+            and isinstance(result, np.ndarray)
+            and result.dtype.kind == "f"
+            # `self` is the first srgb input, which can be a single color that
+            # was broadcast against an array of colors
+            and result.ndim in (1, 2)
+            and result.shape[-1] == 4
+        ):
+            return result.astype(np.float32, copy=False).view(srgb)
+        return result
+
+
 class color8(_TypedArray[_Shape2, np.dtype[np.uint8]]):
-    """A `BYTE_COLOR` attribute: an sRGB RGBA uint8 color per element."""
+    """
+    A `BYTE_COLOR` attribute: an sRGB RGBA uint8 color per element.
+
+    Hex codes such as '#FF8000', or a list of them, can be wrapped as well.
+    """
 
     atype = AttributeTypes.BYTE_COLOR
+
+    def __new__(cls, data: npt.ArrayLike) -> Self:
+        if _is_text(data):
+            data = _hex_to_bytes(np.asarray(data))
+        return super().__new__(cls, data)
 
 
 class quat(_TypedArray[_Shape2, _Float32]):
