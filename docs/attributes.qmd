@@ -103,6 +103,8 @@ lines.point["position"]
 
 `gp.drawings["Lines"]` is the drawing shown on the scene's current frame. With more than one keyframe, `gp.drawings["Lines", 12]` is the drawing shown at frame 12, from the last keyframe at or before it.
 
+A drawing, and the arrays read from it, keep writing to the same layer and keyframe when the scene's frame changes, keyframes are added, or the layer is renamed. They raise a `LinkedObjectError` once the layer or keyframe is removed, or the keyframe is moved to another frame.
+
 Grease pencil can also be made by Geometry Nodes on other types of objects, in which case it only exists in the evaluated geometry. `db.GeometrySet(obj).drawings` gives read-only access to those drawings.
 
 ### Instances

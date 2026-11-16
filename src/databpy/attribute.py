@@ -107,17 +107,46 @@ def _attribute_data(obj: Object) -> AttributeDataBlock:
     return data
 
 
-def _find_drawing(
-    grease_pencil: bpy.types.GreasePencil, layer: str, frame_number: int
-) -> bpy.types.GreasePencilDrawing | None:
-    """The drawing of the keyframe starting at `frame_number` on a layer, if any."""
-    found = grease_pencil.layers.get(layer)
-    if found is None:
+class _DrawingKey:
+    """
+    Where a grease pencil drawing is: a layer, and the frame of one of its keyframes.
+
+    The layer is followed by its address, so renaming it, or another layer taking its
+    name, doesn't change which drawing this is. Its name is only used once the address
+    is gone, such as after an undo, which reallocates the layers.
+    """
+
+    def __init__(self, layer: bpy.types.GreasePencilLayer, frame: int):
+        self.layer = layer.name
+        self.frame = frame
+        self._pointer = layer.as_pointer()
+
+    def find_layer(
+        self, grease_pencil: bpy.types.GreasePencil
+    ) -> bpy.types.GreasePencilLayer | None:
+        for layer in grease_pencil.layers:
+            if layer.as_pointer() == self._pointer:
+                self.layer = layer.name
+                return layer
+        layer = grease_pencil.layers.get(self.layer)
+        if layer is not None:
+            self._pointer = layer.as_pointer()
+        return layer
+
+    def find(
+        self, grease_pencil: bpy.types.GreasePencil
+    ) -> bpy.types.GreasePencilDrawing | None:
+        """The drawing of the keyframe starting at `frame` on the layer, if any."""
+        layer = self.find_layer(grease_pencil)
+        if layer is None:
+            return None
+        for frame in layer.frames:
+            if frame.frame_number == self.frame:
+                return frame.drawing
         return None
-    for frame in found.frames:
-        if frame.frame_number == frame_number:
-            return frame.drawing
-    return None
+
+    def __repr__(self) -> str:
+        return f"layer '{self.layer}' at frame {self.frame}"
 
 
 def _check_obj_attributes(obj: Object) -> None:
@@ -1199,20 +1228,21 @@ def _set_attribute(
             _check_target_atype(attribute, atype)
             data = np.broadcast_to(data, (len(attribute.data), *atype.value.dimensions))
         _write_data(attribute, data, atype, domain)
-    except DatabpyError:
-        # databpy's own errors, such as an `AttributeMismatchError`, already say what
-        # was wrong, so they are raised as they are
-        if existing_attribute is None:
-            obj_data.attributes.remove(attribute)
-        raise
-    except (ValueError, TypeError, RuntimeError) as e:
-        # errors from numpy or Blender while writing the values
+    except Exception as e:
+        # don't leave behind an attribute that was created for data that couldn't
+        # be written to it, whatever went wrong
         attribute_name = attribute.name
         if existing_attribute is None:
             obj_data.attributes.remove(attribute)
-        raise NamedAttributeError(
-            f"Could not write data to attribute `{attribute_name}` with error: {e}"
-        ) from e
+        if isinstance(e, ValueError | TypeError | RuntimeError) and not isinstance(
+            e, DatabpyError
+        ):
+            # errors from numpy or Blender while writing the values; databpy's own
+            # errors, such as an `AttributeMismatchError`, already say what was wrong
+            raise NamedAttributeError(
+                f"Could not write data to attribute `{attribute_name}` with error: {e}"
+            ) from e
+        raise
 
     _trigger_data_update(obj_data if tag is None else tag)
 
@@ -1408,15 +1438,19 @@ def remove_named_attribute(obj: bpy.types.Object, name: str) -> None:
     ```
     """
     _check_obj_attributes(obj)
-    obj_data = _attribute_data(obj)
+    _remove_attribute(_attribute_data(obj), name, "the object")
+
+
+def _remove_attribute(owner, name: str, description: str) -> None:
+    """Remove an attribute from anything with `attributes`, such as a drawing."""
     try:
-        attr = obj_data.attributes[name]
+        attr = owner.attributes[name]
     except KeyError:
         raise AttributeNotFoundError(
-            f"The selected attribute '{name}' does not exist on the object"
+            f"The selected attribute '{name}' does not exist on {description}"
         ) from None
     try:
-        obj_data.attributes.remove(attr)
+        owner.attributes.remove(attr)
     except RuntimeError as e:
         raise NamedAttributeError(
             f"The attribute '{name}' is required by Blender and can't be removed"

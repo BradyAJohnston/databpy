@@ -27,7 +27,7 @@ from .attribute import (
     _as_typed_attribute,
     _check_array_type,
     _check_obj_attributes,
-    _find_drawing,
+    _DrawingKey,
     evaluate_object,
     list_attributes,
 )
@@ -447,15 +447,10 @@ class Drawing:
     `BlenderObject`. Changes to the drawings of a grease pencil object are written
     back to Blender, while the drawings of evaluated geometry are read-only copies.
 
-    The drawing is looked up each time it is used, so a `Drawing` stays valid when
-    keyframes are added, until its own keyframe or layer is removed.
-
-    Attributes
-    ----------
-    layer : str
-        The name of the layer.
-    frame : int
-        The frame of the drawing's keyframe.
+    The drawing is looked up each time it is used, so a `Drawing`, and arrays read
+    from it, stay valid when keyframes are added and when the layer is renamed. They
+    raise a `LinkedObjectError` once the layer or keyframe is removed, or the keyframe
+    is moved to another frame.
 
     Examples
     --------
@@ -469,14 +464,25 @@ class Drawing:
     def __init__(
         self,
         grease_pencil: Callable[[], bpy.types.GreasePencil | None],
-        layer: str,
-        frame: int,
+        key: _DrawingKey,
         bob: "BlenderObjectAttribute | None" = None,
     ):
         self._grease_pencil = grease_pencil
+        self._key = key
         self._bob = bob
-        self.layer = layer
-        self.frame = frame
+
+    @property
+    def layer(self) -> str:
+        """The name of the layer, which follows the layer when it is renamed."""
+        grease_pencil = self._grease_pencil()
+        if grease_pencil is not None:
+            self._key.find_layer(grease_pencil)
+        return self._key.layer
+
+    @property
+    def frame(self) -> int:
+        """The frame of the drawing's keyframe."""
+        return self._key.frame
 
     @property
     def name(self) -> str:
@@ -486,16 +492,9 @@ class Drawing:
     def drawing(self) -> bpy.types.GreasePencilDrawing:
         """The `bpy.types.GreasePencilDrawing` this wraps."""
         grease_pencil = self._grease_pencil()
-        drawing = (
-            None
-            if grease_pencil is None
-            else _find_drawing(grease_pencil, self.layer, self.frame)
-        )
+        drawing = None if grease_pencil is None else self._key.find(grease_pencil)
         if drawing is None:
-            raise LinkedObjectError(
-                f"The drawing on layer '{self.layer}' at frame {self.frame} has been "
-                "removed."
-            )
+            raise LinkedObjectError(f"The drawing on {self._key} has been removed.")
         return drawing
 
     @property
@@ -542,8 +541,8 @@ class Drawing:
             None if self._bob is None else self._bob.object,
             self.drawing,
             name,
-            f"layer '{self.layer}' at frame {self.frame}",
-            (self.layer, self.frame),
+            repr(self._key),
+            self._key,
         )
         if atype is not None:
             _check_array_type(name, type(arr).atype, atype)
@@ -586,6 +585,29 @@ class Drawing:
             domain=domain,
             tag=self._grease_pencil(),
         )
+
+    def remove_named_attribute(self, name: str) -> None:
+        """
+        Remove an attribute from the drawing.
+
+        Raises
+        ------
+        TypeError
+            If the drawing is from evaluated geometry, which is read-only.
+        AttributeNotFoundError
+            If the attribute doesn't exist.
+        NamedAttributeError
+            If the attribute is required by Blender (e.g. `position`).
+        """
+        if self._bob is None:
+            raise TypeError(
+                "Drawings of evaluated geometry are read-only. Remove their attributes "
+                "in Geometry Nodes, or on the drawings of a grease pencil object."
+            )
+        attr._remove_attribute(self.drawing, name, repr(self._key))
+        grease_pencil = self._grease_pencil()
+        if grease_pencil is not None:
+            grease_pencil.update_tag()
 
     def list_attributes(self, drop_hidden: bool = False) -> list[str]:
         """List the names of the drawing's attributes."""
@@ -657,11 +679,17 @@ class Drawings(Mapping[str, Drawing]):
         if keyframe is None or keyframe.drawing is None:
             at = "the current frame" if frame is None else f"frame {frame}"
             raise KeyError(f"Layer '{name}' has no drawing at {at}.")
-        return Drawing(self._grease_pencil, name, keyframe.frame_number, self._bob)
+        return Drawing(
+            self._grease_pencil, _DrawingKey(layer, keyframe.frame_number), self._bob
+        )
 
     def __iter__(self) -> Iterator[str]:
+        # the same layers that `drawings[name]` finds a drawing for
         return (
-            layer.name for layer in self._layers() if layer.current_frame() is not None
+            layer.name
+            for layer in self._layers()
+            if (keyframe := layer.current_frame()) is not None
+            and keyframe.drawing is not None
         )
 
     def __len__(self) -> int:

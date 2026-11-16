@@ -59,6 +59,10 @@ toc: true
   Previously the values were converted to the existing attribute's type. Convert to
   a plain array with `np.asarray()` first to keep the old behaviour. To store an
   array as another type under a new name, pass `atype=`.
+- **Breaking**: errors from numpy or Blender while writing an attribute's values,
+  which were raised as a `ValueError`, `TypeError` or `RuntimeError`, are raised as a
+  `NamedAttributeError` with the original error as its `__cause__`. Catch
+  `NamedAttributeError` or `DatabpyError` instead.
 
 ### Fixed
 

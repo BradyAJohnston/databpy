@@ -162,6 +162,47 @@ def test_removed_drawing(bob: db.BlenderObject):
     assert list(bob.drawings) == ["Outline"]
 
 
+def test_renamed_layer(bob: db.BlenderObject):
+    lines = bob.drawings["Lines"]
+    w = lines.point["position"]
+    layers = _data(bob).layers
+
+    # arrays and drawings follow their layer when it's renamed, even when another
+    # layer takes its old name
+    layers["Lines"].name = "Old"
+    layers["Outline"].name = "Lines"
+    w[0] = 5.0
+    np.testing.assert_allclose(_raw(bob, "Old", "position")[0], 5.0)
+    np.testing.assert_allclose(_raw(bob, "Lines", "position"), OUTLINE, rtol=1e-6)
+    assert lines.layer == "Old"
+    assert len(lines.point) == 7
+
+
+def test_moved_keyframe(bob: db.BlenderObject):
+    w = bob.drawings["Lines"].point["position"]
+    _data(bob).layers["Lines"].frames.move(1, 5)
+    with pytest.raises(db.LinkedObjectError, match="frame 1"):
+        w[0] = 1.0
+
+
+def test_writing_positions_updates_bounds(bob: db.BlenderObject):
+    # evaluate first, so that the bounds are cached before the write
+    db.evaluate_object(bob.object)
+    position = bob.drawings["Lines"].point["position"]
+    position[0] = (7, 0, 0)
+    evaluated = db.evaluate_object(bob.object)
+    assert max(corner[0] for corner in evaluated.bound_box) == pytest.approx(7, abs=0.1)
+
+
+def test_delete_from_a_drawing(bob: db.BlenderObject):
+    lines = bob.drawings["Lines"]
+    lines.point["w"] = np.zeros(7)
+    del lines.point["w"]
+    assert "w" not in lines
+    with pytest.raises(db.AttributeNotFoundError):
+        lines.remove_named_attribute("w")
+
+
 def test_object_points_point_to_drawings(bob: db.BlenderObject):
     with pytest.raises(db.NamedAttributeError, match="bob.drawings"):
         bob["w"] = np.zeros(7)

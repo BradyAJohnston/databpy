@@ -15,7 +15,7 @@ from .attribute import (
     _attribute_data,
     _attribute_memory,
     _check_storable,
-    _find_drawing,
+    _DrawingKey,
     _set_attribute,
     _trigger_data_update,
     _value_shape,
@@ -34,7 +34,7 @@ class _AttributeLink:
         self,
         obj: bpy.types.Object,
         attribute: Attribute,
-        drawing: tuple[str, int] | None = None,
+        drawing: _DrawingKey | None = None,
     ):
         self.object_name: str = obj.name
         self.session_uid: int = obj.session_uid
@@ -69,15 +69,26 @@ class _AttributeLink:
         data = _attribute_data(obj)
         if self.drawing is None:
             return data, data
-        assert isinstance(data, bpy.types.GreasePencil)
-        drawing = _find_drawing(data, *self.drawing)
+        drawing = (
+            self.drawing.find(data)
+            if isinstance(data, bpy.types.GreasePencil)
+            else None
+        )
         if drawing is None:
-            layer, frame = self.drawing
             raise LinkedObjectError(
-                f"The drawing on layer '{layer}' at frame {frame} of "
-                f"'{self.object_name}' for AttributeArray '{self.name}' has been removed."
+                f"The drawing on {self.drawing} of '{self.object_name}' for "
+                f"AttributeArray '{self.name}' has been removed."
             )
         return drawing, data
+
+
+def _tag_written(owner: Any, tag: bpy.types.ID, link: _AttributeLink) -> None:
+    """Tag what was written to directly in memory for an update."""
+    if link.name == "position" and isinstance(owner, bpy.types.GreasePencilDrawing):
+        # writing memory directly skips the drawing's own update, so its bounds and
+        # fill triangulation would be stale
+        owner.tag_positions_changed()
+    _trigger_data_update(tag)
 
 
 # numpy functions that write into their first argument without going through a ufunc,
@@ -244,7 +255,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         owner: Any,
         name: str,
         where: str,
-        drawing: tuple[str, int] | None = None,
+        drawing: _DrawingKey | None = None,
     ) -> "AttributeArray[Any, Any]":
         """Read an attribute of `owner`, the object's data-block or one of its
         grease pencil drawings, linked to be written back unless `obj` is None."""
@@ -452,7 +463,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             # the values that changed
             rows = self._changed_rows(root, key)
             layout[rows] = link.encode(root.view(np.ndarray)[rows])
-            _trigger_data_update(tag)
+            _tag_written(owner, tag, link)
             return True
 
         # this array is a view into the root array, so the same view into Blender's
@@ -473,7 +484,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             target[...] = values
         else:
             target[key] = values[key]
-        _trigger_data_update(tag)
+        _tag_written(owner, tag, link)
         return True
 
     def _changed_rows(self, root: "AttributeArray", key) -> slice:
