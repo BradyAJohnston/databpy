@@ -1120,10 +1120,10 @@ def store_named_attribute(
             "strokes of each layer's drawing."
         )
 
-    return _store_attribute(obj_data, data, name, atype, domain, overwrite)
+    return _set_attribute(obj_data, data, name, atype, domain, overwrite)
 
 
-def _store_attribute(
+def _set_attribute(
     obj_data,
     data: npt.ArrayLike,
     name: str,

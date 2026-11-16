@@ -101,7 +101,7 @@ def test_writes_directly(bob: db.BlenderObject, monkeypatch):
     def fail(*args, **kwargs):
         raise AssertionError("the entire attribute was written")
 
-    monkeypatch.setattr(databpy.array, "_store_attribute", fail)
+    monkeypatch.setattr(databpy.array, "_set_attribute", fail)
     w[2] = 1
     w[4:] += 2
     np.testing.assert_array_equal(_raw(bob, "Lines", "w"), [0, 0, 1, 0, 2, 2, 2])

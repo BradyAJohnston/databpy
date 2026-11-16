@@ -578,7 +578,7 @@ class Drawing:
                 "Drawings of evaluated geometry are read-only. Store their attributes "
                 "in Geometry Nodes, or on the drawings of a grease pencil object."
             )
-        return attr._store_attribute(
+        return attr._set_attribute(
             self.drawing,
             data,
             name,

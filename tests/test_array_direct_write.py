@@ -20,7 +20,7 @@ def no_full_writes(monkeypatch):
     def fail(*args, **kwargs):
         raise AssertionError("the entire attribute was written with foreach_set")
 
-    monkeypatch.setattr(databpy.array, "_store_attribute", fail)
+    monkeypatch.setattr(databpy.array, "_set_attribute", fail)
 
 
 @pytest.fixture
@@ -117,13 +117,13 @@ def test_evaluated_geometry_updates(bob, no_full_writes):
 def test_strings_write_entire_attribute(bob, monkeypatch):
     bob.store_named_attribute(np.array(["a"] * 20), "names", atype="STRING")
     calls = []
-    original = databpy.array._store_attribute
+    original = databpy.array._set_attribute
 
     def counting(*args, **kwargs):
         calls.append(1)
         return original(*args, **kwargs)
 
-    monkeypatch.setattr(databpy.array, "_store_attribute", counting)
+    monkeypatch.setattr(databpy.array, "_set_attribute", counting)
     names = bob["names"]
     names[0] = "b"
     assert len(calls) == 1

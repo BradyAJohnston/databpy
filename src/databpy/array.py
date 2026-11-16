@@ -16,7 +16,7 @@ from .attribute import (
     _attribute_memory,
     _check_storable,
     _find_drawing,
-    _store_attribute,
+    _set_attribute,
     _trigger_data_update,
     _value_shape,
 )
@@ -405,7 +405,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         root = self._root_array
         if not self._write_directly(owner, tag, link, root, key):
             values = root.view(np.ndarray)
-            _store_attribute(
+            _set_attribute(
                 owner,
                 values if link.encode is None else link.encode(values),
                 name=link.name,
