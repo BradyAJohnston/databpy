@@ -988,9 +988,10 @@ def store_named_attribute(
         attribute is used, otherwise the type is inferred from data.
     domain : str or AttributeDomains or None, optional
         The domain of the attribute. If None, the domain of an existing attribute is
-        used, otherwise 'POINT'. If no domain is specified for a grease pencil object,
-        a NamedAttributeError is raised, as its points and strokes are nested within
-        each layer's drawings and can't be accessed from the top level.
+        used, otherwise 'POINT'. New attributes on grease pencil objects need the
+        'LAYER' domain, as their points and strokes are on each layer's drawings and
+        can't be accessed from the object; any other domain raises a
+        NamedAttributeError.
     overwrite : bool, optional
         Whether to write to an existing attribute with the same name, by default
         True. If False, a new attribute is created, which Blender gives a unique name
@@ -1058,11 +1059,14 @@ def store_named_attribute(
         domain = attribute.domain
     else:
         atype = _match_atype(atype, data)
-        if domain is None and isinstance(obj_data, bpy.types.GreasePencil):
+        if isinstance(obj_data, bpy.types.GreasePencil) and (
+            domain is None or _match_domain(domain) != AttributeDomains.LAYER.value
+        ):
             raise NamedAttributeError(
-                "The `POINT` domain of grease pencil objects is nested within their "
-                "layers' drawings and can't be written to directly. Explicitly pass "
-                "a domain to store the attribute on."
+                'New attributes on grease pencil objects need `domain="LAYER"`. '
+                "Their points and strokes are on each layer's drawings, so the object "
+                f"has no `{'POINT' if domain is None else _match_domain(domain)}` "
+                "domain to store them on."
             )
         domain = _match_domain(AttributeDomains.POINT if domain is None else domain)
         current_names = obj_data.attributes.keys()

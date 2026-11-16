@@ -49,6 +49,62 @@ def test_create_grease_pencil_object_mismatched_sizes():
         db.create_grease_pencil_object({"Lines": (np.zeros((4, 3)), [3, 2])})
 
 
+def test_create_grease_pencil_object_empty_layer():
+    # Blender crashes when adding an empty list of strokes
+    obj = db.create_grease_pencil_object(
+        {"Empty": (np.empty((0, 3)), []), "Lines": (np.zeros((3, 3)), [3])}
+    )
+    assert [layer.name for layer in _data(obj).layers] == ["Empty", "Lines"]
+    assert len(_drawing(obj, "Empty").strokes) == 0
+    assert len(_drawing(obj, "Lines").strokes) == 1
+
+
+@pytest.mark.parametrize(
+    "layers",
+    [
+        # the first layer is valid, so it would be created before the error
+        {"A": (np.zeros((3, 3)), [3]), "B": (np.zeros((4, 3)), [3, 2])},
+        {"A": (np.zeros((4, 2)), [4])},
+        {"A": (np.zeros((3, 3)), [3, 0])},
+        {"A": (np.zeros((3, 3)), [4, -1])},
+        {"A": (np.zeros((4, 3)), [[2, 2]])},
+    ],
+)
+def test_create_grease_pencil_object_invalid_leaves_nothing(layers):
+    objects = set(bpy.data.objects)
+    grease_pencils = set(bpy.data.grease_pencils)
+    with pytest.raises(ValueError):
+        db.create_grease_pencil_object(layers)
+    assert set(bpy.data.objects) == objects
+    assert set(bpy.data.grease_pencils) == grease_pencils
+
+
+def test_create_grease_pencil_object_on_current_frame():
+    scene = bpy.context.scene
+    assert scene is not None
+    previous = scene.frame_current
+    scene.frame_set(10)
+    try:
+        obj = db.create_grease_pencil_object({"L": (np.zeros((2, 3)), [2])})
+        layer = _data(obj).layers["L"]
+        assert [frame.frame_number for frame in layer.frames] == [10]
+        scene.frame_set(1)
+        # the drawing is only shown from the frame it was created on
+        assert layer.current_frame() is None
+    finally:
+        scene.frame_set(previous)
+
+
+def test_from_grease_pencil():
+    bob = db.BlenderObject.from_grease_pencil(
+        {"Lines": (np.zeros((7, 3)), [3, 4])}, name="GP"
+    )
+    assert isinstance(bob.data, bpy.types.GreasePencil)
+    assert bob.name.startswith("GP")
+    with pytest.raises(TypeError, match="LAYER"):
+        len(bob)
+
+
 def test_points_and_strokes_are_not_on_the_object(gp_obj: bpy.types.Object):
     # the points and strokes are on each layer's drawing, so the object's own
     # attributes only hold the LAYER domain
@@ -58,8 +114,12 @@ def test_points_and_strokes_are_not_on_the_object(gp_obj: bpy.types.Object):
     assert data.attributes.domain_size("LAYER") == 2
     assert "position" not in db.list_attributes(gp_obj)
 
-    with pytest.raises(db.NamedAttributeError, match="POINT"):
-        db.store_named_attribute(gp_obj, np.zeros(12), "x", domain="POINT")
+    for domain in ["POINT", "CURVE"]:
+        with pytest.raises(db.NamedAttributeError, match=f'domain="LAYER".*{domain}'):
+            db.store_named_attribute(gp_obj, np.zeros(12), "x", domain=domain)
+    with pytest.raises(db.NamedAttributeError, match='domain="LAYER"'):
+        db.store_named_attribute(gp_obj, np.zeros(2), "x")
+    assert "x" not in db.list_attributes(gp_obj)
 
 
 def test_layer_attributes(gp_obj: bpy.types.Object):

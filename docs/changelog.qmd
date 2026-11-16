@@ -11,7 +11,9 @@ toc: true
   holds attributes on its `LAYER` domain, as its points and strokes are on the
   drawings of each layer. New attributes on them need `domain="LAYER"`, rather than
   quietly storing one value per layer when one per point was meant.
-  `create_grease_pencil_object()` creates one from arrays of points for each layer.
+  `create_grease_pencil_object()` and `BlenderObject.from_grease_pencil()` create one
+  from arrays of points for each layer, checking every layer before creating
+  anything.
 
 ### Fixed
 
