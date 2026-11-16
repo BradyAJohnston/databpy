@@ -8,7 +8,404 @@ In Blender, data on geometry is stored as **attributes**. An attribute is a name
 
 For example: - Vertex positions are stored as a `FLOAT_VECTOR` attribute named `"position"` on the `POINT` domain - Face materials are stored as an `INT` attribute on the `FACE` domain - UV maps are stored as `FLOAT2` attributes on the `CORNER` domain
 
-`databpy` reads and writes these attributes as NumPy arrays.
+`databpy` reads and writes these attributes as NumPy arrays. Every attribute has a **domain** (where it lives) and a **type** (what each value is), and both can be stated directly in code:
+
+``` python
+import databpy as db
+import numpy as np
+import bpy
+
+bob = db.BlenderObject(bpy.data.objects["Cube"])
+
+# the domain comes from `bob.face`, the type from `db.vec3`
+bob.face["normal_offset"] = db.vec3(np.zeros((len(bob.face), 3)))
+
+bob.face["normal_offset"]
+```
+
+    AttributeArray(name='normal_offset', object='Cube', mesh='Cube', domain=FACE, type=FLOAT_VECTOR, shape=(6, 3), dtype=float32)
+    array([[0., 0., 0.],
+           [0., 0., 0.],
+           [0., 0., 0.],
+           [0., 0., 0.],
+           [0., 0., 0.],
+           [0., 0., 0.]], dtype=float32)
+
+## Domains: `bob.point`, `bob.face`, …
+
+A [`BlenderObject`](api/BlenderObject.llms.md#databpy.BlenderObject) has a view of each domain, [`AttributeDomainView`](api/AttributeDomainView.llms.md#databpy.AttributeDomainView), which works like a dictionary of the attributes on that domain:
+
+| View | Domain | Elements | Example use cases |
+|----|----|----|----|
+| `bob.point` | `POINT` | Vertices, curve control points, point cloud points | Positions, vertex colors, temperature |
+| `bob.edge` | `EDGE` | Mesh edges | Edge weights, crease values |
+| `bob.face` | `FACE` | Mesh faces | Material indices, face areas |
+| `bob.corner` | `CORNER` | Face corners, one per vertex of each face | UV coordinates, split normals |
+| `bob.curve` | `CURVE` | Curve splines | Per-spline properties |
+| `bob.layer` | `LAYER` | Grease pencil layers | Per-layer properties |
+
+`len()` of a view is the number of elements in the domain, which is the length an array stored on it needs:
+
+``` python
+print(len(bob.point), len(bob.edge), len(bob.face), len(bob.corner))
+```
+
+    8 12 6 24
+
+New attributes are stored on the view’s domain, and existing ones are read and written in place:
+
+``` python
+bob.face["area"] = np.linspace(0, 1, len(bob.face))
+bob.edge["crease_weight"] = np.ones(len(bob.edge))
+
+print(bob.face.list_attributes())
+"area" in bob.face, "area" in bob.point
+```
+
+    ['.select_poly', 'sharp_face', '.uv_select_face', 'normal_offset', 'area']
+
+    (True, False)
+
+A view only gives access to its own domain. Reading or writing an attribute that exists on a different domain raises a [`NamedAttributeError`](api/NamedAttributeError.llms.md#databpy.NamedAttributeError), rather than quietly using the other domain:
+
+``` python
+try:
+    bob.point["area"]
+except db.NamedAttributeError as e:
+    print(e)
+```
+
+    Attribute `area` is on the `FACE` domain, not `POINT`.
+
+`bob["name"]` reads an attribute on any domain, and stores new attributes on the `POINT` domain.
+
+> **IMPORTANT:**
+>
+> The length of your data must match the number of elements in the domain. A cube has 8 vertices, 12 edges, 6 faces and 24 corners, so arrays stored on it need those lengths. A domain the geometry doesn’t have, such as `bob.face` on a point cloud, has a length of 0 and can’t store attributes.
+
+### Grease pencil
+
+A grease pencil object only holds attributes on its layers. Its points and strokes are on the drawing of each layer’s frames, not the object, so `bob.point` and `bob.curve` are empty and `bob.layer` is the only domain view with elements. New attributes on a grease pencil object need the `LAYER` domain to be given, so `bob["name"] = values` raises rather than storing one value per layer when one per point was meant:
+
+``` python
+gp = db.BlenderObject(
+    db.create_grease_pencil_object(
+        {
+            "Lines": (np.random.random((7, 3)), [3, 4]),
+            "Outline": (np.random.random((5, 3)), [5]),
+        }
+    )
+)
+gp.layer["weight"] = db.float32(np.array([0.5, 1.0]))
+print(len(gp.layer), len(gp.point))
+gp.layer["weight"]
+```
+
+    2 0
+
+    AttributeArray(name='weight', object='GreasePencil', mesh='GreasePencil', domain=LAYER, type=FLOAT, shape=(2,), dtype=float32)
+    array([0.5, 1. ], dtype=float32)
+
+The points and strokes are on `bob.drawings`, which gives the drawing of each layer by name. A drawing has its own `point` and `curve` domain views, which work like those of an object, writing changes back to Blender:
+
+``` python
+lines = gp.drawings["Lines"]
+lines.point["radius"] = 0.02
+lines.curve["material_index"] = 1
+print(len(lines.point), len(lines.curve))
+lines.point["position"]
+```
+
+    7 2
+
+    AttributeArray(name='position', object='GreasePencil', mesh='GreasePencil', domain=POINT, type=FLOAT_VECTOR, shape=(7, 3), dtype=float32)
+    array([[0.3668153 , 0.93899876, 0.34100217],
+           [0.9632546 , 0.1473981 , 0.6087418 ],
+           [0.8684352 , 0.73658955, 0.6796041 ],
+           [0.7901545 , 0.70650077, 0.9083618 ],
+           [0.8288065 , 0.8122828 , 0.98049504],
+           [0.56350046, 0.47756845, 0.40105566],
+           [0.6442321 , 0.5461401 , 0.06491818]], dtype=float32)
+
+`gp.drawings["Lines"]` is the drawing shown on the scene’s current frame. With more than one keyframe, `gp.drawings["Lines", 12]` is the drawing shown at frame 12, from the last keyframe at or before it.
+
+A drawing, and the arrays read from it, keep writing to the same layer and keyframe when the scene’s frame changes or keyframes are added. They raise a `LinkedObjectError` once the layer is removed or renamed, or the keyframe is removed or moved to another frame. The keyframe is found by its frame number, so if another keyframe is moved onto that frame, its drawing is used instead. Keyframes copied with `instance_drawing=True` share one drawing, so a change to either changes both.
+
+Grease pencil can also be made by Geometry Nodes on other types of objects, in which case it only exists in the evaluated geometry. `db.GeometrySet(obj).drawings` gives read-only access to those drawings.
+
+### Instances
+
+Instance attributes only exist in the evaluated geometry of an object, such as the output of Geometry Nodes. [`GeometrySet.instance`](api/GeometrySet.llms.md#databpy.GeometrySet) is a read-only view of them, [`InstanceDomainView`](api/InstanceDomainView.llms.md#databpy.InstanceDomainView), which reads copies of the values:
+
+``` python
+geom = db.GeometrySet(obj)
+geom.instance["instance_transform", db.mat4]
+```
+
+## Types: `db.vec3`, `db.color`, …
+
+Blender has a name for each attribute type, such as `FLOAT_VECTOR` for 3D vectors, listed in the [`AttributeTypes`](api/AttributeTypes.llms.md#databpy.AttributeTypes) enum. databpy has a shorter **typed array** class for each of them:
+
+| Typed array | Blender type | Value | dtype | Array shape |
+|----|----|----|----|----|
+| [`db.float32`](api/float32.llms.md#databpy.float32) | `FLOAT` | float | `float32` | `(n,)` |
+| [`db.vec2`](api/vec2.llms.md#databpy.vec2) | `FLOAT2` | 2D vector | `float32` | `(n, 2)` |
+| [`db.vec3`](api/vec3.llms.md#databpy.vec3) | `FLOAT_VECTOR` | 3D vector | `float32` | `(n, 3)` |
+| [`db.vec4`](api/vec4.llms.md#databpy.vec4) | `FLOAT4` | 4D vector (Blender 5.2+) | `float32` | `(n, 4)` |
+| [`db.color`](api/color.llms.md#databpy.color) | `FLOAT_COLOR` | linear RGBA color | `float32` | `(n, 4)` |
+| [`db.srgb`](api/srgb.llms.md#databpy.srgb) | `FLOAT_COLOR` | sRGB RGBA color, stored as linear | `float32` | `(n, 4)` |
+| [`db.color8`](api/color8.llms.md#databpy.color8) | `BYTE_COLOR` | sRGB RGBA color | `uint8` | `(n, 4)` |
+| [`db.quat`](api/quat.llms.md#databpy.quat) | `QUATERNION` | (w, x, y, z) rotation | `float32` | `(n, 4)` |
+| [`db.mat4`](api/mat4.llms.md#databpy.mat4) | `FLOAT4X4` | 4x4 matrix, row-major | `float32` | `(n, 4, 4)` |
+| [`db.int32`](api/int32.llms.md#databpy.int32) | `INT` | integer | `int32` | `(n,)` |
+| [`db.int8`](api/int8.llms.md#databpy.int8) | `INT8` | small integer | `int8` | `(n,)` |
+| [`db.ivec2`](api/ivec2.llms.md#databpy.ivec2) | `INT32_2D` | 2D integer vector | `int32` | `(n, 2)` |
+| [`db.sivec2`](api/sivec2.llms.md#databpy.sivec2) | `INT16_2D` | 2D small integer vector | `int16` | `(n, 2)` |
+| [`db.boolean`](api/boolean.llms.md#databpy.boolean) | `BOOLEAN` | true or false | `bool` | `(n,)` |
+| [`db.string`](api/string.llms.md#databpy.string) | `STRING` | text | `str` | `(n,)` |
+
+### Writing typed data
+
+Wrapping data in a typed array, such as `db.vec3(data)`, states the type it is stored as. The data is checked to have the right shape and cast to the type’s dtype, so it is ready to be stored, but isn’t linked to any attribute yet:
+
+``` python
+offsets = db.vec3(np.random.rand(8, 3))  # float64 is cast to float32
+print(type(offsets).__name__, offsets.dtype, offsets.shape)
+
+bob.point["offset"] = offsets
+```
+
+    vec3 float32 (8, 3)
+
+Data that already has the right dtype is wrapped without being copied, so wrapping costs almost nothing.
+
+The typed arrays matter most for the types that share a shape. A `(n, 4)` float array could be a 4D vector, a color or a quaternion, so stating the type stores what you meant:
+
+``` python
+rgba = np.random.rand(8, 4)
+
+bob.point["tint"] = db.color(rgba)
+bob.point["spin"] = db.quat(rgba)
+bob.corner["uv_offset"] = db.vec2(np.zeros((len(bob.corner), 2)))
+
+for name in ["tint", "spin", "uv_offset"]:
+    attribute = db.Attribute(bob.attributes[name])
+    print(name, attribute.atype.name, attribute.domain.name)
+```
+
+    tint FLOAT_COLOR POINT
+    spin QUATERNION POINT
+    uv_offset FLOAT2 CORNER
+
+A single value is stored for every element of the domain, either as a plain scalar, or as a typed array of one value. A plain array such as `[1, 0.5, 0, 1]` isn’t, as it could also be one value for each of 4 elements, so state the type of a single vector, color or matrix:
+
+``` python
+bob.point["weight"] = 1.0
+bob.face["face_tint"] = db.color([1.0, 0.5, 0.0, 1.0])
+bob.point["frame"] = db.mat4(np.eye(4))
+
+print(bob.face["face_tint"][:2])
+```
+
+    AttributeArray 'face_tint' from Cube('Cube')(domain: FACE, shape: (2, 4), dtype: float32)
+    [[1.  0.5 0.  1. ]
+     [1.  0.5 0.  1. ]]
+
+Storing a typed array over an existing attribute of a different type raises a [`NamedAttributeError`](api/NamedAttributeError.llms.md#databpy.NamedAttributeError), rather than converting the values:
+
+``` python
+try:
+    bob.point["tint"] = db.quat(rgba)
+except db.NamedAttributeError as e:
+    print(e)
+```
+
+    Attribute being written to: `tint` of type `FLOAT_COLOR` does not match the type for the given data: `QUATERNION`
+
+### Reading typed data
+
+Attributes are read as the typed array for their type, so `bob["position"]` is a `db.vec3`. Every typed array is an [`AttributeArray`](api/AttributeArray.llms.md#databpy.AttributeArray), which writes changes back to Blender:
+
+``` python
+position = bob["position"]
+print(type(position).__name__, isinstance(position, db.AttributeArray))
+```
+
+    vec3 True
+
+Indexing with a typed array class as well as the name checks the attribute is that type, and raises a [`NamedAttributeError`](api/NamedAttributeError.llms.md#databpy.NamedAttributeError) if it isn’t. The same works for each domain, and as `atype=` for [`named_attribute()`](api/named_attribute.llms.md#databpy.named_attribute) and [`GeometrySet.named_attribute()`](api/GeometrySet.llms.md#databpy.GeometrySet.named_attribute), which return copies that don’t sync:
+
+``` python
+position = bob.point["position", db.vec3]
+tint = bob["tint", db.color]
+values = db.named_attribute(bob.object, "position", atype=db.vec3)
+
+try:
+    bob["position", db.quat]
+except db.NamedAttributeError as e:
+    print(e)
+```
+
+    Attribute `position` is a `FLOAT_VECTOR` attribute, not `quat` (`QUATERNION`).
+
+### sRGB colors
+
+Blender stores `FLOAT_COLOR` attributes as linear colors, which is what `db.color` reads and writes. Colors picked in an image editor or given as hex codes are usually sRGB instead. [`db.srgb`](api/srgb.llms.md#databpy.srgb) is a `FLOAT_COLOR` array whose values are sRGB: they are converted to linear when stored, and from linear when read as `db.srgb`, so the attribute is the same as one stored with `db.color`. Alpha isn’t converted:
+
+``` python
+orange = np.tile([1.0, 0.5, 0.0, 1.0], (len(bob.point), 1))
+bob.point["paint"] = db.srgb(orange)
+
+print(bob.point["paint", db.srgb][0])  # sRGB, as it was stored
+print(bob.point["paint"][0])  # linear, as Blender stores it
+```
+
+    AttributeArray 'paint' from Cube('Cube')(domain: POINT, shape: (4,), dtype: float32)
+    [0.99999994 0.5        0.         1.        ]
+    AttributeArray 'paint' from Cube('Cube')(domain: POINT, shape: (4,), dtype: float32)
+    [1.         0.21404114 0.         1.        ]
+
+Hex color codes are sRGB, so `db.srgb` accepts them as `'#RRGGBB'`, `'#RRGGBBAA'`, or the short `'#RGB'` and `'#RGBA'`, one code for every element or a list of them. `db.color8` accepts them too, as its bytes are already sRGB:
+
+``` python
+bob.point["highlight"] = db.srgb("#FF8000")
+bob.point["palette"] = db.srgb(["#264653", "#2A9D8F", "#E9C46A", "#F4A261"] * 2)
+bob.face["bytes"] = db.color8("#FF800080")
+
+print(bob.face["bytes"][0])
+```
+
+    AttributeArray 'bytes' from Cube('Cube')(domain: FACE, shape: (4,), dtype: uint8)
+    [255 128   0 128]
+
+The bytes of a `db.color8` are sRGB as well, so `db.srgb(bob.face["bytes"])` scales them to sRGB floats in \[0, 1\].
+
+Changes to an array read as `db.srgb` are converted back to linear when they are written to Blender, and math on it gives `db.srgb` arrays, so they are converted when stored too. Math that mixes in a linear `db.color` gives a plain array, as the result is neither. Each write converts the rows it changed, so changing a column such as `paint[:, 0]` converts every color and is much slower than the same change to a `db.color`:
+
+``` python
+paint = bob.point["paint", db.srgb]
+paint[:, :3] *= 0.5  # written back as linear
+bob.point["dark_paint"] = paint * 0.5  # still sRGB, so converted when stored
+```
+
+Read colors as sRGB with `bob["paint", db.srgb]`. `bob["paint"].view(db.srgb)` doesn’t convert them, so it labels linear values as sRGB.
+
+A single row such as `paint[0]` is a plain `AttributeArray`, like other typed arrays, so storing it doesn’t convert it. Wrap it as `db.srgb(paint[0])` to store it as one sRGB color.
+
+### Type checking
+
+The typed arrays are generic NumPy arrays, so type checkers such as `ty`, `pyright` and `mypy` know the dtype and shape of each one. Stating the type when reading is what lets them see it, as the attribute’s type is otherwise only known once Blender is running:
+
+``` python
+bob["position"]                          # AttributeArray[Any, Any]
+bob["position", db.vec3]                 # vec3
+bob.face["area", db.float32]             # float32
+db.named_attribute(obj, "x", atype=db.mat4)  # mat4
+bob["position", db.vec3][:, 0]           # ndarray[..., dtype[float32]]
+```
+
+Editors use this to complete NumPy methods and to catch mistakes, such as treating a matrix attribute as a vector.
+
+### Without typed arrays
+
+Typed arrays are optional. Plain NumPy arrays can be stored, with the type inferred from their dtype and shape, or given as `atype` with Blender’s name for the type, as a string or from the [`AttributeTypes`](api/AttributeTypes.llms.md#databpy.AttributeTypes) enum:
+
+``` python
+bob["temperature"] = np.random.rand(8)  # inferred as FLOAT
+db.store_named_attribute(bob.object, np.random.rand(8, 4), "spin2", atype="QUATERNION")
+db.store_named_attribute(
+    bob.object, np.random.rand(8, 4), "spin3", atype=db.AttributeTypes.QUATERNION
+)
+```
+
+    bpy.data.meshes['Cube'].attributes["spin3"]
+
+> **TIP:**
+>
+> Without a typed array or `atype`, `databpy` infers the type from the array’s dtype and shape using [`guess_atype_from_array()`](api/attribute.guess_atype_from_array.llms.md#databpy.attribute.guess_atype_from_array):
+>
+> | Array | Inferred type |
+> |----|----|
+> | `(n,)` float / int / int8 / bool / str | `FLOAT` / `INT` / `INT8` / `BOOLEAN` / `STRING` |
+> | `(n, 2)` float / int16 / other int | `FLOAT2` / `INT16_2D` / `INT32_2D` |
+> | `(n, 3)` numeric | `FLOAT_VECTOR` |
+> | `(n, 4)` uint8 | `BYTE_COLOR` |
+> | `(n, 4)` other numeric | `FLOAT4` (`FLOAT_COLOR` before Blender 5.2) |
+> | `(n, 4, 4)` numeric | `FLOAT4X4` |
+>
+> `FLOAT_COLOR` and `QUATERNION` are never inferred, so use `db.color` and `db.quat` for them.
+
+### Examples of each type
+
+``` python
+bob = db.create_bob(np.random.rand(10, 3))
+n = len(bob.point)
+
+# float types
+bob.point["temperature"] = db.float32(np.random.rand(n))
+bob.point["uv"] = db.vec2(np.random.rand(n, 2))
+bob.point["velocity"] = db.vec3(np.random.rand(n, 3))
+if db.attribute.HAS_FLOAT4:  # FLOAT4 requires Blender 5.2
+    bob.point["values"] = db.vec4(np.random.rand(n, 4))
+bob.point["color"] = db.color(np.random.rand(n, 4))
+bob.point["rotation"] = db.quat(np.random.rand(n, 4))
+bob.point["transform"] = db.mat4(np.tile(np.eye(4), (n, 1, 1)))
+
+# integer types
+bob.point["id"] = db.int32(np.arange(n))
+bob.point["category"] = db.int8(np.arange(n) % 3)
+bob.point["edge_ids"] = db.ivec2(np.random.randint(0, 100, size=(n, 2)))
+bob.point["offsets"] = db.sivec2(np.random.randint(-100, 100, size=(n, 2)))
+
+# colors as bytes, read back as uint8
+bob.point["vertex_color"] = db.color8(np.random.randint(0, 255, size=(n, 4)))
+
+# true or false flags
+bob.point["selected"] = db.boolean(np.random.rand(n) > 0.5)
+
+bob.point.list_attributes()
+```
+
+    ['.select_vert',
+     'position',
+     'temperature',
+     'uv',
+     'velocity',
+     'values',
+     'color',
+     'rotation',
+     'transform',
+     'id',
+     'category',
+     'edge_ids',
+     'offsets',
+     'vertex_color',
+     'selected']
+
+Values that don’t fit the type, such as integers outside the range of `int8`, raise an [`AttributeMismatchError`](api/AttributeMismatchError.llms.md#databpy.AttributeMismatchError) when wrapped:
+
+``` python
+try:
+    db.int8([1, 2, 1000])
+except db.AttributeMismatchError as e:
+    print(e)
+```
+
+    Values in the range [1, 1000] can't be stored in the `INT8` attribute, which stores int8 values in the range [-128, 127].
+
+### String attributes
+
+``` python
+# STRING - text values, read and written one value at a time
+bob.point["name"] = db.string([f"point_{i}" for i in range(n)])
+```
+
+    /tmp/ipykernel_3709/482388415.py:2: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
+      bob.point["name"] = db.string([f"point_{i}" for i in range(n)])
+
+> **WARNING:**
+>
+> STRING attributes can be read and written through the Python API but aren’t yet properly supported in Geometry Nodes, so databpy warns when they are used. They are also much slower than numeric attributes, as Blender can’t transfer them in bulk.
 
 ## The three-level API
 
@@ -20,8 +417,8 @@ flowchart TD
     B --> C[Attribute]
     C --> D[bpy.types.Attribute]
 
-    A -.->|"Auto-sync, convenience methods"| E[User Level]
-    B -.->|"NumPy operations with auto-sync"| E
+    A -.->|"Domain views, convenience methods"| E[User Level]
+    B -.->|"Typed NumPy arrays that sync"| E
     C -.->|"Manual control, one-shot operations"| F[Advanced Use]
     D -.->|"Raw Blender API"| G[Low Level]
 
@@ -33,47 +430,36 @@ flowchart TD
 
 ### 1. [`BlenderObject`](api/BlenderObject.llms.md#databpy.BlenderObject): highest level
 
-The [`BlenderObject`](api/BlenderObject.llms.md#databpy.BlenderObject) class (nicknamed “bob”) wraps an object, with dictionary-style access to its attributes and properties such as `bob.position`.
+The [`BlenderObject`](api/BlenderObject.llms.md#databpy.BlenderObject) class (nicknamed “bob”) wraps an object, with dictionary-style access to its attributes, the domain views, and properties such as `bob.position`.
 
 ``` python
-import databpy as db
-import numpy as np
-
-# Create a simple object
 bob = db.create_bob(np.random.rand(10, 3))
 
-# Access attributes like a dictionary - returns AttributeArray
-positions = bob["position"]
-positions[:, 2] += 1.0  # Automatically syncs to Blender
-
-# Or use the convenience property
-bob.position[:, 2] += 1.0  # Same thing
-
-# Store new attributes
-bob["my_values"] = np.random.rand(10)
+bob.position[:, 2] += 1.0  # syncs to Blender
+bob.point["weight"] = db.float32(np.random.rand(10))
+bob["weight"]
 ```
 
-**When to use:** Interactive work, scripting, when you want automatic syncing.
+    AttributeArray(name='weight', object='NewObject.001', mesh='NewObject.001', domain=POINT, type=FLOAT, shape=(10,), dtype=float32)
+    array([0.11392668, 0.11310803, 0.05978195, 0.32558548, 0.36213556,
+           0.81238955, 0.7781608 , 0.2471439 , 0.17593665, 0.6000284 ],
+          dtype=float32)
+
+**When to use:** Interactive work and scripting, when you want automatic syncing.
 
 ### 2. [`AttributeArray`](api/AttributeArray.llms.md#databpy.AttributeArray): NumPy arrays that sync
 
-[`AttributeArray`](api/AttributeArray.llms.md#databpy.AttributeArray) is a [`numpy.ndarray`](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) subclass holding a copy of an attribute’s values, which writes changes back to Blender as they are made.
+[`AttributeArray`](api/AttributeArray.llms.md#databpy.AttributeArray) is a [`numpy.ndarray`](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) subclass holding a copy of an attribute’s values, which writes changes back to Blender as they are made. Arrays read from Blender are the typed array for the attribute’s type, such as `db.vec3`.
 
 ``` python
-import databpy as db
-import bpy
-
 obj = bpy.data.objects["Cube"]
 
-# Create an AttributeArray
 pos = db.AttributeArray(obj, "position")
 
-# All NumPy operations work and auto-sync
+# All NumPy operations work and sync
 pos[:, 2] += 1.0      # In-place addition
 pos *= 2.0            # Broadcasting
 pos[0] = [0, 0, 0]    # Item assignment
-
-# Changes are immediately reflected in Blender
 ```
 
 > **NOTE:**
@@ -82,7 +468,7 @@ pos[0] = [0, 0, 0]    # Item assignment
 >
 > STRING attributes are written in full instead, one value at a time, and an attribute that was removed is created again.
 
-Indexing that returns a **view** (slices like `pos[:, 2]` or `pos[2:5]`) stays linked to Blender, so modifying the view syncs. Indexing that returns a **copy** (`pos[mask]`, `pos[[0, 3]]`, `pos + 1`, `pos.copy()`) gives a detached array that doesn’t sync:
+Indexing that returns a **view** (slices like `pos[:, 2]` or `pos[2:5]`) stays linked to Blender, so modifying the view syncs. Indexing that returns a **copy** (`pos[mask]`, `pos[[0, 3]]`, `pos.copy()`) gives a detached array that doesn’t sync, and the results of operations (`pos + 1`, `pos * 2`) are plain NumPy arrays:
 
 ``` python
 pos = db.AttributeArray(obj, "position")
@@ -96,6 +482,8 @@ high += 1.0               # a copy - doesn't sync
 pos[pos[:, 2] > 1] += 1.0  # assigning back through the original array syncs
 ```
 
+Indexing and reshaping keep the typed array class only while the result still has that shape: `pos[:10]` is a `db.vec3`, but the column `pos[:, 2]` is a plain `AttributeArray`, as it is no longer an array of vectors. Changing the dtype also gives a plain array, so `bob["ids"] = bob["weight"].astype(np.int32)` is stored as `INT`. Wrap a result to store it as a type again, as in `db.vec3(pos * 2)`.
+
 Read the array again after changing the geometry (e.g. adding vertices). Writing to an array whose attribute no longer matches raises a `NamedAttributeError`, and one whose object was removed raises a `LinkedObjectError`.
 
 **When to use:** When you need NumPy-like operations with automatic syncing, working with position/color/custom data interactively.
@@ -105,19 +493,12 @@ Read the array again after changing the geometry (e.g. adding vertices). Writin
 The [`Attribute`](api/Attribute.llms.md#databpy.Attribute) class provides direct, stateless access with explicit control over when data is read or written.
 
 ``` python
-import databpy as db
-import numpy as np
-import bpy
-
-obj = bpy.data.objects["Cube"]
-
-# Get the attribute wrapper
 attr = db.Attribute(obj.data.attributes["position"])
 
 # Manually read data
 positions = attr.as_array()
 
-# Perform operations (no auto-sync)
+# Perform operations (no syncing)
 positions[:, 2] += 1.0
 positions *= 2.0
 
@@ -127,227 +508,60 @@ attr.from_array(positions)
 
 **When to use:** - One-shot read or write operations - Performance-critical code where you want control over sync timing - Batch processing where you make many whole-array changes before writing back - When you need to inspect attribute metadata (`atype`, `domain`, `shape`, `storage_type`) without reading data
 
-## Attribute types
-
-Blender supports various attribute data types. `databpy` works with all of them through the [`AttributeTypes`](api/AttributeTypes.llms.md#databpy.AttributeTypes) enum:
-
-### Float types
-
-``` python
-import databpy as db
-import numpy as np
-
-bob = db.create_bob(np.random.rand(10, 3))
-
-# FLOAT - Single float per element
-temperatures = np.random.rand(10).astype(np.float32)
-bob["temperature"] = temperatures
-
-# FLOAT2 - 2D vectors
-uv_coords = np.random.rand(10, 2).astype(np.float32)
-db.store_named_attribute(bob.object, uv_coords, "uv", atype="FLOAT2")
-
-# FLOAT_VECTOR - 3D vectors (most common)
-velocities = np.random.rand(10, 3).astype(np.float32)
-bob["velocity"] = velocities
-
-# FLOAT4 - generic 4D vectors (requires Blender 5.2)
-if db.attribute.HAS_FLOAT4:
-    values = np.random.rand(10, 4).astype(np.float32)
-    db.store_named_attribute(bob.object, values, "values", atype="FLOAT4")
-
-# FLOAT_COLOR - RGBA colors (4 components)
-colors = np.random.rand(10, 4).astype(np.float32)
-db.store_named_attribute(bob.object, colors, "color", atype="FLOAT_COLOR")
-
-# QUATERNION - Rotations (4 components: w, x, y, z)
-rotations = np.random.rand(10, 4).astype(np.float32)
-db.store_named_attribute(bob.object, rotations, "rotation", atype="QUATERNION")
-
-# FLOAT4X4 - 4x4 transformation matrices
-matrices = np.random.rand(10, 4, 4).astype(np.float32)
-db.store_named_attribute(bob.object, matrices, "transform", atype="FLOAT4X4")
-```
-
-    bpy.data.meshes['NewObject.001'].attributes["transform"]
-
-### Integer types
-
-``` python
-# INT - 32-bit signed integers
-ids = np.arange(10, dtype=np.int32)
-bob["id"] = ids
-
-# INT8 - 8-bit signed integers (memory efficient)
-small_values = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], dtype=np.int8)
-db.store_named_attribute(bob.object, small_values, "category", atype="INT8")
-
-# INT16_2D - 2D 16-bit integer vectors
-offsets = np.random.randint(-100, 100, size=(10, 2)).astype(np.int16)
-db.store_named_attribute(bob.object, offsets, "offsets", atype="INT16_2D")
-
-# INT32_2D - 2D integer vectors
-pairs = np.random.randint(0, 100, size=(10, 2), dtype=np.int32)
-db.store_named_attribute(bob.object, pairs, "edge_ids", atype="INT32_2D")
-```
-
-    bpy.data.meshes['NewObject.001'].attributes["edge_ids"]
-
-### Color types
-
-``` python
-# BYTE_COLOR - RGBA as unsigned 8-bit (0-255), read back as uint8
-byte_colors = np.random.randint(0, 255, size=(10, 4), dtype=np.uint8)
-db.store_named_attribute(bob.object, byte_colors, "vertex_color", atype="BYTE_COLOR")
-```
-
-    bpy.data.meshes['NewObject.001'].attributes["vertex_color"]
-
-### Boolean type
-
-``` python
-# BOOLEAN - True/False flags
-selection = np.random.rand(10) > 0.5
-bob["selected"] = selection
-```
-
-### String type
-
-``` python
-# STRING - text values, read and written one value at a time
-names = np.array([f"point_{i}" for i in range(10)])
-bob["name"] = names
-```
-
-    /tmp/ipykernel_3365/2168651459.py:3: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
-      bob["name"] = names
-
-> **WARNING:**
->
-> STRING attributes can be read and written through the Python API but aren’t yet properly supported in Geometry Nodes, so databpy warns when they are used. They are also much slower than numeric attributes, as Blender can’t transfer them in bulk.
-
-> **TIP:**
->
-> If you don’t specify an `atype`, `databpy` will infer it from your array’s dtype and shape using [`guess_atype_from_array()`](api/attribute.guess_atype_from_array.llms.md#databpy.attribute.guess_atype_from_array):
->
-> | Array | Inferred type |
-> |----|----|
-> | `(n,)` float / int / int8 / bool / str | `FLOAT` / `INT` / `INT8` / `BOOLEAN` / `STRING` |
-> | `(n, 2)` float / int16 / other int | `FLOAT2` / `INT16_2D` / `INT32_2D` |
-> | `(n, 3)` numeric | `FLOAT_VECTOR` |
-> | `(n, 4)` uint8 | `BYTE_COLOR` |
-> | `(n, 4)` other numeric | `FLOAT4` (`FLOAT_COLOR` before Blender 5.2) |
-> | `(n, 4, 4)` numeric | `FLOAT4X4` |
->
-> `FLOAT_COLOR` and `QUATERNION` are never inferred, so pass them as `atype`.
-
-## Attribute domains
-
-Attributes exist on different **domains** of the geometry, specified by the [`AttributeDomains`](api/AttributeDomains.llms.md#databpy.AttributeDomains) enum:
-
-| Domain | Description | Example Use Cases |
-|----|----|----|
-| `POINT` | Vertices, curve control points, point cloud points | Positions, vertex colors, temperature |
-| `EDGE` | Mesh edges | Edge weights, crease values |
-| `FACE` | Mesh faces/polygons | Material indices, face areas |
-| `CORNER` | Face corners (vertex-face pairs) | UV coordinates, split normals |
-| `CURVE` | Individual curve splines | Per-spline properties |
-| `INSTANCE` | Geometry instances | Instance transforms, IDs |
-| `LAYER` | Grease Pencil layers | Per-layer properties |
-
-``` python
-import databpy as db
-import numpy as np
-import bpy
-
-obj = bpy.data.objects["Cube"]
-
-# POINT domain (default) - one value per vertex
-vertex_data = np.random.rand(len(obj.data.vertices), 3)
-db.store_named_attribute(obj, vertex_data, "vertex_attr", domain="POINT")
-
-# FACE domain - one value per face
-face_data = np.random.rand(len(obj.data.polygons))
-db.store_named_attribute(obj, face_data, "face_attr", domain="FACE")
-
-# EDGE domain - one value per edge
-edge_data = np.random.rand(len(obj.data.edges))
-db.store_named_attribute(obj, edge_data, "edge_attr", domain="EDGE")
-```
-
-    bpy.data.meshes['Cube'].attributes["edge_attr"]
-
-> **IMPORTANT:**
->
-> The length of your data array must match the number of elements in the target domain. A cube has 8 vertices, 12 edges, and 6 faces, so your arrays must have corresponding lengths.
-
 ## Common workflows
 
 ### Reading attributes
 
 ``` python
-import databpy as db
-import bpy
-
 obj = bpy.data.objects["Cube"]
+bob = db.BlenderObject(obj)
 
-# Method 1: Simple function call (returns regular numpy array)
-positions = db.named_attribute(obj, "position")  # see named_attribute()
+# As arrays that sync, with or without checking the type
+positions = bob["position"]
+positions = bob.point["position", db.vec3]
 
-# Method 2: Via BlenderObject (returns AttributeArray)
-bob = db.BlenderObject(obj)  # see BlenderObject
-positions = bob["position"]  # or bob.position
+# As copies that don't sync
+positions = db.named_attribute(obj, "position", atype=db.vec3)
 
-# Method 3: List available attributes
-attrs = db.list_attributes(obj)  # see list_attributes()
-print(attrs)
-
-# Method 4: With modifier evaluation
+# After evaluating the object's modifiers
 evaluated_positions = db.named_attribute(obj, "position", evaluate=True)
+
+# The available attributes
+print(db.list_attributes(obj))
+print(bob.face.list_attributes())
 ```
 
-    ['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', '.uv_select_edge', '.uv_select_face', '.uv_select_vert', 'UVMap', 'edge_attr', 'face_attr', 'position', 'sharp_face', 'vertex_attr']
+    ['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', '.uv_select_edge', '.uv_select_face', '.uv_select_vert', 'UVMap', 'area', 'bytes', 'crease_weight', 'dark_paint', 'face_tint', 'frame', 'highlight', 'normal_offset', 'offset', 'paint', 'palette', 'position', 'sharp_face', 'spin', 'spin2', 'spin3', 'temperature', 'tint', 'uv_offset', 'weight']
+    ['.select_poly', 'sharp_face', '.uv_select_face', 'normal_offset', 'area', 'face_tint', 'bytes']
 
 ### Writing attributes
 
 ``` python
-import databpy as db
-import numpy as np
-
 bob = db.create_bob(np.random.rand(10, 3))
 
-# Method 1: Dictionary-style (most convenient)
-bob["my_data"] = np.random.rand(10, 3)
+# On a domain, with a stated type
+bob.point["my_data"] = db.vec3(np.random.rand(10, 3))
 
-# Method 2: Function call (more options)
+# On the POINT domain, with the type inferred
+bob["my_values"] = np.random.rand(10)
+
+# With a function call and Blender's names for the type and domain
 db.store_named_attribute(
     bob.object,
     data=np.random.rand(10),
     name="custom_attr",
     atype="FLOAT",
     domain="POINT",
-    overwrite=True
-)
-
-# Method 3: Via BlenderObject method
-bob.store_named_attribute(
-    np.random.rand(10, 3),
-    name="another_attr",
-    domain="POINT"
 )
 ```
 
-    bpy.data.meshes['NewObject.002'].attributes["another_attr"]
+    bpy.data.meshes['NewObject.002'].attributes["custom_attr"]
 
 ### Modifying attributes in place
 
 ``` python
-import databpy as db
-import numpy as np
-
 bob = db.create_bob(np.random.rand(100, 3))
 
-# Using AttributeArray for interactive modifications
 pos = bob.position
 
 # Simple operations
@@ -368,10 +582,6 @@ pos[:, 0] = np.linspace(0, 1, len(pos))  # Linear ramp on X
 For large datasets, use the `Attribute` class to batch operations:
 
 ``` python
-import databpy as db
-import numpy as np
-import bpy
-
 obj = db.create_object(np.random.rand(int(1e5), 3))
 attr = db.Attribute(obj.data.attributes["position"])
 
@@ -394,46 +604,23 @@ attr.from_array(positions)
 >
 > Operations on a few values are cheap with `AttributeArray`, but each whole-array operation (`pos *= 2.0`) writes the whole array again. For many whole-array operations, `Attribute` is faster as it only writes once.
 
-### Integer attributes
+### Integer and boolean attributes
 
 ``` python
-import databpy as db
-import numpy as np
+bob = db.create_bob(np.random.rand(20, 3))
 
-bob = db.create_bob(np.random.rand(10, 3))
+bob.point["id"] = db.int32(np.arange(20))
+ids = bob.point["id", db.int32]
+ids += 100  # stays int32 and syncs
+print(ids.dtype)
 
-# Store integer IDs
-ids = np.arange(10, dtype=np.int32)
-bob["id"] = ids
-
-# Retrieve as AttributeArray
-id_array = bob["id"]
-
-# Modify (automatically maintains int32 dtype)
-id_array += 100
-
-# Verify it's still integers
-print(id_array.dtype)  # int32
+# Use a boolean attribute for filtering
+bob.point["selected"] = db.boolean(bob.position[:, 2] > 0.5)
+selected = bob.point["selected", db.boolean]
+bob.position[selected, 2] = 1.0
 ```
 
     int32
-
-### Boolean attributes
-
-``` python
-import databpy as db
-import numpy as np
-
-bob = db.create_bob(np.random.rand(20, 3))
-
-# Create selection based on position
-selection = bob.position[:, 2] > 0.5
-bob["selected"] = selection
-
-# Use boolean attribute for filtering
-selected_mask = bob["selected"]
-bob.position[selected_mask, 2] = 1.0
-```
 
 ## Errors
 
@@ -443,7 +630,7 @@ bob.position[selected_mask, 2] = 1.0
 
 - **`db.DatabpyError`** - base class for all databpy errors
   - **`db.NamedAttributeError`** - raised when attribute operations fail
-    - Used for: invalid names, domain size mismatches, type or domain conflicts with an existing attribute
+    - Used for: invalid names, domain size mismatches, an attribute on a different domain to a domain view, and type or domain conflicts with an existing attribute or a typed array
     - **`db.AttributeNotFoundError`** (also a `KeyError`)
       - Raised when an attribute doesn’t exist, including `bob["missing"]`
     - **`db.AttributeMismatchError`**
@@ -451,40 +638,45 @@ bob.position[selected_mask, 2] = 1.0
       - Used for: shape mismatches, values that don’t fit the attribute’s type
   - **`db.LinkedObjectError`** - raised when an `AttributeArray` can’t sync because its object was removed or a file was loaded
 
+Wrapping data of the wrong shape in a typed array, such as `db.vec3(np.zeros(8))`, raises a `ValueError`.
+
 `NamedAttributeError` currently also inherits from `AttributeError`, which will be removed in databpy 0.14.0 as `hasattr()` and `getattr()` silently swallow `AttributeError`. Catch `NamedAttributeError` or `DatabpyError` instead.
 
 ### Common errors
 
 ``` python
-import databpy as db
-import numpy as np
-import bpy
-
 obj = bpy.data.objects["Cube"]
+bob = db.BlenderObject(obj)
 
 try:
-    # Trying to access non-existent attribute
-    data = db.named_attribute(obj, "nonexistent")
+    # An attribute that doesn't exist
+    bob["nonexistent"]
 except db.AttributeNotFoundError as e:
     print(f"Attribute not found: {e}")
 
 try:
-    # Wrong data size for domain
-    db.store_named_attribute(obj, np.random.rand(100, 3), "test")
+    # Wrong data size for the domain
+    bob.face["test"] = db.float32(np.random.rand(100))
 except db.NamedAttributeError as e:
     print(f"Size mismatch: {e}")
 
 try:
-    # Shape mismatch when using Attribute class
+    # An attribute that isn't the expected type
+    bob["position", db.color]
+except db.NamedAttributeError as e:
+    print(f"Type mismatch: {e}")
+
+try:
+    # Shape mismatch when using the Attribute class
     attr = db.Attribute(obj.data.attributes["position"])
-    wrong_shape = np.random.rand(8, 4)  # Should be (8, 3)
-    attr.from_array(wrong_shape)
+    attr.from_array(np.random.rand(8, 4))  # Should be (8, 3)
 except db.AttributeMismatchError as e:
     print(f"Shape error: {e}")
 ```
 
-    Attribute not found: The selected attribute 'nonexistent' does not exist on the object. Available attributes: ['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', '.uv_select_edge', '.uv_select_face', '.uv_select_vert', 'UVMap', 'edge_attr', 'face_attr', 'position', 'sharp_face', 'vertex_attr']
-    Size mismatch: Data size 300 (shape (100, 3)) does not match the required size 24 for domain `POINT` with 8 elements and dimensions (3,)
+    Attribute not found: The attribute 'nonexistent' does not exist on 'Cube'. Available attributes: ['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', '.uv_select_edge', '.uv_select_face', '.uv_select_vert', 'UVMap', 'area', 'bytes', 'crease_weight', 'dark_paint', 'face_tint', 'frame', 'highlight', 'normal_offset', 'offset', 'paint', 'palette', 'position', 'sharp_face', 'spin', 'spin2', 'spin3', 'temperature', 'tint', 'uv_offset', 'weight']
+    Size mismatch: Data size 100 (shape (100,)) does not match the required size 6 for domain `FACE` with 6 elements and dimensions (1,)
+    Type mismatch: Attribute `position` is a `FLOAT_VECTOR` attribute, not `color` (`FLOAT_COLOR`).
     Shape error: Array size 32 does not match attribute size 24. Array shape (8, 4) cannot be reshaped to attribute shape (8, 3)
 
 > **TIP:**
@@ -493,25 +685,21 @@ except db.AttributeMismatchError as e:
 
 ## Best practices
 
-### 1. Choose the level of the API
+### 1. State the domain and type
 
-- **Interactive work, scripting**: Use `BlenderObject` and `AttributeArray`
+`bob.face["name"] = db.vec3(data)` says where the attribute lives and what it holds, which databpy checks against any existing attribute, and reading with `bob.face["name", db.vec3]` lets type checkers see the type. Inference is convenient for quick work, but can’t tell a color from a quaternion.
+
+### 2. Choose the level of the API
+
+- **Interactive work, scripting**: Use `BlenderObject`, domain views and `AttributeArray`
 - **Performance-critical code**: Use `Attribute` with manual read/write
-- **Quick one-off reads**: Use `named_attribute()` function
-
-### 2. Match Blender’s data types
-
-``` python
-# Good: Explicit dtype matching Blender's storage
-data = np.random.rand(10, 3).astype(np.float32)
-
-# Less good: float64 will be converted to float32 anyway
-data = np.random.rand(10, 3)  # defaults to float64
-```
+- **Quick one-off reads**: Use `named_attribute()`
 
 ### 3. Vectorize operations
 
 ``` python
+bob = db.create_bob(np.random.rand(10, 3))
+
 # Not great: a Python loop with a sync per iteration
 pos = bob.position
 for i in range(len(pos)):
@@ -523,53 +711,26 @@ pos[:, 2] += 1.0
 
 Each sync only writes the changed values, so occasional single-value writes are cheap, but the per-sync overhead adds up in a loop over every element.
 
-### 4. Domains and types as enums or strings
-
-Domains and types can be given as enums or as strings such as `"POINT"`. Both are checked by type checkers, as the string parameters only accept the valid names.
+### 4. Remove temporary attributes
 
 ``` python
-from databpy import AttributeDomains, AttributeTypes
-
-# equivalent to atype="FLOAT_VECTOR", domain="POINT"
-db.store_named_attribute(
-    obj,
-    np.random.rand(len(obj.data.vertices), 3),
-    "my_attr",
-    atype=AttributeTypes.FLOAT_VECTOR,
-    domain=AttributeDomains.POINT
-)
-db.named_attribute(obj, "my_attr")
+bob.store_named_attribute(np.random.rand(10), "my_attr")
+bob.remove_named_attribute("my_attr")
+"my_attr" in bob.point
 ```
 
-    array([[1.0056997e-01, 7.1476221e-01, 8.4402794e-03],
-           [2.0575060e-01, 6.0277432e-01, 9.9980509e-01],
-           [5.0928622e-01, 9.9682516e-01, 2.5297114e-01],
-           [8.1423974e-01, 1.3696136e-04, 1.7226782e-03],
-           [4.9179700e-01, 3.6426693e-01, 2.5939482e-01],
-           [2.9276401e-01, 5.1423055e-01, 6.9928057e-02],
-           [2.7819740e-02, 5.8434740e-02, 9.1396523e-01],
-           [2.3299269e-01, 5.5487525e-01, 2.0763622e-01]], dtype=float32)
-
-### 5. Remove temporary attributes
-
-``` python
-# Remove attributes you no longer need
-db.remove_named_attribute(obj, "my_attr")
-try:
-    db.named_attribute(obj, "my_attr")
-except db.NamedAttributeError as e:
-    print(e)
-```
-
-    The selected attribute 'my_attr' does not exist on the object. Available attributes: ['.corner_edge', '.corner_vert', '.edge_verts', '.select_edge', '.select_poly', '.select_vert', '.uv_select_edge', '.uv_select_face', '.uv_select_vert', 'UVMap', 'edge_attr', 'face_attr', 'position', 'sharp_face', 'vertex_attr']
+    False
 
 ## See also
 
 ### Classes
 
 - [`BlenderObject`](api/BlenderObject.llms.md#databpy.BlenderObject) - High-level object wrapper with convenience methods
-- [`AttributeArray`](api/AttributeArray.llms.md#databpy.AttributeArray) - Auto-syncing NumPy array subclass
+- [`AttributeDomainView`](api/AttributeDomainView.llms.md#databpy.AttributeDomainView) - Dictionary-style access to the attributes on one domain
+- [`AttributeArray`](api/AttributeArray.llms.md#databpy.AttributeArray) - Syncing NumPy array subclass, and base of the typed arrays
 - [`Attribute`](api/Attribute.llms.md#databpy.Attribute) - Low-level attribute wrapper with manual control
+- [`GeometrySet`](api/GeometrySet.llms.md#databpy.GeometrySet) - The evaluated geometry of an object, with every component
+- [`InstanceDomainView`](api/InstanceDomainView.llms.md#databpy.InstanceDomainView) - Read-only access to the instance attributes of evaluated geometry
 
 ### Functions
 
@@ -579,10 +740,11 @@ except db.NamedAttributeError as e:
 - [`list_attributes()`](api/list_attributes.llms.md#databpy.list_attributes) - List all attributes on an object
 - [`create_bob()`](api/create_bob.llms.md#databpy.create_bob) - Create a new BlenderObject
 - [`create_object()`](api/create_object.llms.md#databpy.create_object) - Create a new Blender object
+- [`create_grease_pencil_object()`](api/create_grease_pencil_object.llms.md#databpy.create_grease_pencil_object) - Create a grease pencil object from arrays of points
 
 ### Enums
 
-- [`AttributeTypes`](api/AttributeTypes.llms.md#databpy.AttributeTypes) - Enum of all available attribute data types
+- [`AttributeTypes`](api/AttributeTypes.llms.md#databpy.AttributeTypes) - Blender’s attribute types, which the typed arrays stand for
 - [`AttributeDomains`](api/AttributeDomains.llms.md#databpy.AttributeDomains) - Enum of all available geometry domains
 
 ### Exceptions

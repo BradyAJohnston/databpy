@@ -16,6 +16,28 @@ For interacting with attributes on meshes
 | [Attribute](../api/Attribute.llms.md#databpy.Attribute) | Low-level wrapper around a Blender attribute with explicit reads and writes. |
 | [attribute.guess_atype_from_array](../api/attribute.guess_atype_from_array.llms.md#databpy.attribute.guess_atype_from_array) | Infer the attribute type for an array from its shape and dtype. |
 
+## Typed arrays
+
+Attribute arrays that state the attribute type they are stored as, wrapping data as `db.vec3(data)` and checking the type when read as `bob["name", db.vec3]`
+
+|  |  |
+|----|----|
+| [float32](../api/float32.llms.md#databpy.float32) | A `FLOAT` attribute: one float32 value per element. |
+| [vec2](../api/vec2.llms.md#databpy.vec2) | A `FLOAT2` attribute: a 2D float32 vector per element. |
+| [vec3](../api/vec3.llms.md#databpy.vec3) | A `FLOAT_VECTOR` attribute: a 3D float32 vector per element. |
+| [vec4](../api/vec4.llms.md#databpy.vec4) | A `FLOAT4` attribute: a 4D float32 vector per element (Blender 5.2+). |
+| [color](../api/color.llms.md#databpy.color) | A `FLOAT_COLOR` attribute: a linear RGBA float32 color per element. |
+| [srgb](../api/srgb.llms.md#databpy.srgb) | A `FLOAT_COLOR` attribute as sRGB RGBA float32 colors. |
+| [color8](../api/color8.llms.md#databpy.color8) | A `BYTE_COLOR` attribute: an sRGB RGBA uint8 color per element. |
+| [quat](../api/quat.llms.md#databpy.quat) | A `QUATERNION` attribute: a (w, x, y, z) float32 rotation per element. |
+| [mat4](../api/mat4.llms.md#databpy.mat4) | A `FLOAT4X4` attribute: a row-major 4x4 float32 matrix per element. |
+| [int32](../api/int32.llms.md#databpy.int32) | An `INT` attribute: one int32 value per element. |
+| [int8](../api/int8.llms.md#databpy.int8) | An `INT8` attribute: one int8 value per element. |
+| [ivec2](../api/ivec2.llms.md#databpy.ivec2) | An `INT32_2D` attribute: a 2D int32 vector per element. |
+| [sivec2](../api/sivec2.llms.md#databpy.sivec2) | An `INT16_2D` attribute: a 2D int16 vector per element. |
+| [boolean](../api/boolean.llms.md#databpy.boolean) | A `BOOLEAN` attribute: one bool per element. |
+| [string](../api/string.llms.md#databpy.string) | A `STRING` attribute: one string per element. |
+
 ## Collections
 
 Working with collections in Blender
@@ -32,11 +54,16 @@ Working with collections in Blender
 | [create_object](../api/create_object.llms.md#databpy.create_object) | Create a new Blender mesh object. |
 | [create_mesh_object](../api/create_mesh_object.llms.md#databpy.create_mesh_object) | Create a new Blender mesh object. |
 | [create_curves_object](../api/create_curves_object.llms.md#databpy.create_curves_object) | Create a new Blender Curves object (the hair curves type, not the legacy Curve type). |
+| [create_grease_pencil_object](../api/create_grease_pencil_object.llms.md#databpy.create_grease_pencil_object) | Create a new Blender grease pencil object. |
 | [create_pointcloud_object](../api/create_pointcloud_object.llms.md#databpy.create_pointcloud_object) | Create a new Blender point cloud object. |
 | [create_bob](../api/create_bob.llms.md#databpy.create_bob) | Create a BlenderObject wrapper around a new Blender mesh object. |
 | [evaluate_object](../api/evaluate_object.llms.md#databpy.evaluate_object) | Return the object with its modifiers evaluated. |
 | [GeometrySet](../api/GeometrySet.llms.md#databpy.GeometrySet) | Access the evaluated geometry of an object (`bpy.types.GeometrySet`). |
 | [BlenderObject](../api/BlenderObject.llms.md#databpy.BlenderObject) | A convenience class for working with Blender objects. |
+| [AttributeDomainView](../api/AttributeDomainView.llms.md#databpy.AttributeDomainView) | Dictionary-style access to the attributes on a single domain of an object. |
+| [InstanceDomainView](../api/InstanceDomainView.llms.md#databpy.InstanceDomainView) | Read-only dictionary-style access to the INSTANCE domain of evaluated geometry. |
+| [Drawing](../api/Drawing.llms.md#databpy.Drawing) | The points and strokes of a grease pencil drawing: one layer on one keyframe. |
+| [Drawings](../api/Drawings.llms.md#databpy.Drawings) | The drawings of a grease pencil’s layers, by layer name. |
 | [BlenderObjectAttribute](../api/BlenderObjectAttribute.llms.md#databpy.BlenderObjectAttribute) | Minimal base class for Blender objects with attribute access. |
 | [BlenderObjectBase](../api/BlenderObjectBase.llms.md#databpy.BlenderObjectBase) | Minimal base class for Blender objects with name and object access. |
 

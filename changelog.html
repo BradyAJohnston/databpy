@@ -45,7 +45,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-5a0171e344e1a467f4b1484338e11dd4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-ec78900b419f9913f61bce88659f5b27.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -169,10 +169,36 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="unreleased" class="level2">
 <h2 class="anchored" data-anchor-id="unreleased">Unreleased</h2>
+<section id="added" class="level3">
+<h3 class="anchored" data-anchor-id="added">Added</h3>
+<ul>
+<li>Grease pencil objects are supported for attributes. A grease pencil object only holds attributes on its <code>LAYER</code> domain, as its points and strokes are on the drawings of each layer. New attributes on them need <code>domain="LAYER"</code>, rather than quietly storing one value per layer when one per point was meant. <code>create_grease_pencil_object()</code> and <code>BlenderObject.from_grease_pencil()</code> create one from arrays of points for each layer, checking every layer before creating anything.</li>
+<li>Domain views: <code>bob.point</code>, <code>bob.edge</code>, <code>bob.face</code>, <code>bob.corner</code> and <code>bob.curve</code> give dictionary-style access to the attributes on one domain, as <code>bob.face["area"] = values</code>. New attributes are stored on that domain, <code>len()</code> is the domain’s size, iterating gives the names of its attributes, <code>del</code> removes one, and an attribute on a different domain raises a <code>NamedAttributeError</code>.</li>
+<li>Typed arrays for each attribute type: <code>float32</code>, <code>vec2</code>, <code>vec3</code>, <code>vec4</code>, <code>color</code>, <code>color8</code>, <code>quat</code>, <code>mat4</code>, <code>int32</code>, <code>int8</code>, <code>ivec2</code>, <code>sivec2</code>, <code>boolean</code> and <code>string</code>. Wrapping data as <code>db.vec3(data)</code> states the type it is stored as, and only copies if it needs casting. They are <code>AttributeArray</code> subclasses, which is now generic over its shape and dtype.</li>
+<li><code>bob["name", db.vec3]</code>, <code>bob.face["name", db.vec3]</code> and <code>atype=db.vec3</code> for <code>named_attribute()</code>, <code>BlenderObject.named_attribute()</code> and <code>GeometrySet.named_attribute()</code> check the attribute’s type, and return that typed array so type checkers see its dtype and shape.</li>
+<li>A single value is stored for every element, as a plain scalar such as <code>bob.point["weight"] = 1.0</code>, or a typed array of one value such as <code>bob.face["tint"] = db.color([1, 0.5, 0, 1])</code>. Plain arrays that aren’t scalars still need one value per element, as <code>[1, 0.5, 0, 1]</code> could be either.</li>
+<li><code>db.srgb</code> is a typed array for <code>FLOAT_COLOR</code> attributes with sRGB values, which are converted to linear when stored and from linear when read as <code>bob["name", db.srgb]</code>, including changes written back to Blender.</li>
+<li><code>db.srgb</code> and <code>db.color8</code> accept hex color codes, as <code>db.srgb("#FF8000")</code> or a list of codes. <code>db.srgb</code> also scales uint8 colors such as a <code>db.color8</code> to [0, 1].</li>
+<li><code>bob.layer</code> is the domain view for the <code>LAYER</code> domain of grease pencil objects.</li>
+<li><code>GeometrySet.instance</code> gives read-only access to the attributes on the instances of evaluated geometry, as <code>geom.instance["instance_transform", db.mat4]</code>.</li>
+<li><code>bob.drawings</code> gives the drawings of a grease pencil object’s layers, which hold its points and strokes, as <code>bob.drawings["Lines"]</code> on the current frame or <code>bob.drawings["Lines", 12]</code> at a given frame. A <code>db.Drawing</code> has <code>point</code> and <code>curve</code> domain views, which write changes back to the drawing.</li>
+<li><code>GeometrySet.drawings</code> gives read-only access to the drawings of grease pencil in evaluated geometry, including grease pencil made by Geometry Nodes from other object types.</li>
+</ul>
+</section>
+<section id="changed" class="level3">
+<h3 class="anchored" data-anchor-id="changed">Changed</h3>
+<ul>
+<li>Attributes are read as the typed array for their type, so <code>bob["position"]</code> is a <code>db.vec3</code>, which is still an <code>AttributeArray</code>. Indexing or reshaping that no longer gives the shape of the type, such as <code>pos[:, 0]</code>, and changing the dtype, such as <code>pos.astype(np.float64)</code>, give plain <code>AttributeArray</code>s.</li>
+<li><strong>Breaking</strong>: storing an array read from one attribute over an existing attribute of a different type raises a <code>NamedAttributeError</code>, as the array states its type. Previously the values were converted to the existing attribute’s type. Convert to a plain array with <code>np.asarray()</code> first to keep the old behaviour. To store an array as another type under a new name, pass <code>atype=</code>.</li>
+<li><strong>Breaking</strong>: errors from numpy or Blender while writing an attribute’s values, which were raised as a <code>ValueError</code>, <code>TypeError</code> or <code>RuntimeError</code>, are raised as a <code>NamedAttributeError</code> with the original error as its <code>__cause__</code>. Catch <code>NamedAttributeError</code> or <code>DatabpyError</code> instead.</li>
+</ul>
+</section>
 <section id="fixed" class="level3">
 <h3 class="anchored" data-anchor-id="fixed">Fixed</h3>
 <ul>
 <li>A failed <code>store_named_attribute()</code>, such as for data of the wrong length or with values that don’t fit the type, no longer leaves behind the new attribute it created.</li>
+<li><code>GeometrySet.components()</code>, <code>list_attributes()</code> and <code>named_attribute()</code> include the <code>GREASE_PENCIL</code> component of evaluated geometry, for its <code>LAYER</code> attributes.</li>
+<li>Changes written to an <code>AttributeArray</code>, which go straight into the attribute’s memory, no longer leave Blender’s cached bounds, and the normals of a mesh, as they were before the write. This includes grease pencil drawings, and the bounds of a point cloud also follow changes to <code>radius</code>.</li>
 </ul>
 </section>
 </section>
@@ -194,8 +220,8 @@ ul.task-list li input[type="checkbox"] {
 <section id="section-1" class="level2">
 <h2 class="anchored" data-anchor-id="section-1">0.11.0 (2026-10-20)</h2>
 <p>Support for Blender 5.1 alongside 5.2, with the tests run against each supported version, and much faster small writes through <code>AttributeArray</code>.</p>
-<section id="changed" class="level3">
-<h3 class="anchored" data-anchor-id="changed">Changed</h3>
+<section id="changed-1" class="level3">
+<h3 class="anchored" data-anchor-id="changed-1">Changed</h3>
 <ul>
 <li><p><code>AttributeArray</code> writes only the values that changed, directly into the attribute’s memory, rather than writing the entire attribute with <code>foreach_set</code>. <code>bob.position[:10, 2] = 10</code> on 1M points is ~6x faster, and a single-row write to a held array is ~25x faster. Values changed in Blender since the array was read are no longer overwritten by writes elsewhere in the array. STRING attributes and attributes that can’t be written directly still write the entire array.</p></li>
 <li><p>Reading an <code>AttributeArray</code> is up to ~6x faster for large attributes, as arrays are freed as soon as they are unused instead of waiting for the garbage collector.</p></li>
@@ -224,8 +250,8 @@ ul.task-list li input[type="checkbox"] {
 <section id="section-2" class="level2">
 <h2 class="anchored" data-anchor-id="section-2">0.10.1 (2026-10-08)</h2>
 <p>Faster mesh construction and attribute access, with benchmarks tracked by <a href="https://app.codspeed.io/BradyAJohnston/databpy">CodSpeed</a>.</p>
-<section id="changed-1" class="level3">
-<h3 class="anchored" data-anchor-id="changed-1">Changed</h3>
+<section id="changed-2" class="level3">
+<h3 class="anchored" data-anchor-id="changed-2">Changed</h3>
 <ul>
 <li><code>create_mesh_object()</code>, <code>create_object()</code>, <code>create_bob()</code> and <code>BlenderObject.new_from_pydata()</code> write vertices, edges and faces directly to the mesh’s attributes instead of using <code>Mesh.from_pydata()</code>. Creating a mesh is ~500x faster for vertices, ~250x for edges and ~17x for faces given as an array. The resulting meshes are unchanged.</li>
 <li><strong>Breaking</strong>: <code>create_mesh_object()</code> and <code>BlenderObject.new_from_pydata()</code> raise <code>ValueError</code> for vertices that aren’t shaped <code>(n, 3)</code> (previously Blender’s <code>RuntimeError</code>, leaving an orphan mesh) or edges without exactly two indices, and <code>TypeError</code> for non-integer indices, before any mesh is created.</li>
@@ -254,8 +280,8 @@ ul.task-list li input[type="checkbox"] {
 <li><code>NamedAttributeError</code> subclassing <code>AttributeError</code>, as <code>hasattr()</code> and <code>getattr()</code> silently swallow it. Catch <code>NamedAttributeError</code> or <code>DatabpyError</code> instead.</li>
 </ul>
 </section>
-<section id="added" class="level3">
-<h3 class="anchored" data-anchor-id="added">Added</h3>
+<section id="added-1" class="level3">
+<h3 class="anchored" data-anchor-id="added-1">Added</h3>
 <ul>
 <li><code>DatabpyError</code>, the base class for all databpy errors.</li>
 <li><code>AttributeNotFoundError</code>, raised for missing attributes. It is both a <code>NamedAttributeError</code> and a <code>KeyError</code>, and its message lists the available attributes.</li>
@@ -263,8 +289,8 @@ ul.task-list li input[type="checkbox"] {
 <li><code>py.typed</code>, so type checkers use databpy’s type hints.</li>
 </ul>
 </section>
-<section id="changed-2" class="level3">
-<h3 class="anchored" data-anchor-id="changed-2">Changed</h3>
+<section id="changed-3" class="level3">
+<h3 class="anchored" data-anchor-id="changed-3">Changed</h3>
 <ul>
 <li><code>BlenderObject</code> tracks its object by <code>session_uid</code> within a session, surviving renames and memory reallocation, and by its persistent uuid after a file is loaded. As before, a wrapper stops resolving its object once another wrapper stores a different uuid on it.</li>
 <li><strong>Breaking</strong>: accessing a <code>BlenderObject</code> whose object was removed raises <code>LinkedObjectError</code>, instead of resolving to a duplicate that shares its uuid.</li>
@@ -304,8 +330,8 @@ ul.task-list li input[type="checkbox"] {
 <section id="section-4" class="level2">
 <h2 class="anchored" data-anchor-id="section-4">0.9.0 (2026-09-14)</h2>
 <p>A full static-typing pass over the package and test suite. The code base now passes <a href="https://docs.astral.sh/ty/">ty</a> with zero errors and zero suppression comments (every <code># type: ignore</code> has been removed), and ty runs in CI alongside ruff. Blender API values that are typed as <code>Something | None</code> or as wide data-block unions are now handled through small helpers that check at runtime and narrow the type, instead of being ignored.</p>
-<section id="added-1" class="level3">
-<h3 class="anchored" data-anchor-id="added-1">Added</h3>
+<section id="added-2" class="level3">
+<h3 class="anchored" data-anchor-id="added-2">Added</h3>
 <ul>
 <li>Typed narrowing helpers, exported from the top-level <code>databpy</code> namespace:
 <ul>
@@ -319,8 +345,8 @@ ul.task-list li input[type="checkbox"] {
 <li>API documentation sections for the new utility and node helpers.</li>
 </ul>
 </section>
-<section id="changed-3" class="level3">
-<h3 class="anchored" data-anchor-id="changed-3">Changed</h3>
+<section id="changed-4" class="level3">
+<h3 class="anchored" data-anchor-id="changed-4">Changed</h3>
 <ul>
 <li><strong>Breaking</strong>: invalid-type errors now consistently raise <code>TypeError</code> (some previously raised <code>ValueError</code> or <code>AttributeError</code>): <code>utils.path_resolve()</code>, <code>attribute.guess_atype_from_array()</code>, <code>BlenderObject.__getitem__()</code> with a non-string key, assigning a non-<code>Object</code> to <code>BlenderObjectBase.object</code>, and the deprecated <code>vertices</code> / <code>edges</code> properties on non-mesh objects.</li>
 <li>Object creation functions (<code>create_object()</code>, <code>create_mesh_object()</code>, <code>create_curves_object()</code>, <code>create_pointcloud_object()</code>, <code>create_bob()</code> and the <code>BlenderObject.from_*()</code> classmethods) are now typed to accept any array-like (lists and tuples always worked at runtime).</li>
@@ -342,8 +368,8 @@ ul.task-list li input[type="checkbox"] {
 <section id="section-5" class="level2">
 <h2 class="anchored" data-anchor-id="section-5">0.8.0 (2026-07-21)</h2>
 <p>Support for the new attribute types introduced in Blender 5.2, alongside a cleanup of the attribute typing system. Requires <code>bpy &gt;= 5.2</code>.</p>
-<section id="added-2" class="level3">
-<h3 class="anchored" data-anchor-id="added-2">Added</h3>
+<section id="added-3" class="level3">
+<h3 class="anchored" data-anchor-id="added-3">Added</h3>
 <ul>
 <li>Support for the new Blender 5.2 attribute types:
 <ul>
@@ -357,8 +383,8 @@ ul.task-list li input[type="checkbox"] {
 <li><code>BlenderObject.store_named_attribute()</code> now returns the created or modified attribute (previously returned <code>None</code>).</li>
 </ul>
 </section>
-<section id="changed-4" class="level3">
-<h3 class="anchored" data-anchor-id="changed-4">Changed</h3>
+<section id="changed-5" class="level3">
+<h3 class="anchored" data-anchor-id="changed-5">Changed</h3>
 <ul>
 <li>Results of <code>AttributeArray</code> operations (e.g.&nbsp;<code>pos + 1</code>, comparisons) are now plain <code>numpy.ndarray</code>s, and copies (<code>pos.copy()</code>, boolean-mask indexing) are detached from Blender — neither syncs back on modification. True views (slices, column access) remain connected and continue to auto-sync.</li>
 <li>Data is cast to the attribute’s storage dtype before writing, letting Blender’s <code>foreach_set</code> use its fast buffer path instead of per-element iteration (a significant speedup for the common case of passing float64 arrays).</li>

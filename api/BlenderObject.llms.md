@@ -13,10 +13,17 @@ Extends BlenderObjectAttribute with methods for creating objects and calculating
 | Name | Description |
 |----|----|
 | [attributes](#databpy.BlenderObject.attributes) | Get the attributes of the Blender object. |
+| [corner](#databpy.BlenderObject.corner) | Attributes on the CORNER domain. |
+| [curve](#databpy.BlenderObject.curve) | Attributes on the CURVE domain. |
 | [data](#databpy.BlenderObject.data) | Get the data block of the Blender object. |
+| [drawings](#databpy.BlenderObject.drawings) | The drawings of a grease pencil object’s layers, which hold its points and |
+| [edge](#databpy.BlenderObject.edge) | Attributes on the EDGE domain. |
 | [edges](#databpy.BlenderObject.edges) | Get the edges of the Blender mesh object. |
+| [face](#databpy.BlenderObject.face) | Attributes on the FACE domain. |
+| [layer](#databpy.BlenderObject.layer) | Attributes on the LAYER domain of a grease pencil object. |
 | [name](#databpy.BlenderObject.name) | Get the name of the Blender object. |
 | [object](#databpy.BlenderObject.object) | Get the Blender object. |
+| [point](#databpy.BlenderObject.point) | Attributes on the POINT domain. |
 | [position](#databpy.BlenderObject.position) | Get the positions of the object’s vertices or points. |
 | [uuid](#databpy.BlenderObject.uuid) | Get the unique identifier for this object. |
 | [vertices](#databpy.BlenderObject.vertices) | Get the vertices of the Blender mesh object. |
@@ -28,6 +35,7 @@ Extends BlenderObjectAttribute with methods for creating objects and calculating
 | [centroid](#databpy.BlenderObject.centroid) | Calculate the weighted or unweighted centroid of the object’s positions. |
 | [evaluate](#databpy.BlenderObject.evaluate) | Return the evaluated version of the object, with all modifiers applied. |
 | [from_curves](#databpy.BlenderObject.from_curves) | Create a BlenderObject from curves data. |
+| [from_grease_pencil](#databpy.BlenderObject.from_grease_pencil) | Create a BlenderObject from grease pencil layers. |
 | [from_mesh](#databpy.BlenderObject.from_mesh) | Create a BlenderObject from mesh data. |
 | [from_pointcloud](#databpy.BlenderObject.from_pointcloud) | Create a BlenderObject from point cloud data. |
 | [list_attributes](#databpy.BlenderObject.list_attributes) | List the names of the object’s attributes. |
@@ -121,6 +129,52 @@ import databpy as db
 positions = np.random.random((7, 3))
 bob = db.BlenderObject.from_curves(positions, [3, 4], name="MyCurves")
 print(len(bob))  # 7
+```
+
+### from_grease_pencil
+
+``` python
+BlenderObject.from_grease_pencil(
+    layers=None,
+    name='GreasePencil',
+    collection=None,
+)
+```
+
+Create a BlenderObject from grease pencil layers.
+
+Each layer gets one drawing on the scene’s current frame, holding its strokes.
+
+#### Parameters
+
+| Name | Type | Description | Default |
+|----|----|----|----|
+| layers | [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)\[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)\[[np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray), [list](https://docs.python.org/3/builtins/stdtypes.html#list)\[[int](https://docs.python.org/3/builtins/functions.html#int)\] \| [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray)\]\] or None | The layers to create, mapping each layer’s name to the positions of its points with shape (N, 3) and the number of points in each stroke. Default is None. | `None` |
+| name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Name of the created object. Default is “GreasePencil”. | `'GreasePencil'` |
+| collection | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Collection](https://docs.blender.org/api/current/bpy.types.Collection.html#bpy.types.Collection) or None | Blender collection to link the object to. Default is None. | `None` |
+
+#### Returns
+
+| Name | Type | Description |
+|----|----|----|
+|  | [BlenderObject](../api/BlenderObject.llms.md#databpy.BlenderObject) | A wrapped Blender grease pencil object. |
+
+#### Raises
+
+| Name | Type | Description |
+|----|----|----|
+|  | [ValueError](https://docs.python.org/3/builtins/exceptions.html#ValueError) | If the positions or stroke sizes of a layer are invalid. See `create_grease_pencil_object()`. |
+
+#### Examples
+
+``` python
+import numpy as np
+import databpy as db
+
+bob = db.BlenderObject.from_grease_pencil(
+    {"Lines": (np.random.random((7, 3)), [3, 4])}
+)
+bob.store_named_attribute(np.array([0.5]), "weight", domain="LAYER")
 ```
 
 ### from_mesh
@@ -233,7 +287,7 @@ List the names of the object’s attributes.
 ### named_attribute
 
 ``` python
-BlenderObject.named_attribute(name, evaluate=False)
+BlenderObject.named_attribute(name, evaluate=False, *, atype=None)
 ```
 
 Read a named attribute from the object as a numpy array.
@@ -244,18 +298,20 @@ Read a named attribute from the object as a numpy array.
 |----|----|----|----|
 | name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Name of the attribute to get. | *required* |
 | evaluate | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to evaluate the object’s modifiers before reading the attribute. Defaults to False. | `False` |
+| atype | [type](https://docs.python.org/3/builtins/functions.html#type)\[[AttributeArray](../api/AttributeArray.llms.md#databpy.AttributeArray)\] or None | The typed array class the attribute is expected to be, such as `vec3`. | `None` |
 
 #### Returns
 
 | Name | Type | Description |
 |----|----|----|
-|  | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | A copy of the attribute’s values, which doesn’t sync back to Blender. |
+|  | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | A copy of the attribute’s values, which doesn’t sync back to Blender, as an array of `atype` if given. |
 
 #### Raises
 
 | Name | Type | Description |
 |----|----|----|
 |  | [AttributeNotFoundError](../api/AttributeNotFoundError.llms.md#databpy.AttributeNotFoundError) | If the attribute doesn’t exist. |
+|  | [NamedAttributeError](../api/NamedAttributeError.llms.md#databpy.NamedAttributeError) | If the attribute’s type doesn’t match `atype`. |
 
 ### new_from_pydata
 
@@ -319,7 +375,7 @@ Store a named attribute on the Blender object.
 
 | Name | Type | Description | Default |
 |----|----|----|----|
-| data | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | The data to be stored as an attribute. | *required* |
+| data | [npt](https://numpy.org/doc/stable/reference/typing.html#module-numpy.typing).[ArrayLike](https://numpy.org/doc/stable/reference/typing.html#numpy.typing.ArrayLike) | The data to be stored as an attribute, with one value per element, or a single value for every element. | *required* |
 | name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name for the attribute. An existing attribute with this name is overwritten, keeping its type and domain. | *required* |
 | atype | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeTypes](../api/AttributeTypes.llms.md#databpy.AttributeTypes) or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None uses the type of an existing attribute, otherwise infers the attribute type from the input array. | `None` |
 | domain | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) or None | The domain to store the attribute on. None uses the domain of an existing attribute, otherwise AttributeDomains.POINT. | `None` |

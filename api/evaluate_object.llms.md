@@ -23,7 +23,7 @@ Return the object with its modifiers evaluated.
 
 | Name | Type | Description |
 |----|----|----|
-|  | [TypeError](https://docs.python.org/3/builtins/exceptions.html#TypeError) | If `obj` isn’t an object, or its data isn’t a mesh, curves or point cloud. |
+|  | [TypeError](https://docs.python.org/3/builtins/exceptions.html#TypeError) | If `obj` isn’t an object, or its data isn’t a mesh, curves, point cloud or grease pencil. |
 
 ## Notes
 

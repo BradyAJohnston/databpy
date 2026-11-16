@@ -80,7 +80,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-5a0171e344e1a467f4b1484338e11dd4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-ec78900b419f9913f61bce88659f5b27.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -216,7 +216,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The <a href="./attributes.html"><strong>attributes guide</strong></a> covers the attribute system: the attribute types and domains, reading and writing attributes, performance, and errors.</p>
+<p>The <a href="./attributes.html"><strong>attributes guide</strong></a> covers the attribute system: domains and typed arrays, reading and writing attributes, performance, and errors.</p>
 </div>
 </div>
 <p><code>databpy</code> started as a submodule of <a href="https://github.com/BradyAJohnston/MolecularNodes">Molecular Nodes</a> and was split off into its own package for use by other projects. Some internal code is still specific to Molecular Nodes, but most of it is general.</p>
@@ -227,7 +227,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>See the enums in the API documentation for the different <a href="./api/AttributeTypes.html#databpy.AttributeTypes"><code>AttributeTypes</code></a> and <a href="./api/AttributeDomains.html#databpy.AttributeDomains"><code>AttributeDomains</code></a>.</p>
 <section id="regular-bpy-api" class="level3">
 <h3 class="anchored" data-anchor-id="regular-bpy-api">Regular <code>bpy</code> API</h3>
-<div id="508f04c0" class="cell" data-execution_count="1">
+<div id="adf2f112" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -260,7 +260,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="databpy-api" class="level3">
 <h3 class="anchored" data-anchor-id="databpy-api"><code>databpy</code> API</h3>
 <p>Getting and setting values takes one function call each. The attribute type is inferred from the array’s dtype and shape, or can be given explicitly. Attributes are stored on the point domain unless another domain is given; see <a href="./api/AttributeDomains.html#databpy.AttributeDomains"><code>AttributeDomains</code></a> for the domains available.</p>
-<div id="880fbfbf" class="cell" data-execution_count="2">
+<div id="720e8a99" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>db.store_named_attribute(obj, new_float_values, <span class="st">"example_values"</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>db.named_attribute(obj, <span class="st">"example_values"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -281,7 +281,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="a-friendlier-blender-object-bob">A friendlier Blender object (bob)</h2>
 <p>The <a href="./api/BlenderObject.html#databpy.BlenderObject"><code>BlenderObject</code></a> class wraps a mesh, curves or point cloud object and adds methods for data-oriented work on it.</p>
 <p>Its <a href="./api/BlenderObject.html#databpy.BlenderObject.store_named_attribute"><code>store_named_attribute()</code></a> and <a href="./api/BlenderObject.html#databpy.BlenderObject.named_attribute"><code>named_attribute()</code></a> methods get and set attributes on the wrapped object.</p>
-<div id="adf5484b" class="cell" data-execution_count="3">
+<div id="12e7d0e7" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bob <span class="op">=</span> db.BlenderObject(bpy.data.objects[<span class="st">"Cube"</span>])</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>bob.store_named_attribute(new_float_values, <span class="st">"example_values"</span>)</span>
@@ -298,7 +298,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p><a href="./api/create_bob.html#databpy.create_bob"><code>create_bob()</code></a> creates a mesh object from an array of vertex positions and wraps it. Attributes can also be read as properties and items, such as <code>bob.position</code> and <code>bob["position"]</code>, which return an <a href="./api/AttributeArray.html#databpy.AttributeArray"><code>AttributeArray</code></a> that writes changes back to Blender:</p>
-<div id="cfca9bc8" class="cell" data-execution_count="4">
+<div id="8cfe0bc6" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">6</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>bob <span class="op">=</span> db.create_bob(np.random.rand(<span class="dv">10</span>, <span class="dv">3</span>), name<span class="op">=</span><span class="st">"RandomMesh"</span>)</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -318,60 +318,76 @@ array([[0.8928602 , 0.3319798 , 1.8212291 ],
        [0.9576473 , 0.4032563 , 1.2169511 ]], dtype=float32)</code></pre>
 </div>
 </div>
-<p><a href="./api/BlenderObject.html#databpy.BlenderObject.new_from_pydata"><code>new_from_pydata()</code></a> clears the geometry of the object’s mesh and fills it with new vertices, edges and faces:</p>
-<div id="e7896259" class="cell" data-execution_count="5">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>bob.new_from_pydata(np.random.randn(<span class="dv">5</span>, <span class="dv">3</span>))</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>bob.position</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Each domain of the object has a dictionary-style view, such as <code>bob.point</code> and <code>bob.face</code>, and typed arrays such as <a href="./api/vec3.html#databpy.vec3"><code>db.vec3</code></a> and <a href="./api/color.html#databpy.color"><code>db.color</code></a> state the type an attribute is stored as. Together they say where an attribute lives and what it holds:</p>
+<div id="ec1a54ec" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>cube <span class="op">=</span> db.BlenderObject(bpy.data.objects[<span class="st">"Cube"</span>])</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>cube.face[<span class="st">"tint"</span>] <span class="op">=</span> db.color(np.random.rand(<span class="bu">len</span>(cube.face), <span class="dv">4</span>))</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>cube.face[<span class="st">"tint"</span>, db.color]  <span class="co"># checks the type, which type checkers also see</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>AttributeArray(name='tint', object='Cube', mesh='Cube', domain=FACE, type=FLOAT_COLOR, shape=(6, 4), dtype=float32)
+array([[0.71727586, 0.99420744, 0.25561404, 0.6713094 ],
+       [0.59900594, 0.7173321 , 0.93734956, 0.35180977],
+       [0.2536341 , 0.4024725 , 0.74651074, 0.72407055],
+       [0.40610778, 0.9893798 , 0.45049927, 0.37380844],
+       [0.7096286 , 0.08245856, 0.39837292, 0.77088094],
+       [0.76475096, 0.28385937, 0.18954219, 0.47125095]], dtype=float32)</code></pre>
+</div>
+</div>
+<p><a href="./api/BlenderObject.html#databpy.BlenderObject.new_from_pydata"><code>new_from_pydata()</code></a> clears the geometry of the object’s mesh and fills it with new vertices, edges and faces:</p>
+<div id="5cd6458d" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>bob.new_from_pydata(np.random.randn(<span class="dv">5</span>, <span class="dv">3</span>))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>bob.position</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>AttributeArray(name='position', object='RandomMesh', mesh='RandomMesh', domain=POINT, type=FLOAT_VECTOR, shape=(5, 3), dtype=float32)
-array([[ 0.82465386, -1.1764315 ,  1.5644896 ],
-       [ 0.7127051 , -0.1810066 ,  0.53419954],
-       [-0.58661294, -1.4818532 ,  0.8572476 ],
-       [ 0.94309896,  0.11444143, -0.02195668],
-       [-2.1271446 , -0.83440745, -0.4655083 ]], dtype=float32)</code></pre>
+array([[ 1.2184806 , -0.85750145, -0.56147087],
+       [-1.0335199 ,  0.35877097,  1.0736814 ],
+       [-0.37550473,  0.39636758, -0.47144628],
+       [ 2.3366077 ,  1.5027856 , -0.5954597 ],
+       [ 0.52834105,  0.9398248 ,  0.4262854 ]], dtype=float32)</code></pre>
 </div>
 </div>
 </section>
 <section id="importing-a-table-with-polars" class="level2">
 <h2 class="anchored" data-anchor-id="importing-a-table-with-polars">Importing a table with Polars</h2>
 <p>Columns of a data frame can be stored as attributes. Here each column of a JSON table holds a list of 3D points, which are stored as <code>FLOAT_VECTOR</code> attributes on a new object with one vertex per row:</p>
-<div id="4539de71" class="cell" data-execution_count="6">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> io <span class="im">import</span> StringIO</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>json_file <span class="op">=</span> StringIO(<span class="st">"""</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="st">  "Dino": [</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="st">    [55.3846, 97.1795, 0.0],</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="st">    [51.5385, 96.0256, 0.0]</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="st">  ],</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="st">  "Star": [</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="st">    [58.2136, 91.8819, 0.0],</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="st">    [58.1961, 92.215, 0.0]</span></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="st">  ]</span></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>)</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pl.read_json(json_file)</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>columns_to_explode <span class="op">=</span> [col <span class="cf">for</span> col <span class="kw">in</span> df.columns <span class="cf">if</span> df[col].dtype <span class="op">==</span> pl.List(pl.List)]</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> df.explode(columns_to_explode, empty_as_null<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>vertices <span class="op">=</span> np.zeros((<span class="bu">len</span>(df), <span class="dv">3</span>), dtype<span class="op">=</span>np.float32)</span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>bob <span class="op">=</span> db.create_bob(vertices, name<span class="op">=</span><span class="st">"DinoStar"</span>)</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col <span class="kw">in</span> df.columns:</span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> np.vstack(df.get_column(col).to_numpy())</span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    bob.store_named_attribute(data, col)</span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>bob.named_attribute(<span class="st">"Dino"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="6">
+<div id="7f1ac53f" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> polars <span class="im">as</span> pl</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> io <span class="im">import</span> StringIO</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>json_file <span class="op">=</span> StringIO(<span class="st">"""</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="st">{</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="st">  "Dino": [</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="st">    [55.3846, 97.1795, 0.0],</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="st">    [51.5385, 96.0256, 0.0]</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="st">  ],</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="st">  "Star": [</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="st">    [58.2136, 91.8819, 0.0],</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="st">    [58.1961, 92.215, 0.0]</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="st">  ]</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pl.read_json(json_file)</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>columns_to_explode <span class="op">=</span> [col <span class="cf">for</span> col <span class="kw">in</span> df.columns <span class="cf">if</span> df[col].dtype <span class="op">==</span> pl.List(pl.List)]</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> df.explode(columns_to_explode, empty_as_null<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>vertices <span class="op">=</span> np.zeros((<span class="bu">len</span>(df), <span class="dv">3</span>), dtype<span class="op">=</span>np.float32)</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>bob <span class="op">=</span> db.create_bob(vertices, name<span class="op">=</span><span class="st">"DinoStar"</span>)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> col <span class="kw">in</span> df.columns:</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> np.vstack(df.get_column(col).to_numpy())</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>    bob.store_named_attribute(data, col)</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>bob.named_attribute(<span class="st">"Dino"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>array([[55.3846, 97.1795,  0.    ],
        [51.5385, 96.0256,  0.    ]], dtype=float32)</code></pre>
 </div>
 </div>
-<div id="73d45cfc" class="cell" data-execution_count="7">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>bob.named_attribute(<span class="st">"Star"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
+<div id="2c92416e" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>bob.named_attribute(<span class="st">"Star"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
 <pre><code>array([[58.2136, 91.8819,  0.    ],
        [58.1961, 92.215 ,  0.    ]], dtype=float32)</code></pre>
 </div>

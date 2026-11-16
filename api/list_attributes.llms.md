@@ -10,7 +10,7 @@ List the names of the attributes on an object, sorted alphabetically.
 
 | Name | Type | Description | Default |
 |----|----|----|----|
-| obj | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Object](https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object) | The Blender object, with mesh, curves or point cloud data. | *required* |
+| obj | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Object](https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object) | The Blender object, with mesh, curves, point cloud or grease pencil data. | *required* |
 | evaluate | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to list the attributes after evaluating modifiers, by default False. | `False` |
 | drop_hidden | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to leave out hidden attributes, whose names start with `.`, by default False. | `False` |
 
@@ -24,4 +24,4 @@ List the names of the attributes on an object, sorted alphabetically.
 
 | Name | Type | Description |
 |----|----|----|
-|  | [TypeError](https://docs.python.org/3/builtins/exceptions.html#TypeError) | If the object’s data isn’t a mesh, curves or point cloud. |
+|  | [TypeError](https://docs.python.org/3/builtins/exceptions.html#TypeError) | If the object’s data isn’t a mesh, curves, point cloud or grease pencil. |

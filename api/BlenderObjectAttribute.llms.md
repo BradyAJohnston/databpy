@@ -8,7 +8,7 @@ Minimal base class for Blender objects with attribute access.
 
 This class provides core functionality for storing and accessing named attributes on Blender objects.
 
-It is intended for use with Mesh, PointCloud and Curves type objects for easier and “numpy-like” attribute access.
+It is intended for use with Mesh, PointCloud, Curves and GreasePencil type objects for easier and “numpy-like” attribute access. Grease pencil objects only hold attributes on their LAYER domain.
 
 It can be inherited by other classes for easier attribute management on objects.
 
@@ -17,7 +17,7 @@ It can be inherited by other classes for easier attribute management on objects.
 | Name | Type | Description |
 |----|----|----|
 | position | [AttributeArray](../api/AttributeArray.llms.md#databpy.AttributeArray) | Position attribute of the object’s vertices/points. |
-| data | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Mesh](https://docs.blender.org/api/current/bpy.types.Mesh.html#bpy.types.Mesh) \| `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Curves](https://docs.blender.org/api/current/bpy.types.Curves.html#bpy.types.Curves) \| `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[PointCloud](https://docs.blender.org/api/current/bpy.types.PointCloud.html#bpy.types.PointCloud) | The data block associated with this object. |
+| data | `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Mesh](https://docs.blender.org/api/current/bpy.types.Mesh.html#bpy.types.Mesh) \| `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[Curves](https://docs.blender.org/api/current/bpy.types.Curves.html#bpy.types.Curves) \| `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[PointCloud](https://docs.blender.org/api/current/bpy.types.PointCloud.html#bpy.types.PointCloud) \| `bpy`.[types](https://docs.blender.org/api/current/bpy.types.html#module-bpy.types).[GreasePencil](https://docs.blender.org/api/current/bpy.types.GreasePencil.html#bpy.types.GreasePencil) | The data block associated with this object. |
 | attributes |  | The attributes collection of the object’s data-block. |
 
 ## Methods
@@ -68,7 +68,7 @@ List the names of the object’s attributes.
 ### named_attribute
 
 ``` python
-BlenderObjectAttribute.named_attribute(name, evaluate=False)
+BlenderObjectAttribute.named_attribute(name, evaluate=False, *, atype=None)
 ```
 
 Read a named attribute from the object as a numpy array.
@@ -79,18 +79,20 @@ Read a named attribute from the object as a numpy array.
 |----|----|----|----|
 | name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | Name of the attribute to get. | *required* |
 | evaluate | [bool](https://docs.python.org/3/builtins/functions.html#bool) | Whether to evaluate the object’s modifiers before reading the attribute. Defaults to False. | `False` |
+| atype | [type](https://docs.python.org/3/builtins/functions.html#type)\[[AttributeArray](../api/AttributeArray.llms.md#databpy.AttributeArray)\] or None | The typed array class the attribute is expected to be, such as `vec3`. | `None` |
 
 #### Returns
 
 | Name | Type | Description |
 |----|----|----|
-|  | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | A copy of the attribute’s values, which doesn’t sync back to Blender. |
+|  | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | A copy of the attribute’s values, which doesn’t sync back to Blender, as an array of `atype` if given. |
 
 #### Raises
 
 | Name | Type | Description |
 |----|----|----|
 |  | [AttributeNotFoundError](../api/AttributeNotFoundError.llms.md#databpy.AttributeNotFoundError) | If the attribute doesn’t exist. |
+|  | [NamedAttributeError](../api/NamedAttributeError.llms.md#databpy.NamedAttributeError) | If the attribute’s type doesn’t match `atype`. |
 
 ### remove_named_attribute
 
@@ -130,7 +132,7 @@ Store a named attribute on the Blender object.
 
 | Name | Type | Description | Default |
 |----|----|----|----|
-| data | [np](https://numpy.org/doc/stable/reference/index.html#module-numpy).[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray) | The data to be stored as an attribute. | *required* |
+| data | [npt](https://numpy.org/doc/stable/reference/typing.html#module-numpy.typing).[ArrayLike](https://numpy.org/doc/stable/reference/typing.html#numpy.typing.ArrayLike) | The data to be stored as an attribute, with one value per element, or a single value for every element. | *required* |
 | name | [str](https://docs.python.org/3/builtins/stdtypes.html#str) | The name for the attribute. An existing attribute with this name is overwritten, keeping its type and domain. | *required* |
 | atype | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeTypes](../api/AttributeTypes.llms.md#databpy.AttributeTypes) or None | The attribute type to store the data as. Either string or selection from the AttributeTypes enum. None uses the type of an existing attribute, otherwise infers the attribute type from the input array. | `None` |
 | domain | [str](https://docs.python.org/3/builtins/stdtypes.html#str) or [AttributeDomains](../api/AttributeDomains.llms.md#databpy.AttributeDomains) or None | The domain to store the attribute on. None uses the domain of an existing attribute, otherwise AttributeDomains.POINT. | `None` |

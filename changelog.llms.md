@@ -2,9 +2,31 @@
 
 ## Unreleased
 
+### Added
+
+- Grease pencil objects are supported for attributes. A grease pencil object only holds attributes on its `LAYER` domain, as its points and strokes are on the drawings of each layer. New attributes on them need `domain="LAYER"`, rather than quietly storing one value per layer when one per point was meant. `create_grease_pencil_object()` and `BlenderObject.from_grease_pencil()` create one from arrays of points for each layer, checking every layer before creating anything.
+- Domain views: `bob.point`, `bob.edge`, `bob.face`, `bob.corner` and `bob.curve` give dictionary-style access to the attributes on one domain, as `bob.face["area"] = values`. New attributes are stored on that domain, `len()` is the domain’s size, iterating gives the names of its attributes, `del` removes one, and an attribute on a different domain raises a `NamedAttributeError`.
+- Typed arrays for each attribute type: `float32`, `vec2`, `vec3`, `vec4`, `color`, `color8`, `quat`, `mat4`, `int32`, `int8`, `ivec2`, `sivec2`, `boolean` and `string`. Wrapping data as `db.vec3(data)` states the type it is stored as, and only copies if it needs casting. They are `AttributeArray` subclasses, which is now generic over its shape and dtype.
+- `bob["name", db.vec3]`, `bob.face["name", db.vec3]` and `atype=db.vec3` for `named_attribute()`, `BlenderObject.named_attribute()` and `GeometrySet.named_attribute()` check the attribute’s type, and return that typed array so type checkers see its dtype and shape.
+- A single value is stored for every element, as a plain scalar such as `bob.point["weight"] = 1.0`, or a typed array of one value such as `bob.face["tint"] = db.color([1, 0.5, 0, 1])`. Plain arrays that aren’t scalars still need one value per element, as `[1, 0.5, 0, 1]` could be either.
+- `db.srgb` is a typed array for `FLOAT_COLOR` attributes with sRGB values, which are converted to linear when stored and from linear when read as `bob["name", db.srgb]`, including changes written back to Blender.
+- `db.srgb` and `db.color8` accept hex color codes, as `db.srgb("#FF8000")` or a list of codes. `db.srgb` also scales uint8 colors such as a `db.color8` to \[0, 1\].
+- `bob.layer` is the domain view for the `LAYER` domain of grease pencil objects.
+- `GeometrySet.instance` gives read-only access to the attributes on the instances of evaluated geometry, as `geom.instance["instance_transform", db.mat4]`.
+- `bob.drawings` gives the drawings of a grease pencil object’s layers, which hold its points and strokes, as `bob.drawings["Lines"]` on the current frame or `bob.drawings["Lines", 12]` at a given frame. A `db.Drawing` has `point` and `curve` domain views, which write changes back to the drawing.
+- `GeometrySet.drawings` gives read-only access to the drawings of grease pencil in evaluated geometry, including grease pencil made by Geometry Nodes from other object types.
+
+### Changed
+
+- Attributes are read as the typed array for their type, so `bob["position"]` is a `db.vec3`, which is still an `AttributeArray`. Indexing or reshaping that no longer gives the shape of the type, such as `pos[:, 0]`, and changing the dtype, such as `pos.astype(np.float64)`, give plain `AttributeArray`s.
+- **Breaking**: storing an array read from one attribute over an existing attribute of a different type raises a `NamedAttributeError`, as the array states its type. Previously the values were converted to the existing attribute’s type. Convert to a plain array with `np.asarray()` first to keep the old behaviour. To store an array as another type under a new name, pass `atype=`.
+- **Breaking**: errors from numpy or Blender while writing an attribute’s values, which were raised as a `ValueError`, `TypeError` or `RuntimeError`, are raised as a `NamedAttributeError` with the original error as its `__cause__`. Catch `NamedAttributeError` or `DatabpyError` instead.
+
 ### Fixed
 
 - A failed `store_named_attribute()`, such as for data of the wrong length or with values that don’t fit the type, no longer leaves behind the new attribute it created.
+- `GeometrySet.components()`, `list_attributes()` and `named_attribute()` include the `GREASE_PENCIL` component of evaluated geometry, for its `LAYER` attributes.
+- Changes written to an `AttributeArray`, which go straight into the attribute’s memory, no longer leave Blender’s cached bounds, and the normals of a mesh, as they were before the write. This includes grease pencil drawings, and the bounds of a point cloud also follow changes to `radius`.
 
 ## 0.12.0 (2026-10-21)
 

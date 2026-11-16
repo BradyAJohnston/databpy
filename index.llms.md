@@ -12,7 +12,7 @@ databpy reads and writes the attributes of mesh, curves and point cloud objects 
 
 > **TIP:**
 >
-> The [**attributes guide**](attributes.llms.md) covers the attribute system: the attribute types and domains, reading and writing attributes, performance, and errors.
+> The [**attributes guide**](attributes.llms.md) covers the attribute system: domains and typed arrays, reading and writing attributes, performance, and errors.
 
 `databpy` started as a submodule of [Molecular Nodes](https://github.com/BradyAJohnston/MolecularNodes) and was split off into its own package for use by other projects. Some internal code is still specific to Molecular Nodes, but most of it is general.
 
@@ -118,6 +118,23 @@ bob["position"]
            [0.7091318 , 0.5409368 , 1.1248242 ],
            [0.9576473 , 0.4032563 , 1.2169511 ]], dtype=float32)
 
+Each domain of the object has a dictionary-style view, such as `bob.point` and `bob.face`, and typed arrays such as [`db.vec3`](api/vec3.llms.md#databpy.vec3) and [`db.color`](api/color.llms.md#databpy.color) state the type an attribute is stored as. Together they say where an attribute lives and what it holds:
+
+``` python
+cube = db.BlenderObject(bpy.data.objects["Cube"])
+
+cube.face["tint"] = db.color(np.random.rand(len(cube.face), 4))
+cube.face["tint", db.color]  # checks the type, which type checkers also see
+```
+
+    AttributeArray(name='tint', object='Cube', mesh='Cube', domain=FACE, type=FLOAT_COLOR, shape=(6, 4), dtype=float32)
+    array([[0.71727586, 0.99420744, 0.25561404, 0.6713094 ],
+           [0.59900594, 0.7173321 , 0.93734956, 0.35180977],
+           [0.2536341 , 0.4024725 , 0.74651074, 0.72407055],
+           [0.40610778, 0.9893798 , 0.45049927, 0.37380844],
+           [0.7096286 , 0.08245856, 0.39837292, 0.77088094],
+           [0.76475096, 0.28385937, 0.18954219, 0.47125095]], dtype=float32)
+
 [`new_from_pydata()`](api/BlenderObject.llms.md#databpy.BlenderObject.new_from_pydata) clears the geometry of the object’s mesh and fills it with new vertices, edges and faces:
 
 ``` python
@@ -126,11 +143,11 @@ bob.position
 ```
 
     AttributeArray(name='position', object='RandomMesh', mesh='RandomMesh', domain=POINT, type=FLOAT_VECTOR, shape=(5, 3), dtype=float32)
-    array([[ 0.82465386, -1.1764315 ,  1.5644896 ],
-           [ 0.7127051 , -0.1810066 ,  0.53419954],
-           [-0.58661294, -1.4818532 ,  0.8572476 ],
-           [ 0.94309896,  0.11444143, -0.02195668],
-           [-2.1271446 , -0.83440745, -0.4655083 ]], dtype=float32)
+    array([[ 1.2184806 , -0.85750145, -0.56147087],
+           [-1.0335199 ,  0.35877097,  1.0736814 ],
+           [-0.37550473,  0.39636758, -0.47144628],
+           [ 2.3366077 ,  1.5027856 , -0.5954597 ],
+           [ 0.52834105,  0.9398248 ,  0.4262854 ]], dtype=float32)
 
 ## Importing a table with Polars
 
