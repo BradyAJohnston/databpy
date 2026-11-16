@@ -1,6 +1,6 @@
 import itertools
 import warnings
-from collections.abc import Iterable, Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from typing import cast, overload
 from uuid import uuid1
 
@@ -27,6 +27,7 @@ from .attribute import (
     _as_typed_attribute,
     _check_array_type,
     _check_obj_attributes,
+    _DrawingKey,
     evaluate_object,
     list_attributes,
 )
@@ -334,7 +335,7 @@ class AttributeDomainView:
     Dictionary-style access to the attributes on a single domain of an object.
 
     Available on a `BlenderObject` as `point`, `edge`, `face`, `corner`, `curve` and
-    `layer`.
+    `layer`, and on a grease pencil `Drawing` as `point` and `curve`.
     New attributes are stored on this domain, with their type inferred from the data.
 
     Examples
@@ -346,7 +347,9 @@ class AttributeDomainView:
     ```
     """
 
-    def __init__(self, bob: "BlenderObjectAttribute", domain: AttributeDomains):
+    def __init__(
+        self, bob: "BlenderObjectAttribute | Drawing", domain: AttributeDomains
+    ):
         self._bob = bob
         self.domain = domain
 
@@ -432,6 +435,271 @@ class AttributeDomainView:
 
     def __repr__(self) -> str:
         return f"<AttributeDomainView {self.domain.value} of {self._bob.name!r}>"
+
+
+class Drawing:
+    """
+    The points and strokes of a grease pencil drawing: one layer on one keyframe.
+
+    Get a drawing from `bob.drawings` for a grease pencil object, or from
+    `GeometrySet.drawings` for any object whose evaluated geometry has grease pencil.
+    Its attributes are on the `point` and `curve` domain views, the same as on a
+    `BlenderObject`. Changes to the drawings of a grease pencil object are written
+    back to Blender, while the drawings of evaluated geometry are read-only copies.
+
+    The drawing is looked up each time it is used, so a `Drawing`, and arrays read
+    from it, stay valid when keyframes are added. They raise a `LinkedObjectError`
+    once the layer is removed or renamed, or the keyframe is removed or moved to
+    another frame. A keyframe is found by its frame, so if another keyframe is moved
+    onto that frame, its drawing is used instead.
+
+    A keyframe made with `frames.copy(..., instance_drawing=True)` shares the drawing
+    of the keyframe it was copied from, so changes to one also change the other.
+
+    Examples
+    --------
+    ```
+    drawing = bob.drawings["Lines"]
+    drawing.point["radius"] *= 0.5
+    drawing.curve["material_index"] = 1
+    ```
+    """
+
+    def __init__(
+        self,
+        grease_pencil: Callable[[], bpy.types.GreasePencil | None],
+        key: _DrawingKey,
+        bob: "BlenderObjectAttribute | None" = None,
+    ):
+        self._grease_pencil = grease_pencil
+        self._key = key
+        self._bob = bob
+
+    @property
+    def layer(self) -> str:
+        """The name of the drawing's layer."""
+        return self._key.layer
+
+    @property
+    def frame(self) -> int:
+        """The frame of the drawing's keyframe."""
+        return self._key.frame
+
+    @property
+    def name(self) -> str:
+        return f"{self.layer} (frame {self.frame})"
+
+    @property
+    def drawing(self) -> bpy.types.GreasePencilDrawing:
+        """The `bpy.types.GreasePencilDrawing` this wraps."""
+        grease_pencil = self._grease_pencil()
+        drawing = None if grease_pencil is None else self._key.find(grease_pencil)
+        if drawing is None:
+            raise LinkedObjectError(
+                f"The drawing on {self._key} has been removed, or its layer renamed."
+            )
+        return drawing
+
+    @property
+    def attributes(self):
+        """The attributes collection of the drawing."""
+        return self.drawing.attributes
+
+    @property
+    def read_only(self) -> bool:
+        """Whether this is a drawing of evaluated geometry, which can't be written."""
+        return self._bob is None
+
+    @property
+    def point(self) -> AttributeDomainView:
+        """Attributes on the POINT domain."""
+        return AttributeDomainView(self, AttributeDomains.POINT)
+
+    @property
+    def curve(self) -> AttributeDomainView:
+        """Attributes on the CURVE domain, one value per stroke."""
+        return AttributeDomainView(self, AttributeDomains.CURVE)
+
+    @overload
+    def __getitem__[T: AttributeArray](self, key: tuple[str, type[T]]) -> T: ...
+    @overload
+    def __getitem__(self, key: str) -> AttributeArray: ...
+    def __getitem__(self, key: str | tuple[str, type[AttributeArray]]):
+        """
+        Get an attribute of the drawing, on any domain, as `drawing["name"]`.
+
+        Index with a typed array class, as `drawing["name", db.vec3]`, to check the
+        attribute's type and have type checkers see the array as that class. Arrays
+        of read-only drawings aren't linked to Blender.
+
+        Raises
+        ------
+        AttributeNotFoundError
+            If the attribute doesn't exist.
+        NamedAttributeError
+            If the attribute isn't the given type.
+        """
+        name, atype = key if isinstance(key, tuple) else (key, None)
+        arr = AttributeArray._read(
+            None if self._bob is None else self._bob.object,
+            self.drawing,
+            name,
+            repr(self._key),
+            self._key,
+        )
+        if atype is not None:
+            _check_array_type(name, type(arr).atype, atype)
+            if atype._converted:
+                arr = _as_converted(arr, atype)
+        return arr
+
+    def __setitem__(self, name: str, data: npt.ArrayLike) -> None:
+        """Store an attribute on the drawing, on the POINT domain if it is new."""
+        self.store_named_attribute(data, name)
+
+    def store_named_attribute(
+        self,
+        data: npt.ArrayLike,
+        name: str,
+        atype: AttributeTypeNames | AttributeTypes | None = None,
+        domain: DomainNames | AttributeDomains | None = None,
+    ) -> bpy.types.Attribute:
+        """
+        Store a named attribute on the drawing, creating it if needed.
+
+        Takes the same arguments as `BlenderObject.store_named_attribute`. New
+        attributes are stored on the POINT domain unless `domain` is given.
+
+        Raises
+        ------
+        TypeError
+            If the drawing is from evaluated geometry, which is read-only.
+        """
+        if self._bob is None:
+            raise TypeError(
+                "Drawings of evaluated geometry are read-only. Store their attributes "
+                "in Geometry Nodes, or on the drawings of a grease pencil object."
+            )
+        return attr._set_attribute(
+            self.drawing,
+            data,
+            name,
+            atype=atype,
+            domain=domain,
+            tag=self._grease_pencil(),
+        )
+
+    def remove_named_attribute(self, name: str) -> None:
+        """
+        Remove an attribute from the drawing.
+
+        Raises
+        ------
+        TypeError
+            If the drawing is from evaluated geometry, which is read-only.
+        AttributeNotFoundError
+            If the attribute doesn't exist.
+        NamedAttributeError
+            If the attribute is required by Blender (e.g. `position`).
+        """
+        if self._bob is None:
+            raise TypeError(
+                "Drawings of evaluated geometry are read-only. Remove their attributes "
+                "in Geometry Nodes, or on the drawings of a grease pencil object."
+            )
+        attr._remove_attribute(self.drawing, name, repr(self._key))
+        grease_pencil = self._grease_pencil()
+        if grease_pencil is not None:
+            grease_pencil.update_tag()
+
+    def list_attributes(self, drop_hidden: bool = False) -> list[str]:
+        """List the names of the drawing's attributes."""
+        return [
+            a.name
+            for a in self.attributes
+            if not (drop_hidden and a.name.startswith("."))
+        ]
+
+    def __contains__(self, name: str) -> bool:
+        return name in self.attributes
+
+    def _ipython_key_completions_(self) -> list[str]:
+        return self.list_attributes()
+
+    def __repr__(self) -> str:
+        return f"<Drawing of layer {self.layer!r} at frame {self.frame}>"
+
+
+class Drawings(Mapping[str, Drawing]):
+    """
+    The drawings of a grease pencil's layers, by layer name.
+
+    `drawings["Lines"]` is the drawing of the layer "Lines" shown on the scene's
+    current frame, and `drawings["Lines", 12]` the drawing shown at frame 12, which is
+    the one on the last keyframe at or before it. Iterating gives the names of the
+    layers that have a drawing on the current frame.
+
+    Available as `bob.drawings` on a grease pencil object, and as
+    `GeometrySet.drawings` for evaluated geometry, where they are read-only.
+
+    Examples
+    --------
+    ```
+    bob.drawings["Lines"].point["radius"] = 0.01
+    for layer, drawing in bob.drawings.items():
+        drawing.point["opacity"] = 0.5
+    ```
+    """
+
+    def __init__(
+        self,
+        grease_pencil: Callable[[], bpy.types.GreasePencil | None],
+        bob: "BlenderObjectAttribute | None" = None,
+    ):
+        self._grease_pencil = grease_pencil
+        self._bob = bob
+
+    def _layers(self) -> list[bpy.types.GreasePencilLayer]:
+        grease_pencil = self._grease_pencil()
+        return [] if grease_pencil is None else list(grease_pencil.layers)
+
+    def __getitem__(self, key: str | tuple[str, int]) -> Drawing:
+        """
+        Get the drawing of a layer, as `drawings["name"]` on the current frame or
+        `drawings["name", frame]` at a given frame.
+
+        Raises
+        ------
+        KeyError
+            If there's no layer with the name, or it has no drawing at the frame.
+        """
+        name, frame = key if isinstance(key, tuple) else (key, None)
+        layers = {layer.name: layer for layer in self._layers()}
+        if name not in layers:
+            raise KeyError(f"No layer '{name}'. Layers: {list(layers)}")
+        layer = layers[name]
+        keyframe = layer.current_frame() if frame is None else layer.get_frame_at(frame)
+        if keyframe is None or keyframe.drawing is None:
+            at = "the current frame" if frame is None else f"frame {frame}"
+            raise KeyError(f"Layer '{name}' has no drawing at {at}.")
+        return Drawing(
+            self._grease_pencil, _DrawingKey(layer, keyframe.frame_number), self._bob
+        )
+
+    def __iter__(self) -> Iterator[str]:
+        # the same layers that `drawings[name]` finds a drawing for
+        return (
+            layer.name
+            for layer in self._layers()
+            if (keyframe := layer.current_frame()) is not None
+            and keyframe.drawing is not None
+        )
+
+    def __len__(self) -> int:
+        return sum(1 for _ in self)
+
+    def __repr__(self) -> str:
+        return f"<Drawings of layers {list(self)}>"
 
 
 class BlenderObjectAttribute(BlenderObjectBase):
@@ -667,6 +935,25 @@ class BlenderObjectAttribute(BlenderObjectBase):
         the object, so the other domains are empty for grease pencil objects.
         """
         return AttributeDomainView(self, AttributeDomains.LAYER)
+
+    @property
+    def drawings(self) -> Drawings:
+        """
+        The drawings of a grease pencil object's layers, which hold its points and
+        strokes, by layer name.
+
+        Raises
+        ------
+        TypeError
+            If the object isn't a grease pencil object. Use `GeometrySet.drawings`
+            for grease pencil in its evaluated geometry.
+        """
+        if not isinstance(self.data, bpy.types.GreasePencil):
+            raise TypeError(
+                f"'{self.name}' isn't a grease pencil object. For grease pencil in its "
+                "evaluated geometry, use `db.GeometrySet(obj).drawings`."
+            )
+        return Drawings(lambda: cast(bpy.types.GreasePencil, self.data), self)
 
     def list_attributes(
         self, evaluate: bool = False, drop_hidden: bool = False

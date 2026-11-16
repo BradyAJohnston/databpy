@@ -73,7 +73,7 @@ except db.NamedAttributeError as e:
 The length of your data must match the number of elements in the domain. A cube has 8 vertices, 12 edges, 6 faces and 24 corners, so arrays stored on it need those lengths. A domain the geometry doesn't have, such as `bob.face` on a point cloud, has a length of 0 and can't store attributes.
 :::
 
-### Grease pencil layers
+### Grease pencil
 
 A grease pencil object only holds attributes on its layers. Its points and strokes are on the drawing of each layer's frames, not the object, so `bob.point` and `bob.curve` are empty and `bob.layer` is the only domain view with elements. New attributes on a grease pencil object need the `LAYER` domain to be given, so `bob["name"] = values` raises rather than storing one value per layer when one per point was meant:
 
@@ -90,6 +90,22 @@ gp.layer["weight"] = db.float32(np.array([0.5, 1.0]))
 print(len(gp.layer), len(gp.point))
 gp.layer["weight"]
 ```
+
+The points and strokes are on `bob.drawings`, which gives the drawing of each layer by name. A drawing has its own `point` and `curve` domain views, which work like those of an object, writing changes back to Blender:
+
+```{python}
+lines = gp.drawings["Lines"]
+lines.point["radius"] = 0.02
+lines.curve["material_index"] = 1
+print(len(lines.point), len(lines.curve))
+lines.point["position"]
+```
+
+`gp.drawings["Lines"]` is the drawing shown on the scene's current frame. With more than one keyframe, `gp.drawings["Lines", 12]` is the drawing shown at frame 12, from the last keyframe at or before it.
+
+A drawing, and the arrays read from it, keep writing to the same layer and keyframe when the scene's frame changes or keyframes are added. They raise a `LinkedObjectError` once the layer is removed or renamed, or the keyframe is removed or moved to another frame. The keyframe is found by its frame number, so if another keyframe is moved onto that frame, its drawing is used instead. Keyframes copied with `instance_drawing=True` share one drawing, so a change to either changes both.
+
+Grease pencil can also be made by Geometry Nodes on other types of objects, in which case it only exists in the evaluated geometry. `db.GeometrySet(obj).drawings` gives read-only access to those drawings.
 
 ### Instances
 

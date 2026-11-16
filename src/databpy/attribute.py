@@ -107,6 +107,50 @@ def _attribute_data(obj: Object) -> AttributeDataBlock:
     return data
 
 
+class _DrawingKey:
+    """
+    Where a grease pencil drawing is: a layer, and the frame of one of its keyframes.
+
+    The layer needs both its name and its address to match, so that a layer that was
+    renamed, or a new layer that Blender put at the address of a removed one, isn't
+    mistaken for it. Only when no layer has its address any more, such as after an
+    undo reallocates the layers, is the layer found by its name alone.
+    """
+
+    def __init__(self, layer: bpy.types.GreasePencilLayer, frame: int):
+        self.layer = layer.name
+        self.frame = frame
+        self._pointer = layer.as_pointer()
+
+    def find_layer(
+        self, grease_pencil: bpy.types.GreasePencil
+    ) -> bpy.types.GreasePencilLayer | None:
+        layer = grease_pencil.layers.get(self.layer)
+        if layer is not None and layer.as_pointer() == self._pointer:
+            return layer
+        if any(other.as_pointer() == self._pointer for other in grease_pencil.layers):
+            # renamed, or another layer at the address of the removed one
+            return None
+        if layer is not None:
+            self._pointer = layer.as_pointer()
+        return layer
+
+    def find(
+        self, grease_pencil: bpy.types.GreasePencil
+    ) -> bpy.types.GreasePencilDrawing | None:
+        """The drawing of the keyframe starting at `frame` on the layer, if any."""
+        layer = self.find_layer(grease_pencil)
+        if layer is None:
+            return None
+        for frame in layer.frames:
+            if frame.frame_number == self.frame:
+                return frame.drawing
+        return None
+
+    def __repr__(self) -> str:
+        return f"layer '{self.layer}' at frame {self.frame}"
+
+
 def _check_obj_attributes(obj: Object) -> None:
     if not isinstance(obj, bpy.types.Object):
         raise TypeError(f"Object must be a bpy.types.Object, not {type(obj)}")
@@ -1085,6 +1129,46 @@ def store_named_attribute(
     ```
     """
 
+    obj_data = obj.data
+
+    if not isinstance(obj_data, tuple(COMPATIBLE_TYPES)):
+        raise NamedAttributeError(
+            "Object must be a mesh, curves, point cloud or grease pencil to store "
+            f"attributes, not {type(obj_data)}"
+        )
+
+    if (
+        isinstance(obj_data, bpy.types.GreasePencil)
+        and (not overwrite or name not in obj_data.attributes)
+        and (domain is None or _match_domain(domain) != AttributeDomains.LAYER.value)
+    ):
+        raise NamedAttributeError(
+            'New attributes on grease pencil objects need `domain="LAYER"`, as '
+            'with `bob.layer["name"] = values`. Their points and strokes are on '
+            "each layer's drawings, so the object has no "
+            f"`{'POINT' if domain is None else _match_domain(domain)}` domain to "
+            "store them on. Use `bob.drawings` to store attributes on the points and "
+            "strokes of each layer's drawing."
+        )
+
+    return _set_attribute(obj_data, data, name, atype, domain, overwrite)
+
+
+def _set_attribute(
+    obj_data,
+    data: npt.ArrayLike,
+    name: str,
+    atype: AttributeTypeNames | AttributeTypes | None = None,
+    domain: DomainNames | AttributeDomains | None = None,
+    overwrite: bool = True,
+    tag: bpy.types.ID | None = None,
+) -> bpy.types.Attribute:
+    """
+    Store data on an attribute of `obj_data`, which is anything with `attributes`,
+    such as a data-block or a grease pencil drawing.
+
+    `tag` is the data-block that is tagged for an update, by default `obj_data`.
+    """
     # typed arrays such as `vec3(...)` declare the attribute type they are stored as
     declared = _declared_atype(data)
     single = _is_single_value(data)
@@ -1101,14 +1185,6 @@ def store_named_attribute(
     if atype is None:
         # an explicit `atype` converts the values instead
         atype = declared
-    obj_data = obj.data
-
-    if not isinstance(obj_data, tuple(COMPATIBLE_TYPES)):
-        raise NamedAttributeError(
-            "Object must be a mesh, curves, point cloud or grease pencil to store "
-            f"attributes, not {type(obj_data)}"
-        )
-
     if name == "":
         raise NamedAttributeError("Attribute name cannot be an empty string.")
 
@@ -1122,30 +1198,16 @@ def store_named_attribute(
             raise NamedAttributeError(
                 f"Attribute `{name}` already exists on the `{attribute.domain}` domain, "
                 f"not `{_match_domain(domain)}`. Remove it first to store it on a "
-                "different domain."
+                "different domain or choose a non-clashing name."
             )
         domain = attribute.domain
     else:
         atype = _match_atype(atype, data)
-        if isinstance(obj_data, bpy.types.GreasePencil) and (
-            domain is None or _match_domain(domain) != AttributeDomains.LAYER.value
-        ):
-            raise NamedAttributeError(
-                'New attributes on grease pencil objects need `domain="LAYER"`, as '
-                'with `bob.layer["name"] = values`. '
-                "Their points and strokes are on each layer's drawings, so the object "
-                f"has no `{'POINT' if domain is None else _match_domain(domain)}` "
-                "domain to store them on."
-            )
         domain = _match_domain(AttributeDomains.POINT if domain is None else domain)
         current_names = obj_data.attributes.keys()
         try:
             new_attribute = obj_data.attributes.new(name, atype.value.type_name, domain)
-        except RuntimeError:
-            # e.g. a domain that isn't supported by this geometry type
-            new_attribute = None
-
-        if new_attribute is None:
+        except RuntimeError as e:
             # remove any attributes that were created as part of the failed attempt
             added_names = [
                 added.name
@@ -1154,10 +1216,11 @@ def store_named_attribute(
             ]
             for attr_name in added_names:
                 obj_data.attributes.remove(obj_data.attributes[attr_name])
+
             raise NamedAttributeError(
                 f"Could not create attribute `{name}` of type `{atype.value.type_name}` on domain `{domain}`. "
-                "Potentially the attribute name is too long or there is no geometry on the object for the given domain."
-            )
+                f"Error: {str(e).removeprefix('Error: ')}"
+            ) from e
         attribute = _as_typed_attribute(new_attribute)
 
     try:
@@ -1167,14 +1230,23 @@ def store_named_attribute(
             _check_target_atype(attribute, atype)
             data = np.broadcast_to(data, (len(attribute.data), *atype.value.dimensions))
         _write_data(attribute, data, atype, domain)
-    except Exception:
+    except Exception as e:
         # don't leave behind an attribute that was created for data that couldn't
-        # be written to it
+        # be written to it, whatever went wrong
+        attribute_name = attribute.name
         if existing_attribute is None:
             obj_data.attributes.remove(attribute)
+        if isinstance(e, ValueError | TypeError | RuntimeError) and not isinstance(
+            e, DatabpyError
+        ):
+            # errors from numpy or Blender while writing the values; databpy's own
+            # errors, such as an `AttributeMismatchError`, already say what was wrong
+            raise NamedAttributeError(
+                f"Could not write data to attribute `{attribute_name}` with error: {e}"
+            ) from e
         raise
 
-    _trigger_data_update(obj_data)
+    _trigger_data_update(obj_data if tag is None else tag)
 
     return attribute
 
@@ -1368,15 +1440,19 @@ def remove_named_attribute(obj: bpy.types.Object, name: str) -> None:
     ```
     """
     _check_obj_attributes(obj)
-    obj_data = _attribute_data(obj)
+    _remove_attribute(_attribute_data(obj), name, "the object")
+
+
+def _remove_attribute(owner, name: str, description: str) -> None:
+    """Remove an attribute from anything with `attributes`, such as a drawing."""
     try:
-        attr = obj_data.attributes[name]
+        attr = owner.attributes[name]
     except KeyError:
         raise AttributeNotFoundError(
-            f"The selected attribute '{name}' does not exist on the object"
+            f"The selected attribute '{name}' does not exist on {description}"
         ) from None
     try:
-        obj_data.attributes.remove(attr)
+        owner.attributes.remove(attr)
     except RuntimeError as e:
         raise NamedAttributeError(
             f"The attribute '{name}' is required by Blender and can't be removed"

@@ -15,9 +15,10 @@ from .attribute import (
     _attribute_data,
     _attribute_memory,
     _check_storable,
+    _DrawingKey,
+    _set_attribute,
     _trigger_data_update,
     _value_shape,
-    store_named_attribute,
 )
 from .errors import LinkedObjectError
 
@@ -29,7 +30,12 @@ class _AttributeLink:
     can become invalid when Blender reallocates or renames the object.
     """
 
-    def __init__(self, obj: bpy.types.Object, attribute: Attribute):
+    def __init__(
+        self,
+        obj: bpy.types.Object,
+        attribute: Attribute,
+        drawing: _DrawingKey | None = None,
+    ):
         self.object_name: str = obj.name
         self.session_uid: int = obj.session_uid
         self.session_token: str = session_token()
@@ -39,6 +45,8 @@ class _AttributeLink:
         # converts the array's values to how they are stored, for arrays such as
         # `srgb` whose values aren't stored as they are
         self.encode: Callable[[np.ndarray], np.ndarray] | None = None
+        # the layer and keyframe of a grease pencil drawing holding the attribute
+        self.drawing = drawing
 
     def resolve(self) -> bpy.types.Object:
         if self.session_token != session_token():
@@ -54,6 +62,33 @@ class _AttributeLink:
             )
         self.object_name = obj.name
         return obj
+
+    def owner(self) -> "tuple[Any, bpy.types.ID]":
+        """The geometry holding the attribute, and the data-block to tag on changes."""
+        obj = self.resolve()
+        data = _attribute_data(obj)
+        if self.drawing is None:
+            return data, data
+        drawing = (
+            self.drawing.find(data)
+            if isinstance(data, bpy.types.GreasePencil)
+            else None
+        )
+        if drawing is None:
+            raise LinkedObjectError(
+                f"The drawing on {self.drawing} of '{self.object_name}' for "
+                f"AttributeArray '{self.name}' has been removed, or its layer renamed."
+            )
+        return drawing, data
+
+
+def _tag_written(owner: Any, tag: bpy.types.ID, link: _AttributeLink) -> None:
+    """Tag what was written to directly in memory for an update."""
+    if link.name == "position" and isinstance(owner, bpy.types.GreasePencilDrawing):
+        # writing memory directly skips the drawing's own update, so its bounds and
+        # fill triangulation would be stale
+        owner.tag_positions_changed()
+    _trigger_data_update(tag)
 
 
 # numpy functions that write into their first argument without going through a ufunc,
@@ -212,17 +247,29 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         NamedAttributeError
             If the attribute has an unsupported data type.
         """
-        data = _attribute_data(obj)
+        return cls._read(obj, _attribute_data(obj), name, f"'{obj.name}'")
+
+    @staticmethod
+    def _read(
+        obj: bpy.types.Object | None,
+        owner: Any,
+        name: str,
+        where: str,
+        drawing: _DrawingKey | None = None,
+    ) -> "AttributeArray[Any, Any]":
+        """Read an attribute of `owner`, the object's data-block or one of its
+        grease pencil drawings, linked to be written back unless `obj` is None."""
         try:
-            attr = Attribute(data.attributes[name])
+            attr = Attribute(owner.attributes[name])
         except KeyError:
             raise AttributeNotFoundError(
-                f"The attribute '{name}' does not exist on '{obj.name}'. "
-                f"Available attributes: {sorted(data.attributes.keys())}"
+                f"The attribute '{name}' does not exist on {where}. "
+                f"Available attributes: {sorted(owner.attributes.keys())}"
             ) from None
         # the array is the typed subclass for the attribute's type, such as `vec3`
         arr = np.asarray(attr.as_array()).view(ARRAY_TYPES[attr.atype])
-        arr._link = _AttributeLink(obj, attr)
+        if obj is not None:
+            arr._link = _AttributeLink(obj, attr, drawing)
         return arr
 
     @property
@@ -304,7 +351,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
     # generic ndarray subclass as invalid, as numpy's stubs overload them with
     # restricted `self` types. A non-generic subclass with the same override passes,
     # so these ignores can go once ty handles generic subclasses.
-    def __setitem__(self, key, value):  # ty: ignore[invalid-method-override]
+    def __setitem__(self, key, value):  # ty: ignore[incompatible-method-override]
         """Set the values at `key` and write them to Blender."""
         if self._is_writeback(key, value):
             # `pos[:, 2] += 1` assigns the already modified and synced view back to
@@ -347,7 +394,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         self._sync_to_blender()
 
     # ty false positive on generic ndarray subclasses, see `AttributeArray.__setitem__`
-    def partition(self, *args, **kwargs):  # ty: ignore[invalid-method-override]
+    def partition(self, *args, **kwargs):  # ty: ignore[incompatible-method-override]
         """Partition the array in-place and sync to Blender."""
         super().partition(*args, **kwargs)
         self._sync_to_blender()
@@ -365,28 +412,33 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             # a detached copy with no linked attribute; nothing to sync
             return
 
-        obj = link.resolve()
+        owner, tag = link.owner()
         root = self._root_array
-        if not self._write_directly(obj, link, root, key):
+        if not self._write_directly(owner, tag, link, root, key):
             values = root.view(np.ndarray)
-            store_named_attribute(
-                obj,
+            _set_attribute(
+                owner,
                 values if link.encode is None else link.encode(values),
                 name=link.name,
                 atype=link.atype,
                 domain=link.domain,
+                tag=tag,
             )
 
     def _write_directly(
-        self, obj: bpy.types.Object, link: _AttributeLink, root: "AttributeArray", key
+        self,
+        owner: Any,
+        tag: bpy.types.ID,
+        link: _AttributeLink,
+        root: "AttributeArray",
+        key,
     ) -> bool:
         """Write the values of this array, or `self[key]`, into the attribute's memory.
 
         Returns False without writing anything if the attribute can't be written
         directly, or no longer matches the array that was read from it.
         """
-        obj_data = _attribute_data(obj)
-        attribute = obj_data.attributes.get(link.name)
+        attribute = owner.attributes.get(link.name)
         if (
             attribute is None
             or attribute.data_type != link.atype.value.type_name
@@ -411,7 +463,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             # the values that changed
             rows = self._changed_rows(root, key)
             layout[rows] = link.encode(root.view(np.ndarray)[rows])
-            _trigger_data_update(obj_data)
+            _tag_written(owner, tag, link)
             return True
 
         # this array is a view into the root array, so the same view into Blender's
@@ -432,7 +484,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             target[...] = values
         else:
             target[key] = values[key]
-        _trigger_data_update(obj_data)
+        _tag_written(owner, tag, link)
         return True
 
     def _changed_rows(self, root: "AttributeArray", key) -> slice:
@@ -510,6 +562,12 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         )
 
 
+def _make_plain(arr: AttributeArray) -> None:
+    """Make a typed array a plain `AttributeArray`, keeping its link to Blender."""
+    # assigning the class avoids `view()` re-running `__array_finalize__`
+    arr.__class__ = AttributeArray
+
+
 def _is_storage_dtype(dtype: np.dtype, atype: AttributeTypes) -> bool:
     """Whether values of `dtype` are stored as `atype` without conversion."""
     if atype == AttributeTypes.STRING:
@@ -523,12 +581,13 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
 ):
     """Base for arrays that declare the attribute type they are stored as."""
 
-    atype: ClassVar[AttributeTypes]
     # the shape of a single value, () for single values
     _value_shape: ClassVar[tuple[int, ...]]
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
+        if cls.atype is None:
+            raise TypeError(f"Typed array `{cls.__name__}` must set its `atype`.")
         cls._value_shape = _value_shape(cls.atype)
 
     def __array_finalize__(self, obj):
@@ -542,6 +601,9 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         dtype after this runs, but are stored by their values all the same.
         """
         super().__array_finalize__(obj)
+        atype = type(self).atype
+        # every typed array sets its atype, which `__init_subclass__` checks
+        assert atype is not None
         # without a source, such as when unpickling, the dtype isn't set yet
         if obj is None:
             return
@@ -550,11 +612,8 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         # a single value such as `color([1, 0, 0, 1])` stays one, but `vec[0]` is
         # one row of an array rather than a value to fill a domain with
         is_value = self.shape == value_shape == np.shape(obj)
-        if not _is_storage_dtype(self.dtype, type(self).atype) or not (
-            is_array or is_value
-        ):
-            # assigning the class avoids `view()` re-running `__array_finalize__`
-            self.__class__ = AttributeArray
+        if not _is_storage_dtype(self.dtype, atype) or not (is_array or is_value):
+            _make_plain(self)
 
     def __new__(cls, data: npt.ArrayLike) -> Self:
         """
@@ -577,6 +636,9 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         AttributeMismatchError
             If the values can't be represented by this type.
         """
+        atype = cls.atype
+        # every typed array sets its atype, which `__init_subclass__` checks
+        assert atype is not None
         arr = np.asarray(data)
         value_shape = cls._value_shape
         if arr.shape != value_shape and (
@@ -588,10 +650,10 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
                 f"{',' if not value_shape else ''}), or {value_shape} for a single "
                 f"value, not {arr.shape}."
             )
-        if cls.atype != AttributeTypes.STRING:
-            _check_storable(arr, cls.atype)
+        if atype != AttributeTypes.STRING:
+            _check_storable(arr, atype)
         # a plain view, so that wrapping an AttributeArray gives an unlinked array
-        return arr.astype(cls.atype.value.dtype, copy=False).view(np.ndarray).view(cls)
+        return arr.astype(atype.value.dtype, copy=False).view(np.ndarray).view(cls)
 
 
 def _srgb_to_linear(values: np.ndarray) -> np.ndarray:
@@ -851,4 +913,5 @@ ARRAY_TYPES: dict[AttributeTypes, type[AttributeArray]] = {
         boolean,
         string,
     )
+    if cls.atype is not None
 }

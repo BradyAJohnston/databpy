@@ -661,3 +661,23 @@ def test_float4x4_attribute_array_writes():
     assert isinstance(att, bpy.types.Float4x4Attribute)
     actual = np.array([np.array(d.value) for d in att.data], dtype=np.float32)
     np.testing.assert_array_equal(actual, expected)
+
+
+@pytest.mark.filterwarnings("ignore:String attributes:UserWarning")
+def test_failed_write_leaves_no_attribute_for_any_error():
+    obj = db.create_object(np.zeros((4, 3)))
+    # an OverflowError from Blender, rather than one of the errors that is wrapped
+    with pytest.raises(OverflowError):
+        db.store_named_attribute(
+            obj, np.array([10**20, 1, 1, 1], dtype=object), "s", atype="STRING"
+        )
+    assert "s" not in db.list_attributes(obj)
+
+
+@pytest.mark.filterwarnings("ignore:String attributes:UserWarning")
+def test_write_errors_are_named_attribute_errors():
+    obj = db.create_object(np.zeros((4, 3)))
+    with pytest.raises(db.NamedAttributeError, match="Could not write") as info:
+        db.store_named_attribute(obj, np.array([-1, 1, 1, 1]), "s", atype="STRING")
+    assert isinstance(info.value.__cause__, ValueError | TypeError | RuntimeError)
+    assert "s" not in db.list_attributes(obj)

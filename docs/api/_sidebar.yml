@@ -46,6 +46,8 @@ website:
       - api/BlenderObject.qmd
       - api/AttributeDomainView.qmd
       - api/InstanceDomainView.qmd
+      - api/Drawing.qmd
+      - api/Drawings.qmd
       - api/BlenderObjectAttribute.qmd
       - api/BlenderObjectBase.qmd
       section: Objects
