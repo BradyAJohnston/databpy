@@ -661,11 +661,15 @@ def _tag_values_changed(
 
     Writing memory directly skips Blender's own update, so the bounds, and the normals
     of a mesh, would keep the values from before the write. Writing one value back
-    through RNA tags them as changed, and costs about as much as one value.
+    through RNA tags them as changed, and costs about as much as one value. RNA clamps
+    some values, such as negative colors, so the value's bytes are put back after.
     """
+    info = atype.value
+    size = np.dtype(info.dtype).itemsize * math.prod(info.dimensions)
     item = attribute.data[0]
-    name = atype.value.value_name
-    setattr(item, name, getattr(item, name))
+    saved = ctypes.string_at(item.as_pointer(), size)
+    setattr(item, info.value_name, getattr(item, info.value_name))
+    ctypes.memmove(attribute.data[0].as_pointer(), saved, size)
 
 
 def _attribute_memory(

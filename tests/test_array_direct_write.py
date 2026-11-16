@@ -107,6 +107,31 @@ def test_attribute_types(geometry, atype, no_full_writes):
     np.testing.assert_array_equal(expected, arr)
 
 
+@pytest.mark.parametrize("atype", DIRECT_TYPES, ids=lambda t: t.name)
+def test_first_value_is_kept_exactly(atype, no_full_writes):
+    # writing back the first value to tag the change goes through RNA, which clamps
+    # values such as negative colors
+    n = 8
+    obj = db.create_pointcloud_object(np.random.rand(n, 3), name="TestObject")
+    values = _random_values(atype, n)
+    first = values[0].reshape(-1)
+    info = atype.value
+    if np.issubdtype(info.dtype, np.floating):
+        extremes = np.array([-0.5, 5.0, np.inf, -np.inf, -3.0, 1e30], dtype=info.dtype)
+    elif np.issubdtype(info.dtype, np.integer):
+        limits = np.iinfo(info.dtype)
+        extremes = np.array([limits.min, limits.max], dtype=info.dtype)
+    else:
+        extremes = first
+    first[:] = np.resize(extremes, first.shape)
+    db.store_named_attribute(obj, values, "test", atype=atype)
+    before = np.asarray(db.named_attribute(obj, "test")).copy()
+
+    db.BlenderObject(obj)["test"][3] = values[5]
+    after = np.asarray(db.named_attribute(obj, "test"))
+    np.testing.assert_array_equal(after[0], before[0])
+
+
 def test_evaluated_geometry_updates(bob, no_full_writes):
     pos = bob.position
     pos[0] = [5, 6, 7]
