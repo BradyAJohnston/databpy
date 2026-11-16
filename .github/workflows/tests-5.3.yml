@@ -11,5 +11,5 @@ jobs:
     uses: ./.github/workflows/_tests.yml
     with:
       version: "5.3"
-      daily: true
+      coverage: true
     secrets: inherit
