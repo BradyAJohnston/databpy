@@ -77,7 +77,7 @@ class _AttributeLink:
         if drawing is None:
             raise LinkedObjectError(
                 f"The drawing on {self.drawing} of '{self.object_name}' for "
-                f"AttributeArray '{self.name}' has been removed."
+                f"AttributeArray '{self.name}' has been removed, or its layer renamed."
             )
         return drawing, data
 

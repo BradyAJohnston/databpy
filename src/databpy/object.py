@@ -448,9 +448,13 @@ class Drawing:
     back to Blender, while the drawings of evaluated geometry are read-only copies.
 
     The drawing is looked up each time it is used, so a `Drawing`, and arrays read
-    from it, stay valid when keyframes are added and when the layer is renamed. They
-    raise a `LinkedObjectError` once the layer or keyframe is removed, or the keyframe
-    is moved to another frame.
+    from it, stay valid when keyframes are added. They raise a `LinkedObjectError`
+    once the layer is removed or renamed, or the keyframe is removed or moved to
+    another frame. A keyframe is found by its frame, so if another keyframe is moved
+    onto that frame, its drawing is used instead.
+
+    A keyframe made with `frames.copy(..., instance_drawing=True)` shares the drawing
+    of the keyframe it was copied from, so changes to one also change the other.
 
     Examples
     --------
@@ -473,10 +477,7 @@ class Drawing:
 
     @property
     def layer(self) -> str:
-        """The name of the layer, which follows the layer when it is renamed."""
-        grease_pencil = self._grease_pencil()
-        if grease_pencil is not None:
-            self._key.find_layer(grease_pencil)
+        """The name of the drawing's layer."""
         return self._key.layer
 
     @property
@@ -494,7 +495,9 @@ class Drawing:
         grease_pencil = self._grease_pencil()
         drawing = None if grease_pencil is None else self._key.find(grease_pencil)
         if drawing is None:
-            raise LinkedObjectError(f"The drawing on {self._key} has been removed.")
+            raise LinkedObjectError(
+                f"The drawing on {self._key} has been removed, or its layer renamed."
+            )
         return drawing
 
     @property

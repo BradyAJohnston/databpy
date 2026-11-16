@@ -167,15 +167,35 @@ def test_renamed_layer(bob: db.BlenderObject):
     w = lines.point["position"]
     layers = _data(bob).layers
 
-    # arrays and drawings follow their layer when it's renamed, even when another
-    # layer takes its old name
+    # a renamed layer could be mistaken for one that took its name, so neither is used
     layers["Lines"].name = "Old"
     layers["Outline"].name = "Lines"
-    w[0] = 5.0
-    np.testing.assert_allclose(_raw(bob, "Old", "position")[0], 5.0)
+    with pytest.raises(db.LinkedObjectError, match="renamed"):
+        w[0] = 5.0
     np.testing.assert_allclose(_raw(bob, "Lines", "position"), OUTLINE, rtol=1e-6)
-    assert lines.layer == "Old"
-    assert len(lines.point) == 7
+    assert lines.layer == "Lines"
+
+
+def test_removed_layer_with_a_reused_address(bob: db.BlenderObject):
+    w = bob.drawings["Lines"].point["position"]
+    layers = _data(bob).layers
+    pointer = layers["Lines"].as_pointer()
+    layers.remove(layers["Lines"])
+    # Blender often puts a new layer at the address of the one just removed
+    fresh = layers.new("Fresh")
+    _add_keyframe(bob, "Fresh", 1, 7)
+    assert fresh.as_pointer() == pointer or pytest.skip("address wasn't reused")
+    with pytest.raises(db.LinkedObjectError):
+        w[0] = 5.0
+    assert _raw(bob, "Fresh", "position")[0][0] != 5.0
+
+
+def test_layer_found_by_name_once_its_address_is_gone(bob: db.BlenderObject):
+    lines = bob.drawings["Lines"]
+    # as after an undo, which reallocates the layers
+    lines._key._pointer = 1
+    lines.point["position"][0] = 5.0
+    np.testing.assert_allclose(_raw(bob, "Lines", "position")[0], 5.0)
 
 
 def test_moved_keyframe(bob: db.BlenderObject):

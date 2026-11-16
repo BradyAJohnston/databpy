@@ -111,9 +111,10 @@ class _DrawingKey:
     """
     Where a grease pencil drawing is: a layer, and the frame of one of its keyframes.
 
-    The layer is followed by its address, so renaming it, or another layer taking its
-    name, doesn't change which drawing this is. Its name is only used once the address
-    is gone, such as after an undo, which reallocates the layers.
+    The layer needs both its name and its address to match, so that a layer that was
+    renamed, or a new layer that Blender put at the address of a removed one, isn't
+    mistaken for it. Only when no layer has its address any more, such as after an
+    undo reallocates the layers, is the layer found by its name alone.
     """
 
     def __init__(self, layer: bpy.types.GreasePencilLayer, frame: int):
@@ -124,11 +125,12 @@ class _DrawingKey:
     def find_layer(
         self, grease_pencil: bpy.types.GreasePencil
     ) -> bpy.types.GreasePencilLayer | None:
-        for layer in grease_pencil.layers:
-            if layer.as_pointer() == self._pointer:
-                self.layer = layer.name
-                return layer
         layer = grease_pencil.layers.get(self.layer)
+        if layer is not None and layer.as_pointer() == self._pointer:
+            return layer
+        if any(other.as_pointer() == self._pointer for other in grease_pencil.layers):
+            # renamed, or another layer at the address of the removed one
+            return None
         if layer is not None:
             self._pointer = layer.as_pointer()
         return layer
@@ -1217,7 +1219,7 @@ def _set_attribute(
 
             raise NamedAttributeError(
                 f"Could not create attribute `{name}` of type `{atype.value.type_name}` on domain `{domain}`. "
-                f"Error: {e}"
+                f"Error: {str(e).removeprefix('Error: ')}"
             ) from e
         attribute = _as_typed_attribute(new_attribute)
 
