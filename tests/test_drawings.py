@@ -162,6 +162,11 @@ def test_removed_drawing(bob: db.BlenderObject):
     assert list(bob.drawings) == ["Outline"]
 
 
+def test_object_points_point_to_drawings(bob: db.BlenderObject):
+    with pytest.raises(db.NamedAttributeError, match="bob.drawings"):
+        bob["w"] = np.zeros(7)
+
+
 def test_drawings_need_grease_pencil():
     bob = db.BlenderObject(bpy.data.objects["Cube"])
     with pytest.raises(TypeError, match="GeometrySet"):
