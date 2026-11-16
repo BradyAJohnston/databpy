@@ -407,8 +407,10 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
 
         if link.encode is not None:
             # a view doesn't know which channels it holds, which can be converted
-            # differently, so the whole array is converted and written
-            layout[...] = link.encode(root.view(np.ndarray))
+            # differently, so whole rows are converted and written: those that hold
+            # the values that changed
+            rows = self._changed_rows(root, key)
+            layout[rows] = link.encode(root.view(np.ndarray)[rows])
             _trigger_data_update(obj_data)
             return True
 
@@ -432,6 +434,35 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             target[key] = values[key]
         _trigger_data_update(obj_data)
         return True
+
+    def _changed_rows(self, root: "AttributeArray", key) -> slice:
+        """The rows of `root` that hold this array, or `self[key]`.
+
+        All rows if they can't be worked out, such as for a mask, which gives a copy.
+        """
+        values = self.view(np.ndarray)
+        if key is not None:
+            keys = key if isinstance(key, tuple) else (key,)
+            if not any(k is Ellipsis for k in keys):
+                # so that indexing a single value gives a view rather than a scalar
+                keys = (*keys, Ellipsis)
+            values = values[keys]
+            if not np.may_share_memory(values, root):
+                return slice(None)
+        if values.size == 0:
+            return slice(0, 0)
+        row_bytes = root.strides[0] if root.ndim else 0
+        if row_bytes <= 0 or not root.flags.c_contiguous:
+            return slice(None)
+        start = values.__array_interface__["data"][0]
+        first = start + sum(
+            (n - 1) * s for n, s in zip(values.shape, values.strides) if s < 0
+        )
+        last = start + sum(
+            (n - 1) * s for n, s in zip(values.shape, values.strides) if s > 0
+        )
+        offset = root.__array_interface__["data"][0]
+        return slice((first - offset) // row_bytes, (last - offset) // row_bytes + 1)
 
     def _describe(self) -> tuple[str, str, str, str, str]:
         """Names of the attribute, domain, type, object and data-block for printing."""
@@ -586,7 +617,8 @@ def _hex_to_bytes(codes: np.ndarray) -> np.ndarray:
     """Parse hex color codes such as '#FF8000' to RGBA bytes, with alpha 255 if unset."""
     out = np.empty((*codes.shape, 4), dtype=np.uint8)
     for index, code in np.ndenumerate(codes):
-        digits = str(code).removeprefix("#")
+        text = code.decode() if isinstance(code, bytes) else str(code)
+        digits = text.strip().removeprefix("#")
         if len(digits) in (3, 4):
             digits = "".join(digit * 2 for digit in digits)
         if len(digits) == 6:
@@ -601,7 +633,18 @@ def _hex_to_bytes(codes: np.ndarray) -> np.ndarray:
 
 
 def _is_text(data: npt.ArrayLike) -> bool:
-    return isinstance(data, str) or np.asarray(data).dtype.kind == "U"
+    """Whether data is hex color codes: text, bytes, or an array or list of either."""
+    if isinstance(data, str | bytes):
+        return True
+    array = np.asarray(data)
+    if array.dtype.kind in "US":
+        return True
+    # object arrays, such as of strings read from a data frame
+    return (
+        array.dtype.kind == "O"
+        and array.size > 0
+        and all(isinstance(code, str | bytes) for code in array.flat)
+    )
 
 
 def _as_converted[T: AttributeArray](arr: AttributeArray, cls: type[T]) -> T:
@@ -611,7 +654,9 @@ def _as_converted[T: AttributeArray](arr: AttributeArray, cls: type[T]) -> T:
     arr.__class__ = cls
     if arr._link is not None:
         arr._link.encode = cls._encode
-    return arr  # ty: ignore[invalid-return-type]
+    # always true, but narrows the type of `arr` to `cls`
+    assert isinstance(arr, cls)
+    return arr
 
 
 type _Shape1 = tuple[int]
@@ -659,7 +704,10 @@ class srgb(_TypedArray[_Shape2, _Float32]):
     sRGB, and are converted to linear when they are stored, and from linear when they
     are read as `bob["name", db.srgb]`. Alpha isn't converted. Results of math on an
     `srgb` array are also `srgb` arrays, so that they are still converted when
-    stored.
+    stored, unless the math mixes in another kind of typed array such as `db.color`.
+
+    Read colors as `bob["name", db.srgb]` rather than `bob["name"].view(db.srgb)`,
+    which would label linear values as sRGB without converting them.
     """
 
     atype = AttributeTypes.FLOAT_COLOR
@@ -694,11 +742,19 @@ class srgb(_TypedArray[_Shape2, _Float32]):
         return _linear_to_srgb(values)
 
     def __array_ufunc__(self, ufunc, method, *inputs, out=None, **kwargs):
-        """Keep the results of elementwise math as sRGB colors."""
+        """Keep the results of elementwise math as sRGB colors.
+
+        Math with another kind of typed array, such as a linear `db.color`, gives a
+        plain array, as it does whichever array comes first.
+        """
         result = super().__array_ufunc__(ufunc, method, *inputs, out=out, **kwargs)
         if (
             out is None
             and method == "__call__"
+            and not any(
+                isinstance(x, AttributeArray) and not isinstance(x, srgb)
+                for x in inputs
+            )
             and isinstance(result, np.ndarray)
             and result.dtype.kind == "f"
             and result.shape == self.shape

@@ -1088,9 +1088,12 @@ def store_named_attribute(
     # typed arrays such as `vec3(...)` declare the attribute type they are stored as
     declared = _declared_atype(data)
     single = _is_single_value(data)
-    if declared is not None and type(data)._converted:  # ty: ignore[unresolved-attribute]
+    # imported here, as `.array` imports this module
+    from .array import AttributeArray
+
+    if declared is not None and isinstance(data, AttributeArray) and data._converted:
         # e.g. sRGB colors, which Blender stores as linear colors
-        data = type(data)._encode(np.asarray(data))  # ty: ignore[unresolved-attribute]
+        data = data._encode(np.asarray(data))
     data = np.asarray(data)
     if single:
         # one row, which is broadcast to every element once the domain is known

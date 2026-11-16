@@ -212,13 +212,17 @@ bob.face["bytes"] = db.color8("#FF800080")
 print(bob.face["bytes"][0])
 ```
 
-Changes to an array read as `db.srgb` are converted back to linear when they are written to Blender, and math on it gives `db.srgb` arrays, so they are converted when stored too. Each write converts the whole attribute, which is slower than writing a `db.color`, so prefer a few large changes to many small ones:
+Changes to an array read as `db.srgb` are converted back to linear when they are written to Blender, and math on it gives `db.srgb` arrays, so they are converted when stored too. Math that mixes in a linear `db.color` gives a plain array, as the result is neither. Each write converts the rows it changed, so changing a column such as `paint[:, 0]` converts every color and is much slower than the same change to a `db.color`:
 
 ```{python}
 paint = bob.point["paint", db.srgb]
 paint[:, :3] *= 0.5  # written back as linear
 bob.point["dark_paint"] = paint * 0.5  # still sRGB, so converted when stored
 ```
+
+Read colors as sRGB with `bob["paint", db.srgb]`. `bob["paint"].view(db.srgb)` doesn't convert them, so it labels linear values as sRGB.
+
+A single row such as `paint[0]` is a plain `AttributeArray`, like other typed arrays, so storing it doesn't convert it. Wrap it as `db.srgb(paint[0])` to store it as one sRGB color.
 
 ### Type checking
 

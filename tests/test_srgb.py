@@ -104,6 +104,53 @@ def test_changes_are_written_back_as_linear(bob: db.BlenderObject):
     np.testing.assert_allclose(_blender_linear(bob, "c")[2], 1.0, atol=1e-6)
 
 
+@pytest.mark.parametrize(
+    "write",
+    [
+        lambda c: c.__setitem__(2, 0.5),
+        lambda c: c.__setitem__((2, 1), 0.5),
+        lambda c: c.__setitem__(slice(2, 4), 0.5),
+        lambda c: c[2:4].__setitem__((slice(None), 0), 0.5),
+        lambda c: c[2:4, :3].__imul__(0.5),
+        lambda c: c.__setitem__((slice(None, None, -1), 0), c[::-1, 0]),
+    ],
+)
+def test_write_back_only_converts_changed_rows(bob: db.BlenderObject, write):
+    bob.point["c"] = db.srgb(SRGB)
+    c = bob.point["c", db.srgb]
+    expected = c.view(np.ndarray).copy()
+    write(expected.view(db.srgb))
+    before = _blender_linear(bob, "c")
+
+    write(c)
+    after = _blender_linear(bob, "c")
+    changed = np.flatnonzero(np.any(after != before, axis=1))
+    # rows that weren't written to keep exactly the values Blender had
+    assert set(changed) <= {2, 3}
+    np.testing.assert_allclose(after, _srgb_to_linear(expected), atol=1e-6)
+
+
+def test_write_back_with_a_mask(bob: db.BlenderObject):
+    bob.point["c"] = db.srgb(SRGB)
+    c = bob.point["c", db.srgb]
+    mask = np.arange(8) % 2 == 0
+    c[mask] = 0.5
+    np.testing.assert_allclose(_blender_srgb(bob, "c")[mask], 0.5, atol=BLENDER_ATOL)
+    np.testing.assert_allclose(
+        _blender_srgb(bob, "c")[~mask], SRGB[~mask], atol=BLENDER_ATOL
+    )
+
+
+def test_math_with_linear_colors_is_plain(bob: db.BlenderObject):
+    bob.point["c"] = db.srgb(SRGB)
+    paint = bob.point["c", db.srgb]
+    linear = bob.point["c"]
+    assert type(linear) is db.color
+    assert type(paint + linear) is np.ndarray
+    assert type(linear + paint) is np.ndarray
+    assert type(np.ones((8, 4)) + paint) is db.srgb
+
+
 def test_written_back_after_the_attribute_is_removed(bob: db.BlenderObject):
     bob.point["c"] = db.srgb(SRGB)
     c = bob.point["c", db.srgb]
@@ -163,6 +210,19 @@ def test_hex_code_lists():
     assert colors.shape == (3, 4)
     np.testing.assert_allclose(colors[2], [0, 0, 1, 128 / 255])
     assert db.color8(np.array(["#000", "#fff"])).dtype == np.uint8
+
+
+@pytest.mark.parametrize(
+    "codes",
+    [
+        [" #FF8000", "#FF8000\n"],
+        np.array([b"#FF8000", b"FF8000"]),
+        np.array(["#FF8000", "#ff8000"], dtype=object),
+        [b"#FF8000", "#FF8000"],
+    ],
+)
+def test_hex_code_forms(codes):
+    np.testing.assert_array_equal(db.color8(codes), [[255, 128, 0, 255]] * 2)
 
 
 @pytest.mark.parametrize("code", ["#FF800", "#GG8000", "#FF80001", ""])
