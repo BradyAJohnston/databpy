@@ -40,6 +40,13 @@ toc: true
 - `bob.layer` is the domain view for the `LAYER` domain of grease pencil objects.
 - `GeometrySet.instance` gives read-only access to the attributes on the instances
   of evaluated geometry, as `geom.instance["instance_transform", db.mat4]`.
+- `bob.drawings` gives the drawings of a grease pencil object's layers, which hold its
+  points and strokes, as `bob.drawings["Lines"]` on the current frame or
+  `bob.drawings["Lines", 12]` at a given frame. A `db.Drawing` has `point` and `curve`
+  domain views, which write changes back to the drawing.
+- `GeometrySet.drawings` gives read-only access to the drawings of grease pencil in
+  evaluated geometry, including grease pencil made by Geometry Nodes from other
+  object types.
 
 ### Changed
 
@@ -58,6 +65,8 @@ toc: true
 - A failed `store_named_attribute()`, such as for data of the wrong length or with
   values that don't fit the type, no longer leaves behind the new attribute it
   created.
+- `GeometrySet.components()`, `list_attributes()` and `named_attribute()` include the
+  `GREASE_PENCIL` component of evaluated geometry, for its `LAYER` attributes.
 
 ## 0.12.0 (2026-10-21)
 

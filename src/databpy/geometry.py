@@ -14,11 +14,14 @@ from .attribute import (
     _as_typed_values,
     _check_array_type,
 )
+from .object import Drawings
 
 if TYPE_CHECKING:
     from .array import AttributeArray
 
-GeometryComponents = Literal["MESH", "POINTCLOUD", "CURVES", "INSTANCES"]
+GeometryComponents = Literal[
+    "MESH", "POINTCLOUD", "CURVES", "GREASE_PENCIL", "INSTANCES"
+]
 
 
 def _is_empty(data: AttributeDataBlock) -> bool:
@@ -26,6 +29,8 @@ def _is_empty(data: AttributeDataBlock) -> bool:
         return len(data.vertices) == 0
     if isinstance(data, (bpy.types.PointCloud, bpy.types.Curves)):
         return len(data.points) == 0
+    if isinstance(data, bpy.types.GreasePencil):
+        return len(data.layers) == 0
     return False
 
 
@@ -144,9 +149,9 @@ class GeometrySet:
 
     Evaluating an object normally only exposes a single geometry data-block, but
     Geometry Nodes can output multiple components at once: a mesh, a point cloud,
-    curves and instances. This class evaluates the object's modifiers and gives
-    access to all of the resulting components and their attributes, for example to
-    test the output of a node group.
+    curves, grease pencil and instances. This class evaluates the object's modifiers
+    and gives access to all of the resulting components and their attributes, for
+    example to test the output of a node group.
 
     Parameters
     ----------
@@ -243,6 +248,24 @@ class GeometrySet:
         return pointcloud
 
     @property
+    def drawings(self) -> Drawings:
+        """
+        Read-only access to the drawings of the grease pencil component, by layer
+        name, which hold its points and strokes. Empty without grease pencil.
+
+        The grease pencil component only holds attributes on its layers, which
+        `named_attribute` reads with the `GREASE_PENCIL` component.
+
+        Examples
+        --------
+        ```
+        geom = db.GeometrySet(obj)
+        geom.drawings["Layer"].point["position"]
+        ```
+        """
+        return Drawings(lambda: self.grease_pencil)
+
+    @property
     def instance(self) -> InstanceDomainView:
         """Read-only access to the attributes on the INSTANCE domain."""
         return InstanceDomainView(self)
@@ -269,6 +292,7 @@ class GeometrySet:
             "MESH": self.mesh,
             "POINTCLOUD": self.pointcloud,
             "CURVES": self.curves,
+            "GREASE_PENCIL": self.grease_pencil,
             "INSTANCES": self.instances,
         }
         return {
@@ -345,7 +369,8 @@ class GeometrySet:
             The name of the attribute.
         component : GeometryComponents, optional
             The component to read the attribute from. If None, the components are
-            searched in order (MESH, POINTCLOUD, CURVES, INSTANCES) and the first
+            searched in order (MESH, POINTCLOUD, CURVES, GREASE_PENCIL, INSTANCES) and
+            the first
             that has the attribute is used.
         atype : type[AttributeArray] or None, optional
             The typed array class the attribute is expected to be, such as `vec3`.
@@ -391,6 +416,8 @@ class GeometrySet:
                     f"{len(data.vertices)} verts, {len(data.edges)} edges, "
                     f"{len(data.polygons)} faces"
                 )
+            elif isinstance(data, bpy.types.GreasePencil):
+                counts = f"{len(data.layers)} layers"
             elif "position" in data.attributes:
                 counts = f"{len(Attribute(data.attributes['position']))} points"
             else:
@@ -404,10 +431,6 @@ class GeometrySet:
             )
             lines.append(f"  {name}: {counts}")
             lines.append(f"    attributes: {attr_names}")
-        for name, data in (
-            ("VOLUME", self.volume),
-            ("GREASE_PENCIL", self.grease_pencil),
-        ):
-            if data is not None:
-                lines.append(f"  {name}: present")
+        if self.volume is not None:
+            lines.append("  VOLUME: present")
         return "\n".join(lines)

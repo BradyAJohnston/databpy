@@ -15,9 +15,10 @@ from .attribute import (
     _attribute_data,
     _attribute_memory,
     _check_storable,
+    _find_drawing,
+    _store_attribute,
     _trigger_data_update,
     _value_shape,
-    store_named_attribute,
 )
 from .errors import LinkedObjectError
 
@@ -29,7 +30,12 @@ class _AttributeLink:
     can become invalid when Blender reallocates or renames the object.
     """
 
-    def __init__(self, obj: bpy.types.Object, attribute: Attribute):
+    def __init__(
+        self,
+        obj: bpy.types.Object,
+        attribute: Attribute,
+        drawing: tuple[str, int] | None = None,
+    ):
         self.object_name: str = obj.name
         self.session_uid: int = obj.session_uid
         self.session_token: str = session_token()
@@ -39,6 +45,8 @@ class _AttributeLink:
         # converts the array's values to how they are stored, for arrays such as
         # `srgb` whose values aren't stored as they are
         self.encode: Callable[[np.ndarray], np.ndarray] | None = None
+        # the layer and keyframe of a grease pencil drawing holding the attribute
+        self.drawing = drawing
 
     def resolve(self) -> bpy.types.Object:
         if self.session_token != session_token():
@@ -54,6 +62,22 @@ class _AttributeLink:
             )
         self.object_name = obj.name
         return obj
+
+    def owner(self) -> "tuple[Any, bpy.types.ID]":
+        """The geometry holding the attribute, and the data-block to tag on changes."""
+        obj = self.resolve()
+        data = _attribute_data(obj)
+        if self.drawing is None:
+            return data, data
+        assert isinstance(data, bpy.types.GreasePencil)
+        drawing = _find_drawing(data, *self.drawing)
+        if drawing is None:
+            layer, frame = self.drawing
+            raise LinkedObjectError(
+                f"The drawing on layer '{layer}' at frame {frame} of "
+                f"'{self.object_name}' for AttributeArray '{self.name}' has been removed."
+            )
+        return drawing, data
 
 
 # numpy functions that write into their first argument without going through a ufunc,
@@ -212,17 +236,29 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         NamedAttributeError
             If the attribute has an unsupported data type.
         """
-        data = _attribute_data(obj)
+        return cls._read(obj, _attribute_data(obj), name, f"'{obj.name}'")
+
+    @staticmethod
+    def _read(
+        obj: bpy.types.Object | None,
+        owner: Any,
+        name: str,
+        where: str,
+        drawing: tuple[str, int] | None = None,
+    ) -> "AttributeArray[Any, Any]":
+        """Read an attribute of `owner`, the object's data-block or one of its
+        grease pencil drawings, linked to be written back unless `obj` is None."""
         try:
-            attr = Attribute(data.attributes[name])
+            attr = Attribute(owner.attributes[name])
         except KeyError:
             raise AttributeNotFoundError(
-                f"The attribute '{name}' does not exist on '{obj.name}'. "
-                f"Available attributes: {sorted(data.attributes.keys())}"
+                f"The attribute '{name}' does not exist on {where}. "
+                f"Available attributes: {sorted(owner.attributes.keys())}"
             ) from None
         # the array is the typed subclass for the attribute's type, such as `vec3`
         arr = np.asarray(attr.as_array()).view(ARRAY_TYPES[attr.atype])
-        arr._link = _AttributeLink(obj, attr)
+        if obj is not None:
+            arr._link = _AttributeLink(obj, attr, drawing)
         return arr
 
     @property
@@ -365,28 +401,33 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             # a detached copy with no linked attribute; nothing to sync
             return
 
-        obj = link.resolve()
+        owner, tag = link.owner()
         root = self._root_array
-        if not self._write_directly(obj, link, root, key):
+        if not self._write_directly(owner, tag, link, root, key):
             values = root.view(np.ndarray)
-            store_named_attribute(
-                obj,
+            _store_attribute(
+                owner,
                 values if link.encode is None else link.encode(values),
                 name=link.name,
                 atype=link.atype,
                 domain=link.domain,
+                tag=tag,
             )
 
     def _write_directly(
-        self, obj: bpy.types.Object, link: _AttributeLink, root: "AttributeArray", key
+        self,
+        owner: Any,
+        tag: bpy.types.ID,
+        link: _AttributeLink,
+        root: "AttributeArray",
+        key,
     ) -> bool:
         """Write the values of this array, or `self[key]`, into the attribute's memory.
 
         Returns False without writing anything if the attribute can't be written
         directly, or no longer matches the array that was read from it.
         """
-        obj_data = _attribute_data(obj)
-        attribute = obj_data.attributes.get(link.name)
+        attribute = owner.attributes.get(link.name)
         if (
             attribute is None
             or attribute.data_type != link.atype.value.type_name
@@ -411,7 +452,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             # the values that changed
             rows = self._changed_rows(root, key)
             layout[rows] = link.encode(root.view(np.ndarray)[rows])
-            _trigger_data_update(obj_data)
+            _trigger_data_update(tag)
             return True
 
         # this array is a view into the root array, so the same view into Blender's
@@ -432,7 +473,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             target[...] = values
         else:
             target[key] = values[key]
-        _trigger_data_update(obj_data)
+        _trigger_data_update(tag)
         return True
 
     def _changed_rows(self, root: "AttributeArray", key) -> slice:

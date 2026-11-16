@@ -121,6 +121,8 @@ quartodoc:
         - BlenderObject
         - AttributeDomainView
         - InstanceDomainView
+        - Drawing
+        - Drawings
         - BlenderObjectAttribute
         - BlenderObjectBase
     - title: Errors

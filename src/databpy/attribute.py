@@ -107,6 +107,19 @@ def _attribute_data(obj: Object) -> AttributeDataBlock:
     return data
 
 
+def _find_drawing(
+    grease_pencil: bpy.types.GreasePencil, layer: str, frame_number: int
+) -> bpy.types.GreasePencilDrawing | None:
+    """The drawing of the keyframe starting at `frame_number` on a layer, if any."""
+    found = grease_pencil.layers.get(layer)
+    if found is None:
+        return None
+    for frame in found.frames:
+        if frame.frame_number == frame_number:
+            return frame.drawing
+    return None
+
+
 def _check_obj_attributes(obj: Object) -> None:
     if not isinstance(obj, bpy.types.Object):
         raise TypeError(f"Object must be a bpy.types.Object, not {type(obj)}")
@@ -1085,6 +1098,46 @@ def store_named_attribute(
     ```
     """
 
+    obj_data = obj.data
+
+    if not isinstance(obj_data, tuple(COMPATIBLE_TYPES)):
+        raise NamedAttributeError(
+            "Object must be a mesh, curves, point cloud or grease pencil to store "
+            f"attributes, not {type(obj_data)}"
+        )
+
+    if (
+        isinstance(obj_data, bpy.types.GreasePencil)
+        and (not overwrite or name not in obj_data.attributes)
+        and (domain is None or _match_domain(domain) != AttributeDomains.LAYER.value)
+    ):
+        raise NamedAttributeError(
+            'New attributes on grease pencil objects need `domain="LAYER"`, as '
+            'with `bob.layer["name"] = values`. Their points and strokes are on '
+            "each layer's drawings, so the object has no "
+            f"`{'POINT' if domain is None else _match_domain(domain)}` domain to "
+            "store them on. Use `bob.drawings` to store attributes on the points and "
+            "strokes of each layer's drawing."
+        )
+
+    return _store_attribute(obj_data, data, name, atype, domain, overwrite)
+
+
+def _store_attribute(
+    obj_data,
+    data: npt.ArrayLike,
+    name: str,
+    atype: AttributeTypeNames | AttributeTypes | None = None,
+    domain: DomainNames | AttributeDomains | None = None,
+    overwrite: bool = True,
+    tag: bpy.types.ID | None = None,
+) -> bpy.types.Attribute:
+    """
+    Store data on an attribute of `obj_data`, which is anything with `attributes`,
+    such as a data-block or a grease pencil drawing.
+
+    `tag` is the data-block that is tagged for an update, by default `obj_data`.
+    """
     # typed arrays such as `vec3(...)` declare the attribute type they are stored as
     declared = _declared_atype(data)
     single = _is_single_value(data)
@@ -1101,14 +1154,6 @@ def store_named_attribute(
     if atype is None:
         # an explicit `atype` converts the values instead
         atype = declared
-    obj_data = obj.data
-
-    if not isinstance(obj_data, tuple(COMPATIBLE_TYPES)):
-        raise NamedAttributeError(
-            "Object must be a mesh, curves, point cloud or grease pencil to store "
-            f"attributes, not {type(obj_data)}"
-        )
-
     if name == "":
         raise NamedAttributeError("Attribute name cannot be an empty string.")
 
@@ -1127,16 +1172,6 @@ def store_named_attribute(
         domain = attribute.domain
     else:
         atype = _match_atype(atype, data)
-        if isinstance(obj_data, bpy.types.GreasePencil) and (
-            domain is None or _match_domain(domain) != AttributeDomains.LAYER.value
-        ):
-            raise NamedAttributeError(
-                'New attributes on grease pencil objects need `domain="LAYER"`, as '
-                'with `bob.layer["name"] = values`. '
-                "Their points and strokes are on each layer's drawings, so the object "
-                f"has no `{'POINT' if domain is None else _match_domain(domain)}` "
-                "domain to store them on."
-            )
         domain = _match_domain(AttributeDomains.POINT if domain is None else domain)
         current_names = obj_data.attributes.keys()
         try:
@@ -1174,7 +1209,7 @@ def store_named_attribute(
             obj_data.attributes.remove(attribute)
         raise
 
-    _trigger_data_update(obj_data)
+    _trigger_data_update(obj_data if tag is None else tag)
 
     return attribute
 
