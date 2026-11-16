@@ -212,6 +212,8 @@ bob.face["bytes"] = db.color8("#FF800080")
 print(bob.face["bytes"][0])
 ```
 
+The bytes of a `db.color8` are sRGB as well, so `db.srgb(bob.face["bytes"])` scales them to sRGB floats in [0, 1].
+
 Changes to an array read as `db.srgb` are converted back to linear when they are written to Blender, and math on it gives `db.srgb` arrays, so they are converted when stored too. Math that mixes in a linear `db.color` gives a plain array, as the result is neither. Each write converts the rows it changed, so changing a column such as `paint[:, 0]` converts every color and is much slower than the same change to a `db.color`:
 
 ```{python}

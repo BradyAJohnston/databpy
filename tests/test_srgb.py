@@ -205,6 +205,26 @@ def test_hex_codes(code, rgba):
     np.testing.assert_array_equal(db.color8(code), rgba)
 
 
+def test_bytes_are_scaled(bob: db.BlenderObject):
+    bob.point["c8"] = db.color8(["#FF8000"] * 8)
+    for data in [bob.point["c8"], np.array([255, 128, 0, 255], dtype=np.uint8)]:
+        colors = db.srgb(data)
+        assert colors.dtype == np.float32
+        assert np.allclose(colors, [1, 128 / 255, 0, 1])
+
+
+def test_broadcast_single_color_keeps_srgb(bob: db.BlenderObject):
+    weights = np.linspace(0, 1, 8, dtype=np.float32)[:, None]
+    tint = db.srgb("#FF8000")
+    for result in [tint * weights, weights * tint]:
+        assert type(result) is db.srgb
+        assert result.shape == (8, 4)
+    bob.point["c"] = tint * weights
+    np.testing.assert_allclose(
+        _blender_srgb(bob, "c"), np.asarray(tint) * weights, atol=BLENDER_ATOL
+    )
+
+
 def test_hex_code_lists():
     colors = db.srgb(["#FF0000", "#00FF00", "#0000FF80"])
     assert colors.shape == (3, 4)

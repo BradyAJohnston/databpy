@@ -721,7 +721,8 @@ class srgb(_TypedArray[_Shape2, _Float32]):
         ----------
         data : npt.ArrayLike
             RGBA colors with shape (N, 4), or a single color with shape (4,). Hex
-            codes such as '#FF8000', or a list of them, are also accepted.
+            codes such as '#FF8000', or a list of them, are also accepted, as are
+            uint8 colors such as a `color8` array, which are scaled to [0, 1].
 
         Raises
         ------
@@ -730,7 +731,10 @@ class srgb(_TypedArray[_Shape2, _Float32]):
             code.
         """
         if _is_text(data):
-            data = _hex_to_bytes(np.asarray(data)) / np.float32(255)
+            data = _hex_to_bytes(np.asarray(data))
+        if np.asarray(data).dtype == np.uint8:
+            # sRGB bytes, as stored in `BYTE_COLOR` attributes
+            data = np.asarray(data, dtype=np.float32) / np.float32(255)
         return super().__new__(cls, data)
 
     @staticmethod
@@ -757,7 +761,10 @@ class srgb(_TypedArray[_Shape2, _Float32]):
             )
             and isinstance(result, np.ndarray)
             and result.dtype.kind == "f"
-            and result.shape == self.shape
+            # `self` is the first srgb input, which can be a single color that
+            # was broadcast against an array of colors
+            and result.ndim in (1, 2)
+            and result.shape[-1] == 4
         ):
             return result.astype(np.float32, copy=False).view(srgb)
         return result

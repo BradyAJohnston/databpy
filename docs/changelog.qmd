@@ -36,7 +36,7 @@ toc: true
   are converted to linear when stored and from linear when read as
   `bob["name", db.srgb]`, including changes written back to Blender.
 - `db.srgb` and `db.color8` accept hex color codes, as `db.srgb("#FF8000")` or a
-  list of codes.
+  list of codes. `db.srgb` also scales uint8 colors such as a `db.color8` to [0, 1].
 - `bob.layer` is the domain view for the `LAYER` domain of grease pencil objects.
 - `GeometrySet.instance` gives read-only access to the attributes on the instances
   of evaluated geometry, as `geom.instance["instance_transform", db.mat4]`.
