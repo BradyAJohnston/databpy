@@ -167,6 +167,10 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
 
     # the attribute type of a typed subclass such as `vec3`, None for this base class
     atype: ClassVar[AttributeTypes | None] = None
+    # defaults for arrays made without `__array_finalize__` seeing a source, such as
+    # when unpickling, which are detached
+    _link: "_AttributeLink | None" = None
+    _root: "AttributeArray | None" = None
 
     def __new__(cls, obj: bpy.types.Object, name: str) -> "AttributeArray[Any, Any]":
         """Create a new AttributeArray that wraps a Blender attribute.
@@ -408,7 +412,9 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         obj_name = obj_type = "Unknown"
         try:
             obj = link.resolve()
-            obj_name, obj_type = obj.name, obj.data.name
+            obj_name = obj.name
+            if obj.data is not None:
+                obj_type = obj.data.name
         except LinkedObjectError:
             obj_name = link.object_name
         return link.name, link.domain.name, str(link.atype.value), obj_name, obj_type
@@ -444,6 +450,14 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
         )
 
 
+def _is_storage_dtype(dtype: np.dtype, atype: AttributeTypes) -> bool:
+    """Whether values of `dtype` are stored as `atype` without conversion."""
+    if atype == AttributeTypes.STRING:
+        # strings of any length
+        return dtype.kind == "U"
+    return dtype == np.dtype(atype.value.dtype)
+
+
 class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
     AttributeArray[ShapeT, DTypeT]
 ):
@@ -456,6 +470,18 @@ class _TypedArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         cls._value_shape = _value_shape(cls.atype)
+
+    def __array_finalize__(self, obj):
+        """Become a plain `AttributeArray` once the dtype isn't the storage dtype.
+
+        `arr.astype(np.int32)` keeps the class, which would otherwise store the
+        values as this type again, undoing the conversion.
+        """
+        super().__array_finalize__(obj)
+        # without a source, such as when unpickling, the dtype isn't set yet
+        if obj is not None and not _is_storage_dtype(self.dtype, type(self).atype):
+            # assigning the class avoids `view()` re-running `__array_finalize__`
+            self.__class__ = AttributeArray
 
     def __getitem__(self, key):  # ty: ignore[invalid-method-override]
         """Index the array, keeping this type only while it has that shape."""

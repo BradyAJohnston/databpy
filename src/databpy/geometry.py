@@ -1,8 +1,10 @@
+from collections.abc import Iterator
 from typing import TYPE_CHECKING, Literal, overload
 
 import bpy
 import numpy as np
 from bpy.types import Context, Object
+from numpy import typing as npt
 
 from .attribute import (
     Attribute,
@@ -55,8 +57,13 @@ class InstanceDomainView:
     def __init__(self, geometry: "GeometrySet"):
         self._geometry = geometry
 
-    def _pointcloud(self) -> bpy.types.PointCloud | None:
-        pointcloud = self._geometry.instances
+    def _pointcloud(self, position: bool = False) -> bpy.types.PointCloud | None:
+        # `GeometrySet.instances` fills `position` from the transforms, which is
+        # only worth doing when it's read
+        if position:
+            pointcloud = self._geometry.instances
+        else:
+            pointcloud = self._geometry.geometry.instances_pointcloud()
         if pointcloud is None or len(pointcloud.points) == 0:
             return None
         return pointcloud
@@ -85,7 +92,7 @@ class InstanceDomainView:
             If the attribute isn't the given type.
         """
         name, atype = key if isinstance(key, tuple) else (key, None)
-        pointcloud = self._pointcloud()
+        pointcloud = self._pointcloud(position=name == "position")
         if pointcloud is None or name not in pointcloud.attributes:
             raise AttributeNotFoundError(
                 f"The attribute '{name}' does not exist on the instances. "
@@ -93,14 +100,24 @@ class InstanceDomainView:
             )
         return _as_array(name, Attribute(pointcloud.attributes[name]), atype)
 
-    def __setitem__(self, name: str, data: np.ndarray) -> None:
+    def __setitem__(self, name: str, data: npt.ArrayLike) -> None:
         raise TypeError(
             "Instance attributes of evaluated geometry are read-only. Store them in "
             "Geometry Nodes instead."
         )
 
+    def __delitem__(self, name: str) -> None:
+        raise TypeError(
+            "Instance attributes of evaluated geometry are read-only. Remove them in "
+            "Geometry Nodes instead."
+        )
+
     def __contains__(self, name: str) -> bool:
         return name in self.list_attributes()
+
+    def __iter__(self) -> Iterator[str]:
+        """Iterate over the names of the instance attributes."""
+        return iter(self.list_attributes())
 
     def list_attributes(self, drop_hidden: bool = False) -> list[str]:
         """List the names of the instance attributes."""

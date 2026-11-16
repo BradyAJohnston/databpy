@@ -75,6 +75,56 @@ def test_store_mismatched_type_raises(bob: db.BlenderObject):
         )
 
 
+def test_store_mismatched_single_value_raises(bob: db.BlenderObject):
+    # a single value of another width can't be broadcast, so the type is checked first
+    bob.point["c"] = db.color(np.ones((8, 4)))
+    with pytest.raises(db.NamedAttributeError, match="FLOAT_COLOR"):
+        bob.point["c"] = db.vec3([1, 2, 3])
+    with pytest.raises(db.NamedAttributeError, match="FLOAT_COLOR"):
+        bob["c"] = db.float32(1.0)
+    np.testing.assert_allclose(bob["c"], 1)
+
+
+@pytest.mark.filterwarnings("ignore:String attributes:UserWarning")
+def test_changing_dtype_drops_the_type(bob: db.BlenderObject):
+    bob.point["weight"] = db.float32(np.arange(8))
+    ids = bob["weight"].astype(np.int32)
+    assert type(ids) is db.AttributeArray
+    bob.point["ids"] = ids
+    assert db.Attribute(bob.attributes["ids"]).atype == db.AttributeTypes.INT
+
+    pos = bob["position"]
+    assert type(pos.astype(np.float64)) is db.AttributeArray
+    # the same dtype keeps the type
+    assert type(pos.astype(np.float32)) is db.vec3
+    assert type(pos.copy()) is db.vec3
+
+    bob.point["s"] = db.string(list("abcdefgh"))
+    assert type(bob["s"].astype("U10")) is db.string
+
+
+def test_base_class_matches_any_type(bob: db.BlenderObject):
+    pos = bob["position", db.AttributeArray]
+    assert_type(pos, db.AttributeArray)
+    assert type(pos) is db.vec3
+    assert type(
+        db.named_attribute(bob.object, "position", atype=db.AttributeArray)
+    ) in (
+        db.AttributeArray,
+        db.vec3,
+    )
+
+
+def test_unpickled_arrays_are_detached(bob: db.BlenderObject):
+    import pickle
+
+    pos = pickle.loads(pickle.dumps(bob["position"]))
+    assert type(pos) is db.vec3
+    assert pos._link is None
+    pos[0] = 5  # doesn't write to Blender
+    assert not np.allclose(bob["position"][0], 5)
+
+
 def test_read_returns_typed_subclass(bob: db.BlenderObject):
     pos = bob["position"]
     assert_type(pos, db.AttributeArray)

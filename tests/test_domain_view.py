@@ -63,3 +63,18 @@ def test_unsupported_domain_raises():
     assert len(bob.face) == 0
     with pytest.raises(db.NamedAttributeError):
         bob.face["x"] = np.zeros(0)
+
+
+def test_iterate_and_delete(bob):
+    bob.face["area"] = np.zeros(6)
+    bob.point["weight"] = np.zeros(8)
+    assert "area" in list(bob.face)
+    assert "weight" not in list(bob.face)
+    assert list(bob.point) == bob.point.list_attributes()
+
+    with pytest.raises(db.NamedAttributeError, match="FACE"):
+        del bob.point["area"]
+    del bob.face["area"]
+    assert "area" not in bob.attributes
+    with pytest.raises(db.AttributeNotFoundError):
+        del bob.face["area"]

@@ -119,6 +119,9 @@ def test_geometry_set_instance_view(g):
         geom.instance["nonexistent"]
     with pytest.raises(TypeError, match="read-only"):
         geom.instance["instance_transform"] = transforms
+    with pytest.raises(TypeError, match="read-only"):
+        del geom.instance["instance_transform"]
+    assert list(geom.instance) == geom.instance.list_attributes()
 
 
 def test_geometry_set_instance_view_without_instances():

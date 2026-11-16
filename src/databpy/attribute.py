@@ -962,6 +962,17 @@ def _match_domain(domain: DomainNames | AttributeDomains) -> DomainNames:
     return domain
 
 
+def _check_target_atype(
+    attribute: PossibleAttributeTypes, atype: AttributeTypes
+) -> None:
+    """Raise if data of `atype` can't be written to the attribute."""
+    target_atype = AttributeTypes[attribute.data_type]
+    if target_atype != atype:
+        raise NamedAttributeError(
+            f"Attribute being written to: `{attribute.name}` of type `{target_atype.value.type_name}` does not match the type for the given data: `{atype.value.type_name}`"
+        )
+
+
 def _write_data(
     attribute: PossibleAttributeTypes,
     data: np.ndarray,
@@ -992,10 +1003,7 @@ def _write_data(
                 f"Data shape {data.shape} cannot be reshaped to expected shape {expected_shape}: {e}"
             )
 
-    if target_atype != atype:
-        raise NamedAttributeError(
-            f"Attribute being written to: `{attribute.name}` of type `{target_atype.value.type_name}` does not match the type for the given data: `{atype.value.type_name}`"
-        )
+    _check_target_atype(attribute, atype)
 
     if atype == AttributeTypes.STRING:
         _write_string_values(attribute, data)
@@ -1119,7 +1127,8 @@ def store_named_attribute(
             domain is None or _match_domain(domain) != AttributeDomains.LAYER.value
         ):
             raise NamedAttributeError(
-                'New attributes on grease pencil objects need `domain="LAYER"`. '
+                'New attributes on grease pencil objects need `domain="LAYER"`, as '
+                'with `bob.layer["name"] = values`. '
                 "Their points and strokes are on each layer's drawings, so the object "
                 f"has no `{'POINT' if domain is None else _match_domain(domain)}` "
                 "domain to store them on."
@@ -1149,8 +1158,10 @@ def store_named_attribute(
 
     try:
         if single:
-            dimensions = AttributeTypes[attribute.data_type].value.dimensions
-            data = np.broadcast_to(data, (len(attribute.data), *dimensions))
+            # check the type first, as a single value of another type, such as a
+            # `vec3` for a color attribute, can't be broadcast to its shape
+            _check_target_atype(attribute, atype)
+            data = np.broadcast_to(data, (len(attribute.data), *atype.value.dimensions))
         _write_data(attribute, data, atype, domain)
     except Exception:
         # don't leave behind an attribute that was created for data that couldn't
@@ -1297,9 +1308,12 @@ def named_attribute(
 def _check_array_type(
     name: str, actual: AttributeTypes | None, expected: "type[AttributeArray]"
 ) -> None:
+    # `AttributeArray` itself is the base of every typed array, so any type matches
+    if expected.atype is None:
+        return
     if actual != expected.atype:
         actual_name = actual.name if actual else None
-        expected_name = expected.atype.name if expected.atype else None
+        expected_name = expected.atype.name
         raise NamedAttributeError(
             f"Attribute `{name}` is a `{actual_name}` attribute, not "
             f"`{expected.__name__}` (`{expected_name}`)."

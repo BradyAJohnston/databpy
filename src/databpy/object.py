@@ -1,6 +1,6 @@
 import itertools
 import warnings
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from typing import cast, overload
 from uuid import uuid1
 
@@ -398,8 +398,26 @@ class AttributeDomainView:
         self._check_domain(name)
         self._bob.store_named_attribute(data, name, domain=self.domain)
 
+    def __delitem__(self, name: str) -> None:
+        """
+        Remove an attribute on this domain, as `del bob.face["name"]`.
+
+        Raises
+        ------
+        NamedAttributeError
+            If the attribute exists on a different domain, or is required by Blender.
+        AttributeNotFoundError
+            If the attribute doesn't exist.
+        """
+        self._check_domain(name)
+        self._bob.remove_named_attribute(name)
+
     def __contains__(self, name: str) -> bool:
         return name in self.list_attributes()
+
+    def __iter__(self) -> Iterator[str]:
+        """Iterate over the names of the attributes on this domain."""
+        return iter(self.list_attributes())
 
     def list_attributes(self, drop_hidden: bool = False) -> list[str]:
         """List the names of the attributes on this domain."""

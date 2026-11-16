@@ -354,7 +354,7 @@ high += 1.0               # a copy - doesn't sync
 pos[pos[:, 2] > 1] += 1.0  # assigning back through the original array syncs
 ```
 
-A view keeps its typed array class only while it still has that shape: `pos[:10]` is a `db.vec3`, but the column `pos[:, 2]` is a plain `AttributeArray`, as it is no longer an array of vectors. Wrap a result to store it as a type again, as in `db.vec3(pos * 2)`.
+Indexing keeps the typed array class only while the result still has that shape: `pos[:10]` is a `db.vec3`, but the column `pos[:, 2]` is a plain `AttributeArray`, as it is no longer an array of vectors. Changing the dtype also gives a plain array, so `bob["ids"] = bob["weight"].astype(np.int32)` is stored as `INT`. Wrap a result to store it as a type again, as in `db.vec3(pos * 2)`.
 
 Read the array again after changing the geometry (e.g. adding vertices). Writing to an array whose attribute no longer matches raises a `NamedAttributeError`, and one whose object was removed raises a `LinkedObjectError`.
 
