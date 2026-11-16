@@ -988,8 +988,8 @@ def store_named_attribute(
         attribute is used, otherwise the type is inferred from data.
     domain : str or AttributeDomains or None, optional
         The domain of the attribute. If None, the domain of an existing attribute is
-        used, otherwise 'POINT'. If no domain is specified for a Grease Pencil obejct,
-        a NamedAttributeError is raise, as their points and strokes are nested within
+        used, otherwise 'POINT'. If no domain is specified for a grease pencil object,
+        a NamedAttributeError is raised, as its points and strokes are nested within
         each layer's drawings and can't be accessed from the top level.
     overwrite : bool, optional
         Whether to write to an existing attribute with the same name, by default
@@ -1060,9 +1060,9 @@ def store_named_attribute(
         atype = _match_atype(atype, data)
         if domain is None and isinstance(obj_data, bpy.types.GreasePencil):
             raise NamedAttributeError(
-                "The `POINT` domain for Grease pencil objects are nested within"
-                "their layerss drawings and cannot be directly written to. Excplitly"
-                "pass a domain to store the attribute on."
+                "The `POINT` domain of grease pencil objects is nested within their "
+                "layers' drawings and can't be written to directly. Explicitly pass "
+                "a domain to store the attribute on."
             )
         domain = _match_domain(AttributeDomains.POINT if domain is None else domain)
         current_names = obj_data.attributes.keys()
