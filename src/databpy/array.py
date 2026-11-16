@@ -17,6 +17,7 @@ from .attribute import (
     _check_storable,
     _DrawingKey,
     _set_attribute,
+    _tag_values_changed,
     _trigger_data_update,
     _value_shape,
 )
@@ -82,12 +83,9 @@ class _AttributeLink:
         return drawing, data
 
 
-def _tag_written(owner: Any, tag: bpy.types.ID, link: _AttributeLink) -> None:
-    """Tag what was written to directly in memory for an update."""
-    if link.name == "position" and isinstance(owner, bpy.types.GreasePencilDrawing):
-        # writing memory directly skips the drawing's own update, so its bounds and
-        # fill triangulation would be stale
-        owner.tag_positions_changed()
+def _tag_written(attribute: Any, tag: bpy.types.ID, link: _AttributeLink) -> None:
+    """Tag an attribute that was written to directly in memory for an update."""
+    _tag_values_changed(attribute, link.atype)
     _trigger_data_update(tag)
 
 
@@ -446,7 +444,8 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             or self.dtype != root.dtype
         ):
             return False
-        memory = _attribute_memory(_as_typed_attribute(attribute), link.atype)
+        typed_attribute = _as_typed_attribute(attribute)
+        memory = _attribute_memory(typed_attribute, link.atype)
         if memory is None:
             return False
         # the root array must be laid out like Blender's memory, which FLOAT4X4 arrays
@@ -463,7 +462,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             # the values that changed
             rows = self._changed_rows(root, key)
             layout[rows] = link.encode(root.view(np.ndarray)[rows])
-            _tag_written(owner, tag, link)
+            _tag_written(typed_attribute, tag, link)
             return True
 
         # this array is a view into the root array, so the same view into Blender's
@@ -484,7 +483,7 @@ class AttributeArray[ShapeT: tuple[Any, ...], DTypeT: np.dtype[Any]](
             target[...] = values
         else:
             target[key] = values[key]
-        _tag_written(owner, tag, link)
+        _tag_written(typed_attribute, tag, link)
         return True
 
     def _changed_rows(self, root: "AttributeArray", key) -> slice:

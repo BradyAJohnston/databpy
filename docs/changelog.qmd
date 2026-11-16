@@ -71,6 +71,10 @@ toc: true
   created.
 - `GeometrySet.components()`, `list_attributes()` and `named_attribute()` include the
   `GREASE_PENCIL` component of evaluated geometry, for its `LAYER` attributes.
+- Changes written to an `AttributeArray`, which go straight into the attribute's
+  memory, no longer leave Blender's cached bounds, and the normals of a mesh, as they
+  were before the write. This includes grease pencil drawings, and the bounds of a
+  point cloud also follow changes to `radius`.
 
 ## 0.12.0 (2026-10-21)
 

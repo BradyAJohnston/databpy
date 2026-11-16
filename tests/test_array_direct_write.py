@@ -5,6 +5,7 @@ import weakref
 from types import SimpleNamespace
 from typing import Any, cast
 
+import bpy
 import numpy as np
 import pytest
 
@@ -111,6 +112,47 @@ def test_evaluated_geometry_updates(bob, no_full_writes):
     pos[0] = [5, 6, 7]
     evaluated = db.named_attribute(bob.object, "position", evaluate=True)
     np.testing.assert_array_equal(evaluated[0], [5, 6, 7])
+
+
+def _max_x(obj: bpy.types.Object) -> float:
+    """The largest x of the evaluated object's bounds, which Blender caches."""
+    return max(corner[0] for corner in db.evaluate_object(obj).bound_box)
+
+
+@pytest.mark.parametrize(
+    "create",
+    [
+        lambda p: db.create_mesh_object(p, name="TestObject"),
+        lambda p: db.create_curves_object(p, [len(p)], name="TestObject"),
+        lambda p: db.create_pointcloud_object(p, name="TestObject"),
+    ],
+    ids=["mesh", "curves", "pointcloud"],
+)
+def test_direct_writes_update_bounds(create, no_full_writes):
+    obj = create(np.zeros((4, 3), dtype=np.float32))
+    # evaluate first, so that the bounds are cached before the write
+    _max_x(obj)
+    db.BlenderObject(obj).position[0] = [7, 0, 0]
+    assert _max_x(obj) == pytest.approx(7, abs=0.1)
+
+
+def test_direct_writes_update_pointcloud_radius_bounds(no_full_writes):
+    obj = db.create_pointcloud_object(np.zeros((4, 3)), name="TestObject")
+    bob = db.BlenderObject(obj)
+    bob.store_named_attribute(np.full(4, 0.01, dtype=np.float32), "radius")
+    _max_x(obj)
+    bob["radius"][0] = 5
+    assert _max_x(obj) == pytest.approx(5)
+
+
+def test_direct_writes_update_mesh_normals(no_full_writes):
+    bpy.ops.wm.read_factory_settings()
+    cube = bpy.data.objects["Cube"]
+    assert isinstance(cube.data, bpy.types.Mesh)
+    before = np.array([v.normal[:] for v in cube.data.vertices])
+    db.BlenderObject(cube).position[0] = [7, 0, 0]
+    after = np.array([v.normal[:] for v in cube.data.vertices])
+    assert not np.allclose(before[0], after[0])
 
 
 @pytest.mark.filterwarnings("ignore:String attributes")

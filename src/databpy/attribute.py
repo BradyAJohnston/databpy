@@ -654,6 +654,20 @@ def _write_values(
     attribute.data.foreach_set(atype.value.value_name, values)
 
 
+def _tag_values_changed(
+    attribute: PossibleAttributeTypes, atype: AttributeTypes
+) -> None:
+    """Clear what Blender caches from an attribute's values after writing its memory.
+
+    Writing memory directly skips Blender's own update, so the bounds, and the normals
+    of a mesh, would keep the values from before the write. Writing one value back
+    through RNA tags them as changed, and costs about as much as one value.
+    """
+    item = attribute.data[0]
+    name = atype.value.value_name
+    setattr(item, name, getattr(item, name))
+
+
 def _attribute_memory(
     attribute: PossibleAttributeTypes, atype: AttributeTypes
 ) -> np.ndarray | None:
