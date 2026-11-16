@@ -87,6 +87,46 @@ def test_create_curves(run):
     run(db.create_curves_object, POSITIONS, np.full(N // 10, 10))
 
 
+GP_LAYERS = 100
+
+
+def _gp_layers(n_layers: int) -> dict[str, tuple[np.ndarray, np.ndarray]]:
+    """Split the positions over layers, each with strokes of 10 points."""
+    per_layer = N // n_layers
+    return {
+        f"Layer{i}": (
+            POSITIONS[i * per_layer : (i + 1) * per_layer],
+            np.full(per_layer // 10, 10),
+        )
+        for i in range(n_layers)
+    }
+
+
+@pytest.mark.benchmark(group="grease-pencil")
+def test_create_grease_pencil(run):
+    # the same points and strokes as test_create_curves, on a single layer
+    run(db.create_grease_pencil_object, _gp_layers(1))
+
+
+@pytest.mark.benchmark(group="grease-pencil")
+def test_create_grease_pencil_layers(run):
+    run(db.create_grease_pencil_object, _gp_layers(GP_LAYERS))
+
+
+@pytest.mark.benchmark(group="grease-pencil")
+def test_grease_pencil_layer_read(benchmark):
+    obj = db.create_grease_pencil_object(_gp_layers(GP_LAYERS))
+    db.store_named_attribute(obj, np.ones(GP_LAYERS), "weight", domain="LAYER")
+    benchmark(db.named_attribute, obj, "weight")
+
+
+@pytest.mark.benchmark(group="grease-pencil")
+def test_grease_pencil_layer_write(benchmark):
+    obj = db.create_grease_pencil_object(_gp_layers(GP_LAYERS))
+    values = rng.random(GP_LAYERS)
+    benchmark(db.store_named_attribute, obj, values, "weight", domain="LAYER")
+
+
 @pytest.mark.benchmark(group="attributes")
 def test_store_named_attribute(benchmark):
     obj = db.create_pointcloud_object(POSITIONS)

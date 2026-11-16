@@ -1,6 +1,6 @@
 import itertools
 import warnings
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from typing import cast
 from uuid import uuid1
 
@@ -335,8 +335,9 @@ class BlenderObjectAttribute(BlenderObjectBase):
     This class provides core functionality for storing and accessing named attributes
     on Blender objects.
 
-    It is intended for use with Mesh, PointCloud and Curves type objects for easier and
-    "numpy-like" attribute access.
+    It is intended for use with Mesh, PointCloud, Curves and GreasePencil type objects
+    for easier and "numpy-like" attribute access. Grease pencil objects only hold
+    attributes on their LAYER domain.
 
     It can be inherited by other classes for easier attribute management on objects.
 
@@ -344,7 +345,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
     ----------
     position : AttributeArray
         Position attribute of the object's vertices/points.
-    data : bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud
+    data : bpy.types.Mesh | bpy.types.Curves | bpy.types.PointCloud | bpy.types.GreasePencil
         The data block associated with this object.
     attributes
         The attributes collection of the object's data-block.
@@ -525,6 +526,11 @@ class BlenderObjectAttribute(BlenderObjectBase):
         """
         return list_attributes(self.object, evaluate=evaluate, drop_hidden=drop_hidden)
 
+    def __bool__(self) -> bool:
+        # without this, truth tests fall back to `__len__`, which raises for objects
+        # that have no points of their own, such as grease pencil
+        return True
+
     def __len__(self) -> int:
         """
         Get the number of points in the Blender object.
@@ -541,7 +547,7 @@ class BlenderObjectAttribute(BlenderObjectBase):
         ------
         TypeError
             If the object's data is not a Mesh, Curves or PointCloud, including the
-            legacy Curve type.
+            legacy Curve type and grease pencil.
         """
         if isinstance(self.data, bpy.types.Mesh):
             return len(self.data.vertices)
@@ -551,6 +557,12 @@ class BlenderObjectAttribute(BlenderObjectBase):
             if "position" in self.data.attributes:
                 return len(self.data.attributes["position"].data)
             return 0
+        elif isinstance(self.data, bpy.types.GreasePencil):
+            raise TypeError(
+                "Grease pencil objects have no points of their own, as their points "
+                "are on each layer's drawings. Use the LAYER domain for attributes "
+                "on the object."
+            )
         else:
             raise TypeError(
                 f"Object type {type(self.data).__name__} is not supported. "
@@ -599,7 +611,9 @@ class BlenderObjectAttribute(BlenderObjectBase):
         Set a named attribute using dictionary-style syntax.
 
         An existing attribute keeps its type and domain. A new attribute is stored on
-        the POINT domain, with its type inferred from the data.
+        the POINT domain, with its type inferred from the data. Grease pencil objects
+        have no POINT domain of their own, so new attributes on them need
+        `store_named_attribute(..., domain="LAYER")`.
 
         Parameters
         ----------
@@ -767,6 +781,59 @@ class BlenderObject(BlenderObjectAttribute):
             curve_sizes=curve_sizes,
             name=name,
             collection=collection,
+        )
+        return cls(obj)
+
+    @classmethod
+    def from_grease_pencil(
+        cls,
+        layers: Mapping[str, tuple[npt.ArrayLike, npt.ArrayLike]] | None = None,
+        name: str = "GreasePencil",
+        collection: bpy.types.Collection | None = None,
+    ) -> "BlenderObject":
+        """
+        Create a BlenderObject from grease pencil layers.
+
+        Each layer gets one drawing on the scene's current frame, holding its strokes.
+
+        Parameters
+        ----------
+        layers : Mapping[str, tuple[np.ndarray, list[int] | np.ndarray]] or None, optional
+            The layers to create, mapping each layer's name to the positions of its
+            points with shape (N, 3) and the number of points in each stroke.
+            Default is None.
+        name : str, optional
+            Name of the created object.
+            Default is "GreasePencil".
+        collection : bpy.types.Collection or None, optional
+            Blender collection to link the object to.
+            Default is None.
+
+        Returns
+        -------
+        BlenderObject
+            A wrapped Blender grease pencil object.
+
+        Raises
+        ------
+        ValueError
+            If the positions or stroke sizes of a layer are invalid. See
+            `create_grease_pencil_object()`.
+
+        Examples
+        --------
+        ```python
+        import numpy as np
+        import databpy as db
+
+        bob = db.BlenderObject.from_grease_pencil(
+            {"Lines": (np.random.random((7, 3)), [3, 4])}
+        )
+        bob.store_named_attribute(np.array([0.5]), "weight", domain="LAYER")
+        ```
+        """
+        obj = create_grease_pencil_object(
+            layers=layers, name=name, collection=collection
         )
         return cls(obj)
 
@@ -1254,6 +1321,134 @@ def create_pointcloud_object(
         positions = np.asarray(positions)
         pointcloud.resize(len(positions))
         attr.store_named_attribute(obj, positions, "position")
+
+    return obj
+
+
+def _check_grease_pencil_layer(
+    layer_name: str, positions: npt.ArrayLike, stroke_sizes: npt.ArrayLike
+) -> tuple[str, np.ndarray, np.ndarray]:
+    """Check the points and strokes of one layer before anything is created."""
+    positions = np.asarray(positions)
+    sizes = np.asarray(stroke_sizes)
+    if sizes.size and not np.all(np.mod(sizes, 1) == 0):
+        raise ValueError(
+            f"Stroke sizes of layer `{layer_name}` must be whole numbers of points, "
+            f"not {sizes.tolist()}"
+        )
+    stroke_sizes = sizes.astype(int)
+    if stroke_sizes.ndim != 1:
+        raise ValueError(
+            f"Stroke sizes of layer `{layer_name}` must be a 1D list of point counts, "
+            f"not shape {stroke_sizes.shape}"
+        )
+    if np.any(stroke_sizes < 1):
+        raise ValueError(
+            f"Every stroke of layer `{layer_name}` needs at least 1 point, "
+            f"not {stroke_sizes.tolist()}"
+        )
+    if positions.size == 0 and len(stroke_sizes) == 0:
+        # an empty layer, such as from `[]`, which has shape (0,)
+        positions = positions.reshape(0, 3)
+    if positions.ndim != 2 or positions.shape[1] != 3:
+        raise ValueError(
+            f"Positions of layer `{layer_name}` must have shape (N, 3), "
+            f"not {positions.shape}"
+        )
+    if len(positions) != np.sum(stroke_sizes):
+        raise ValueError(
+            f"Total points in the stroke sizes of layer `{layer_name}` "
+            f"({np.sum(stroke_sizes)}) must equal the number of positions "
+            f"({len(positions)})"
+        )
+    return layer_name, positions, stroke_sizes
+
+
+def create_grease_pencil_object(
+    layers: Mapping[str, tuple[npt.ArrayLike, npt.ArrayLike]] | None = None,
+    name: str = "GreasePencil",
+    collection: bpy.types.Collection | None = None,
+) -> Object:
+    """
+    Create a new Blender grease pencil object.
+
+    Each layer gets one drawing on the scene's current frame, holding its strokes. The
+    drawing is only shown from that frame onwards, so a layer created on frame 10 has
+    no drawing on frame 1. A layer with no strokes gets an empty drawing.
+
+    Parameters
+    ----------
+    layers : Mapping[str, tuple[np.ndarray, list[int] | np.ndarray]], optional
+        The layers to create, mapping each layer's name to the positions of its points
+        with shape (N, 3) and the number of points in each stroke. If None, creates
+        an empty grease pencil object. Defaults to None.
+    name : str, optional
+        The name of the object. Defaults to 'GreasePencil'.
+    collection : bpy.types.Collection, optional
+        The collection to link the object to. Defaults to None, which links it to a
+        collection named "Collection", created if needed.
+
+    Returns
+    -------
+    Object
+        The created grease pencil object.
+
+    Raises
+    ------
+    ValueError
+        If the positions of a layer don't have shape (N, 3), a stroke has fewer than
+        1 point, or the stroke sizes of a layer don't add up to the number of its
+        positions. Every layer is checked before anything is created.
+
+    Examples
+    --------
+    ```python
+    import numpy as np
+    from databpy import create_grease_pencil_object
+
+    # Create two layers, with 2 strokes and 1 stroke
+    gp_obj = create_grease_pencil_object(
+        {
+            "Lines": (np.random.random((7, 3)), [3, 4]),
+            "Outline": (np.random.random((5, 3)), [5]),
+        }
+    )
+    ```
+    """
+    checked = [
+        _check_grease_pencil_layer(layer_name, positions, stroke_sizes)
+        for layer_name, (positions, stroke_sizes) in (layers or {}).items()
+    ]
+
+    grease_pencil = bpy.data.grease_pencils.new(name)
+    obj = bpy.data.objects.new(name, grease_pencil)
+    try:
+        if collection is None:
+            collection = create_collection("Collection")
+        collection.objects.link(obj)
+
+        frame_number = active_scene().frame_current
+        for layer_name, positions, stroke_sizes in checked:
+            layer = grease_pencil.layers.new(layer_name)
+            if layer.name != layer_name:
+                raise ValueError(
+                    f"Blender renamed layer `{layer_name}` to `{layer.name}`, so it "
+                    "couldn't be found by its name"
+                )
+            # a new frame always has a drawing, though the stubs allow None
+            drawing = cast(
+                bpy.types.GreasePencilDrawing, layer.frames.new(frame_number).drawing
+            )
+            # Blender crashes when adding an empty list of strokes
+            if len(stroke_sizes) == 0:
+                continue
+            drawing.add_strokes(stroke_sizes.tolist())
+            attr.Attribute(drawing.attributes["position"]).from_array(positions)
+    except Exception:
+        # don't leave a half-built object behind
+        bpy.data.objects.remove(obj)
+        bpy.data.grease_pencils.remove(grease_pencil)
+        raise
 
     return obj
 
