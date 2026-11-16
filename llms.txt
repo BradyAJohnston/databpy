@@ -2,7 +2,7 @@
 
 ## Pages
 
-- [Working with Attributes](attributes.llms.md)
+- [Attributes](attributes.llms.md)
 - [float32](api/float32.llms.md)
 - [list_attributes](api/list_attributes.llms.md)
 - [named_attribute](api/named_attribute.llms.md)
@@ -38,6 +38,8 @@
 - [AttributeMismatchError](api/AttributeMismatchError.llms.md)
 - [create_pointcloud_object](api/create_pointcloud_object.llms.md)
 - [int32](api/int32.llms.md)
+- [Grease pencil and evaluated geometry](geometry.llms.md)
+- [Syncing with Blender](syncing.llms.md)
 - [Changelog](changelog.llms.md)
 - [nodes.input_socket](api/nodes.input_socket.llms.md)
 - [AttributeDomains](api/AttributeDomains.llms.md)

@@ -12,7 +12,7 @@ databpy reads and writes the attributes of mesh, curves and point cloud objects 
 
 > **TIP:**
 >
-> The [**attributes guide**](attributes.llms.md) covers the attribute system: domains and typed arrays, reading and writing attributes, performance, and errors.
+> Three guides cover the attribute system: [Attributes](attributes.llms.md) for domains, typed arrays and errors, [Syncing with Blender](syncing.llms.md) for how arrays write changes back and when to use copies, and [Grease pencil and evaluated geometry](geometry.llms.md) for drawings and the output of Geometry Nodes.
 
 `databpy` started as a submodule of [Molecular Nodes](https://github.com/BradyAJohnston/MolecularNodes) and was split off into its own package for use by other projects. Some internal code is still specific to Molecular Nodes, but most of it is general.
 
