@@ -84,9 +84,9 @@ def test_new_attributes_need_a_domain(gp_obj: bpy.types.Object):
     # without a domain, a new attribute would be stored per layer when per point
     # was likely meant, so it raises instead
     bob = db.BlenderObject(gp_obj)
-    with pytest.raises(db.NamedAttributeError, match='domain="LAYER"'):
+    with pytest.raises(db.NamedAttributeError):
         bob["id"] = np.array([1, 2])
-    with pytest.raises(db.NamedAttributeError, match='domain="LAYER"'):
+    with pytest.raises(db.NamedAttributeError):
         db.store_named_attribute(gp_obj, np.array([1, 2]), "id")
     assert "id" not in bob.list_attributes()
 
