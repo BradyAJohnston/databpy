@@ -65,7 +65,7 @@ pip install "databpy[bpy]"
 | 5.3         | [![Blender 5.3](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.3.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.3.yml) |
 | 5.4 (alpha) | [![Blender 5.4](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.4.yml/badge.svg)](https://github.com/BradyAJohnston/databpy/actions/workflows/tests-5.4.yml) |
 
-databpy requires Python 3.13, the version Blender 5.1 and 5.2 use.
+databpy requires Python 3.13, the version Blender 5.1+ currently uses. Check the [VFX Reference Platform](https://vfxplatform.com/) for specific versions.
 
 ## Documentation
 
