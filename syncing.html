@@ -80,7 +80,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-5a0171e344e1a467f4b1484338e11dd4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-ec78900b419f9913f61bce88659f5b27.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -214,7 +214,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="change-attributes-through-synced-arrays" class="level2">
 <h2 class="anchored" data-anchor-id="change-attributes-through-synced-arrays">Change attributes through synced arrays</h2>
 <p>Reading an attribute through a <code>BlenderObject</code> gives a synced array. Change it like any NumPy array, and each change is written to Blender:</p>
-<div id="cf19a328" class="cell" data-execution_count="1">
+<div id="afc12db1" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
@@ -228,7 +228,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>pos[<span class="dv">0</span>] <span class="op">=</span> [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>]   <span class="co"># set one position</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><a href="./api/AttributeArray.html#databpy.AttributeArray"><code>AttributeArray(obj, name)</code></a> reads the same synced array from a <code>bpy.types.Object</code>:</p>
-<div id="a8cb7ebc" class="cell" data-execution_count="2">
+<div id="0dc10c96" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>obj <span class="op">=</span> bpy.data.objects[<span class="st">"Cube"</span>]</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>pos <span class="op">=</span> db.AttributeArray(obj, <span class="st">"position"</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>pos[:, <span class="dv">2</span>] <span class="op">+=</span> <span class="fl">1.0</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -250,7 +250,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="know-which-arrays-stay-synced" class="level3">
 <h3 class="anchored" data-anchor-id="know-which-arrays-stay-synced">Know which arrays stay synced</h3>
 <p>Indexing that returns a NumPy view, such as the slices <code>pos[:, 2]</code> and <code>pos[2:5]</code>, gives a synced array. Indexing that returns a NumPy copy, such as <code>pos[mask]</code>, <code>pos[[0, 3]]</code> or <code>pos.copy()</code>, gives an array that doesn’t sync. The results of math, such as <code>pos + 1</code> and <code>pos * 2</code>, are plain NumPy arrays:</p>
-<div id="c0cb6ecc" class="cell" data-execution_count="3">
+<div id="97412d6d" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>pos <span class="op">=</span> db.AttributeArray(obj, <span class="st">"position"</span>)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>column <span class="op">=</span> pos[:, <span class="dv">2</span>]</span>
@@ -272,7 +272,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="work-with-copies">Work with copies</h2>
 <p>A copy holds the attribute’s values without a link to Blender. Use a copy when you only need to read the values, or when you make many whole-array changes and want to write them once.</p>
 <p><a href="./api/named_attribute.html#databpy.named_attribute"><code>named_attribute()</code></a> reads a copy, and <a href="./api/store_named_attribute.html#databpy.store_named_attribute"><code>store_named_attribute()</code></a> writes one. Pass <code>evaluate=True</code> to read the attribute after the object’s modifiers:</p>
-<div id="ac9dacb9" class="cell" data-execution_count="4">
+<div id="56850e63" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>positions <span class="op">=</span> db.named_attribute(obj, <span class="st">"position"</span>, atype<span class="op">=</span>db.vec3)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>evaluated <span class="op">=</span> db.named_attribute(obj, <span class="st">"position"</span>, evaluate<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -283,7 +283,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>The <a href="./api/Attribute.html#databpy.Attribute"><code>Attribute</code></a> class wraps one <code>bpy.types.Attribute</code>. Its <a href="./api/Attribute.html#databpy.Attribute.as_array"><code>as_array()</code></a> method reads a copy, and <a href="./api/Attribute.html#databpy.Attribute.from_array"><code>from_array()</code></a> writes the whole attribute once:</p>
-<div id="a96ce5a9" class="cell" data-execution_count="5">
+<div id="b3624f29" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>obj <span class="op">=</span> db.create_object(np.random.rand(<span class="dv">100_000</span>, <span class="dv">3</span>))</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>attr <span class="op">=</span> db.Attribute(obj.data.attributes[<span class="st">"position"</span>])</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -335,7 +335,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="change-many-values-in-one-operation" class="level3">
 <h3 class="anchored" data-anchor-id="change-many-values-in-one-operation">Change many values in one operation</h3>
 <p>Each change to a synced array writes only the values it changed, but every write has a fixed cost. A Python loop that changes one value at a time pays that cost for every element. One NumPy operation over the same values writes once:</p>
-<div id="c58c9033" class="cell" data-execution_count="6">
+<div id="8ccf063b" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>bob <span class="op">=</span> db.create_bob(np.random.rand(<span class="dv">10</span>, <span class="dv">3</span>))</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>pos <span class="op">=</span> bob.position</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>

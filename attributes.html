@@ -80,7 +80,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-5a0171e344e1a467f4b1484338e11dd4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-ec78900b419f9913f61bce88659f5b27.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -223,7 +223,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>UV maps are <code>FLOAT2</code> attributes on the <code>CORNER</code> domain.</li>
 </ul>
 <p>Every attribute has a domain, which is the kind of element it has a value for, and a type, which is what each value is. databpy reads and writes attributes as NumPy arrays, and you can state both the domain and the type in code:</p>
-<div id="79133185" class="cell" data-execution_count="1">
+<div id="1cfd8af5" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
@@ -303,14 +303,14 @@ array([[0., 0., 0.],
 </tbody>
 </table>
 <p>The length of a domain view is the number of elements in its domain:</p>
-<div id="9945fc80" class="cell" data-execution_count="2">
+<div id="5f1f487d" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">len</span>(bob.point), <span class="bu">len</span>(bob.edge), <span class="bu">len</span>(bob.face), <span class="bu">len</span>(bob.corner))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>8 12 6 24</code></pre>
 </div>
 </div>
 <p>Storing on a domain view creates the attribute on that domain, or writes to the existing attribute:</p>
-<div id="48fd93b2" class="cell" data-execution_count="3">
+<div id="c26baaf8" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bob.face[<span class="st">"area"</span>] <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">1</span>, <span class="bu">len</span>(bob.face))</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>bob.edge[<span class="st">"crease_weight"</span>] <span class="op">=</span> np.ones(<span class="bu">len</span>(bob.edge))</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -324,7 +324,7 @@ array([[0., 0., 0.],
 </div>
 </div>
 <p>A domain view only reads and writes attributes on its own domain. Using an attribute that exists on another domain raises a <a href="./api/NamedAttributeError.html#databpy.NamedAttributeError"><code>NamedAttributeError</code></a>:</p>
-<div id="14397f4b" class="cell" data-execution_count="4">
+<div id="0949214f" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    bob.point[<span class="st">"area"</span>]</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> db.NamedAttributeError <span class="im">as</span> e:</span>
@@ -472,7 +472,7 @@ array([[0., 0., 0.],
 <section id="write-typed-data" class="level3">
 <h3 class="anchored" data-anchor-id="write-typed-data">Write typed data</h3>
 <p>Wrap data in a typed array, such as <code>db.vec3(data)</code>, to state the type it is stored as. The typed array checks that the data has the right shape and casts it to the type’s dtype, so it is ready to store. A wrapped array isn’t linked to any attribute until you store it:</p>
-<div id="215ff949" class="cell" data-execution_count="5">
+<div id="e382b6f6" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>offsets <span class="op">=</span> db.vec3(np.random.rand(<span class="dv">8</span>, <span class="dv">3</span>))  <span class="co"># float64 is cast to float32</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">type</span>(offsets).<span class="va">__name__</span>, offsets.dtype, offsets.shape)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -483,7 +483,7 @@ array([[0., 0., 0.],
 </div>
 <p>Wrapping data that already has the right dtype doesn’t copy it.</p>
 <p>Several types share a shape. A <code>(n, 4)</code> float array could be a 4D vector, a color or a quaternion, so the typed array decides which one is stored:</p>
-<div id="5367ffd0" class="cell" data-execution_count="6">
+<div id="812d874c" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>rgba <span class="op">=</span> np.random.rand(<span class="dv">8</span>, <span class="dv">4</span>)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>bob.point[<span class="st">"tint"</span>] <span class="op">=</span> db.color(rgba)</span>
@@ -500,7 +500,7 @@ uv_offset FLOAT2 CORNER</code></pre>
 </div>
 </div>
 <p>Wrapping values that don’t fit the type, such as integers outside the range of <code>int8</code>, raises an <a href="./api/AttributeMismatchError.html#databpy.AttributeMismatchError"><code>AttributeMismatchError</code></a>:</p>
-<div id="e962dd49" class="cell" data-execution_count="7">
+<div id="7881150a" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    db.int8([<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">1000</span>])</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> db.AttributeMismatchError <span class="im">as</span> e:</span>
@@ -510,7 +510,7 @@ uv_offset FLOAT2 CORNER</code></pre>
 </div>
 </div>
 <p>Storing a typed array over an existing attribute of another type raises a <a href="./api/NamedAttributeError.html#databpy.NamedAttributeError"><code>NamedAttributeError</code></a>. databpy doesn’t convert the values:</p>
-<div id="a544ab5b" class="cell" data-execution_count="8">
+<div id="337eb56f" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    bob.point[<span class="st">"tint"</span>] <span class="op">=</span> db.quat(rgba)</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> db.NamedAttributeError <span class="im">as</span> e:</span>
@@ -523,7 +523,7 @@ uv_offset FLOAT2 CORNER</code></pre>
 <section id="store-one-value-for-every-element" class="level3">
 <h3 class="anchored" data-anchor-id="store-one-value-for-every-element">Store one value for every element</h3>
 <p>A single value is stored for every element of the domain. The value can be a plain scalar, or a typed array of one value:</p>
-<div id="ef89d6be" class="cell" data-execution_count="9">
+<div id="dffabb3a" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>bob.point[<span class="st">"weight"</span>] <span class="op">=</span> <span class="fl">1.0</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>bob.face[<span class="st">"face_tint"</span>] <span class="op">=</span> db.color([<span class="fl">1.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">1.0</span>])</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>bob.point[<span class="st">"frame"</span>] <span class="op">=</span> db.mat4(np.eye(<span class="dv">4</span>))</span>
@@ -540,7 +540,7 @@ uv_offset FLOAT2 CORNER</code></pre>
 <section id="read-typed-data" class="level3">
 <h3 class="anchored" data-anchor-id="read-typed-data">Read typed data</h3>
 <p>databpy reads each attribute as the typed array for its type, so <code>bob["position"]</code> is a <code>db.vec3</code>. Every typed array is an <a href="./api/AttributeArray.html#databpy.AttributeArray"><code>AttributeArray</code></a>, which writes changes back to Blender, as <a href="./syncing.html">Syncing with Blender</a> explains:</p>
-<div id="d2bbedab" class="cell" data-execution_count="10">
+<div id="892d067c" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>position <span class="op">=</span> bob[<span class="st">"position"</span>]</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">type</span>(position).<span class="va">__name__</span>, <span class="bu">isinstance</span>(position, db.AttributeArray))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -548,7 +548,7 @@ uv_offset FLOAT2 CORNER</code></pre>
 </div>
 </div>
 <p>Index with a typed array after the name to check the attribute’s type. A different type raises a <a href="./api/NamedAttributeError.html#databpy.NamedAttributeError"><code>NamedAttributeError</code></a>. The check works on every domain view, and as <code>atype=</code> for <a href="./api/named_attribute.html#databpy.named_attribute"><code>named_attribute()</code></a> and <a href="./api/GeometrySet.html#databpy.GeometrySet.named_attribute"><code>GeometrySet.named_attribute()</code></a>:</p>
-<div id="5e3cc99f" class="cell" data-execution_count="11">
+<div id="36bf68a0" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>position <span class="op">=</span> bob.point[<span class="st">"position"</span>, db.vec3]</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>tint <span class="op">=</span> bob[<span class="st">"tint"</span>, db.color]</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>values <span class="op">=</span> db.named_attribute(bob.<span class="bu">object</span>, <span class="st">"position"</span>, atype<span class="op">=</span>db.vec3)</span>
@@ -576,7 +576,7 @@ uv_offset FLOAT2 CORNER</code></pre>
 <section id="store-srgb-colors" class="level2">
 <h2 class="anchored" data-anchor-id="store-srgb-colors">Store sRGB colors</h2>
 <p>Blender stores <code>FLOAT_COLOR</code> attributes as linear colors, which <code>db.color</code> reads and writes as they are. Colors from an image editor or a hex code are usually sRGB. <a href="./api/srgb.html#databpy.srgb"><code>db.srgb</code></a> is a typed array of sRGB colors for <code>FLOAT_COLOR</code> attributes. databpy converts its values to linear when you store them, and back to sRGB when you read the attribute as <code>db.srgb</code>. The stored attribute is the same as one stored with <code>db.color</code>, and alpha isn’t converted:</p>
-<div id="fddd61b9" class="cell" data-execution_count="12">
+<div id="5435f619" class="cell" data-execution_count="12">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>orange <span class="op">=</span> np.tile([<span class="fl">1.0</span>, <span class="fl">0.5</span>, <span class="fl">0.0</span>, <span class="fl">1.0</span>], (<span class="bu">len</span>(bob.point), <span class="dv">1</span>))</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>bob.point[<span class="st">"paint"</span>] <span class="op">=</span> db.srgb(orange)</span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -590,7 +590,7 @@ AttributeArray 'paint' from Cube('Cube')(domain: POINT, shape: (4,), dtype: floa
 </div>
 </div>
 <p><code>db.srgb</code> accepts hex color codes as <code>'#RRGGBB'</code>, <code>'#RRGGBBAA'</code>, or the short <code>'#RGB'</code> and <code>'#RGBA'</code>. Give one code for every element, or a list of codes. <code>db.color8</code> accepts hex codes too, as its bytes are also sRGB:</p>
-<div id="a782f3af" class="cell" data-execution_count="13">
+<div id="ec700108" class="cell" data-execution_count="13">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>bob.point[<span class="st">"highlight"</span>] <span class="op">=</span> db.srgb(<span class="st">"#FF8000"</span>)</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>bob.point[<span class="st">"palette"</span>] <span class="op">=</span> db.srgb([<span class="st">"#264653"</span>, <span class="st">"#2A9D8F"</span>, <span class="st">"#E9C46A"</span>, <span class="st">"#F4A261"</span>] <span class="op">*</span> <span class="dv">2</span>)</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>bob.face[<span class="st">"bytes"</span>] <span class="op">=</span> db.color8(<span class="st">"#FF800080"</span>)</span>
@@ -603,7 +603,7 @@ AttributeArray 'paint' from Cube('Cube')(domain: POINT, shape: (4,), dtype: floa
 </div>
 <p><code>db.srgb(bob.face["bytes"])</code> scales the bytes of a <code>db.color8</code> to sRGB floats in [0, 1].</p>
 <p>An array read as <code>db.srgb</code> converts changes back to linear when it writes them to Blender. Math on a <code>db.srgb</code> array gives a <code>db.srgb</code> array, which databpy also converts when you store it. Math that mixes in a linear <code>db.color</code> gives a plain array, as the result is neither sRGB nor linear:</p>
-<div id="d3b9c8e5" class="cell" data-execution_count="14">
+<div id="810102ad" class="cell" data-execution_count="14">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>paint <span class="op">=</span> bob.point[<span class="st">"paint"</span>, db.srgb]</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>paint[:, :<span class="dv">3</span>] <span class="op">*=</span> <span class="fl">0.5</span>  <span class="co"># written back as linear</span></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>bob.point[<span class="st">"dark_paint"</span>] <span class="op">=</span> paint <span class="op">*</span> <span class="fl">0.5</span>  <span class="co"># still sRGB, so converted when stored</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -618,7 +618,7 @@ AttributeArray 'paint' from Cube('Cube')(domain: POINT, shape: (4,), dtype: floa
 <section id="store-plain-numpy-arrays" class="level2">
 <h2 class="anchored" data-anchor-id="store-plain-numpy-arrays">Store plain NumPy arrays</h2>
 <p>You don’t have to use typed arrays. When you store a plain NumPy array, databpy infers the type from its dtype and shape. You can also give the type as <code>atype</code>, with Blender’s name for the type as a string or from the <a href="./api/AttributeTypes.html#databpy.AttributeTypes"><code>AttributeTypes</code></a> enum:</p>
-<div id="de50725e" class="cell" data-execution_count="15">
+<div id="86d61977" class="cell" data-execution_count="15">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>bob[<span class="st">"temperature"</span>] <span class="op">=</span> np.random.rand(<span class="dv">8</span>)  <span class="co"># inferred as FLOAT</span></span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>db.store_named_attribute(bob.<span class="bu">object</span>, np.random.rand(<span class="dv">8</span>, <span class="dv">4</span>), <span class="st">"spin2"</span>, atype<span class="op">=</span><span class="st">"QUATERNION"</span>)</span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>db.store_named_attribute(</span>
@@ -672,10 +672,10 @@ AttributeArray 'paint' from Cube('Cube')(domain: POINT, shape: (4,), dtype: floa
 <section id="store-text" class="level2">
 <h2 class="anchored" data-anchor-id="store-text">Store text</h2>
 <p><code>db.string</code> stores text, with one string for each element:</p>
-<div id="c658777c" class="cell" data-execution_count="16">
+<div id="a0815e48" class="cell" data-execution_count="16">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>bob.point[<span class="st">"name"</span>] <span class="op">=</span> db.string([<span class="ss">f"point_</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(bob.point))])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_3946/1214724840.py:1: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
+<pre><code>/tmp/ipykernel_3743/1214724840.py:1: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
   bob.point["name"] = db.string([f"point_{i}" for i in range(len(bob.point))])</code></pre>
 </div>
 </div>
@@ -704,7 +704,7 @@ AttributeArray 'paint' from Cube('Cube')(domain: POINT, shape: (4,), dtype: floa
 </ul>
 <p>Wrapping data of the wrong shape in a typed array, such as <code>db.vec3(np.zeros(8))</code>, raises a <code>ValueError</code>.</p>
 <p>The following example triggers some of these errors:</p>
-<div id="4baf5b12" class="cell" data-execution_count="17">
+<div id="3c6fa988" class="cell" data-execution_count="17">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>obj <span class="op">=</span> bpy.data.objects[<span class="st">"Cube"</span>]</span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>bob <span class="op">=</span> db.BlenderObject(obj)</span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>

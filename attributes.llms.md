@@ -305,7 +305,7 @@ databpy never infers `FLOAT_COLOR` or `QUATERNION`, so use `db.color` and `db.qu
 bob.point["name"] = db.string([f"point_{i}" for i in range(len(bob.point))])
 ```
 
-    /tmp/ipykernel_3946/1214724840.py:1: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
+    /tmp/ipykernel_3743/1214724840.py:1: UserWarning: String attributes can be read and written through the Python API but are not yet properly supported within Geometry Nodes. Support may change in future Blender / databpy versions.
       bob.point["name"] = db.string([f"point_{i}" for i in range(len(bob.point))])
 
 > **WARNING:**

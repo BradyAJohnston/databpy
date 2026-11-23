@@ -80,7 +80,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-5a0171e344e1a467f4b1484338e11dd4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-ec78900b419f9913f61bce88659f5b27.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -209,7 +209,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="grease-pencil">Grease pencil</h2>
 <p>A grease pencil object has layers, and each layer has keyframes. Each keyframe has a drawing, which holds the points and strokes shown from that frame. The object itself only holds attributes on the <code>LAYER</code> domain, with one value for each layer.</p>
 <p><a href="./api/create_grease_pencil_object.html#databpy.create_grease_pencil_object"><code>create_grease_pencil_object()</code></a> creates a grease pencil object with one drawing for each layer, from the positions of each layer’s points and the number of points in each stroke:</p>
-<div id="2aaffbb6" class="cell" data-execution_count="1">
+<div id="3708bb17" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> databpy <span class="im">as</span> db</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bpy</span>
@@ -226,7 +226,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="store-values-on-each-layer" class="level3">
 <h3 class="anchored" data-anchor-id="store-values-on-each-layer">Store values on each layer</h3>
 <p><code>bob.layer</code> is the domain view of the <code>LAYER</code> domain. <code>bob.point</code> and <code>bob.curve</code> are empty on a grease pencil object, as its points and strokes are on its drawings:</p>
-<div id="bd87c28c" class="cell" data-execution_count="2">
+<div id="c6d0ec89" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>gp.layer[<span class="st">"weight"</span>] <span class="op">=</span> db.float32(np.array([<span class="fl">0.5</span>, <span class="fl">1.0</span>]))</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">len</span>(gp.layer), <span class="bu">len</span>(gp.point))</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>gp.layer[<span class="st">"weight"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -243,7 +243,7 @@ array([0.5, 1. ], dtype=float32)</code></pre>
 <section id="store-values-on-points-and-strokes" class="level3">
 <h3 class="anchored" data-anchor-id="store-values-on-points-and-strokes">Store values on points and strokes</h3>
 <p><code>bob.drawings</code> gives the drawing of each layer, by the layer’s name. A <a href="./api/Drawing.html#databpy.Drawing"><code>Drawing</code></a> has <code>point</code> and <code>curve</code> domain views, which work like those of an object and write changes back to Blender:</p>
-<div id="4f57db70" class="cell" data-execution_count="3">
+<div id="a95b4793" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>lines <span class="op">=</span> gp.drawings[<span class="st">"Lines"</span>]</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>lines.point[<span class="st">"radius"</span>] <span class="op">=</span> <span class="fl">0.02</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>lines.curve[<span class="st">"material_index"</span>] <span class="op">=</span> <span class="dv">1</span></span>
@@ -254,17 +254,17 @@ array([0.5, 1. ], dtype=float32)</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <pre><code>AttributeArray(name='position', object='GreasePencil', mesh='GreasePencil', domain=POINT, type=FLOAT_VECTOR, shape=(7, 3), dtype=float32)
-array([[0.35544395, 0.7372441 , 0.45278332],
-       [0.69306654, 0.23601848, 0.26666266],
-       [0.90294564, 0.79563546, 0.26428416],
-       [0.00517584, 0.27536398, 0.7687723 ],
-       [0.6152313 , 0.8189996 , 0.28556842],
-       [0.02557115, 0.4181356 , 0.3375445 ],
-       [0.7107125 , 0.93168247, 0.74950033]], dtype=float32)</code></pre>
+array([[0.02171194, 0.8996931 , 0.05696411],
+       [0.95113844, 0.46461773, 0.3679338 ],
+       [0.44788116, 0.46091697, 0.67438763],
+       [0.5939495 , 0.684268  , 0.47139627],
+       [0.21098803, 0.35678238, 0.57617986],
+       [0.3032536 , 0.77926266, 0.80189574],
+       [0.8425829 , 0.17567468, 0.16312881]], dtype=float32)</code></pre>
 </div>
 </div>
 <p><a href="./api/Drawings.html#databpy.Drawings"><code>Drawings</code></a> is a mapping, so you can loop over the layers:</p>
-<div id="3f570714" class="cell" data-execution_count="4">
+<div id="239e9ee5" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, drawing <span class="kw">in</span> gp.drawings.items():</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    drawing.point[<span class="st">"opacity"</span>] <span class="op">=</span> <span class="fl">0.5</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="bu">list</span>(gp.drawings)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -282,7 +282,7 @@ array([[0.35544395, 0.7372441 , 0.45278332],
 <section id="evaluated-geometry" class="level2">
 <h2 class="anchored" data-anchor-id="evaluated-geometry">Evaluated geometry</h2>
 <p>An object’s modifiers, such as Geometry Nodes, output evaluated geometry. Evaluated geometry can hold several components at once: a mesh, a point cloud, curves, grease pencil and instances. <a href="./api/GeometrySet.html#databpy.GeometrySet"><code>GeometrySet</code></a> evaluates an object and gives the attributes of each component:</p>
-<div id="94c8a85e" class="cell" data-execution_count="5">
+<div id="4c4e28d8" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>geom <span class="op">=</span> db.GeometrySet(bpy.data.objects[<span class="st">"Cube"</span>])</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">list</span>(geom.components()))</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>geom.list_attributes(drop_hidden<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -294,7 +294,7 @@ array([[0.35544395, 0.7372441 , 0.45278332],
 </div>
 </div>
 <p><a href="./api/GeometrySet.html#databpy.GeometrySet.named_attribute"><code>named_attribute()</code></a> reads an attribute from a component. Without a component, it reads the first component that has the attribute. Pass a typed array as <code>atype=</code> to check the type:</p>
-<div id="f1e84dbd" class="cell" data-execution_count="6">
+<div id="a860782c" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>geom.named_attribute(<span class="st">"position"</span>, component<span class="op">=</span><span class="st">"MESH"</span>, atype<span class="op">=</span>db.vec3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>AttributeArray(name='Unknown', object='Unknown', mesh='Unknown', domain=Unknown, type=Unknown, shape=(8, 3), dtype=float32)
